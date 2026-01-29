@@ -125,14 +125,15 @@ def fetch_gld_holdings() -> List[Tuple[datetime, Decimal]]:
     return parse_holdings_csv(csv_text)
 
 
-def fetch_fred_dfii10(api_key: str) -> List[Tuple[datetime, Decimal]]:
+def fetch_fred_dfii10(api_key: str, reference_date: datetime) -> List[Tuple[datetime, Decimal]]:
+    observation_start = (reference_date - timedelta(days=HISTORY_YEARS * 365 + 3 * 365)).date()
     url = (
         "https://api.stlouisfed.org/fred/series/observations"
         f"?series_id={FRED_SERIES_ID}"
         f"&api_key={api_key}"
         "&file_type=json"
         "&sort_order=asc"
-        "&limit=200"
+        f"&observation_start={observation_start.isoformat()}"
     )
     payload = fetch_url(url)
     data = json.loads(payload)
@@ -306,7 +307,7 @@ def main() -> int:
         now_utc_naive = now_utc.replace(tzinfo=None)
 
         gld_rows = fetch_gld_prices()
-        fred_rows = fetch_fred_dfii10(api_key)
+        fred_rows = fetch_fred_dfii10(api_key, now_utc_naive)
         holdings_rows = fetch_gld_holdings()
 
         gld_dates = [row[0] for row in gld_rows]
