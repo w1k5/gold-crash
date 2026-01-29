@@ -7,7 +7,7 @@ import csv
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import List, Tuple
 from urllib.error import URLError
@@ -21,6 +21,7 @@ GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_H
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
 TRADING_DAYS_1W = 5
+HISTORY_YEARS = 5
 
 
 @dataclass
@@ -160,6 +161,67 @@ def compute_max_drawdown(prices: List[Decimal]) -> Decimal:
     return max_drawdown
 
 
+def compute_percentile(value: Decimal, history: List[Decimal]) -> float | None:
+    if not history:
+        return None
+    sorted_history = sorted(history)
+    count = 0
+    for item in sorted_history:
+        if item <= value:
+            count += 1
+        else:
+            break
+    return (count / len(sorted_history)) * 100
+
+
+def percentile_history_cutoff(reference_date: datetime) -> datetime:
+    return reference_date - timedelta(days=HISTORY_YEARS * 365)
+
+
+def compute_return_series(
+    dates: List[datetime],
+    values: List[Decimal],
+    days_ago: int,
+    cutoff: datetime,
+) -> List[Decimal]:
+    history: List[Decimal] = []
+    for idx in range(days_ago, len(values)):
+        if dates[idx] < cutoff:
+            continue
+        history.append((values[idx] / values[idx - days_ago]) - Decimal("1"))
+    return history
+
+
+def compute_drawdown_series(
+    dates: List[datetime],
+    prices: List[Decimal],
+    window: int,
+    cutoff: datetime,
+) -> List[Decimal]:
+    history: List[Decimal] = []
+    for idx in range(window - 1, len(prices)):
+        if dates[idx] < cutoff:
+            continue
+        window_prices = prices[idx - window + 1 : idx + 1]
+        history.append(compute_max_drawdown(window_prices))
+    return history
+
+
+def compute_change_series(
+    dates: List[datetime],
+    values: List[Decimal],
+    days_ago: int,
+    cutoff: datetime,
+    multiplier: Decimal = Decimal("1"),
+) -> List[Decimal]:
+    history: List[Decimal] = []
+    for idx in range(days_ago, len(values)):
+        if dates[idx] < cutoff:
+            continue
+        history.append((values[idx] - values[idx - days_ago]) * multiplier)
+    return history
+
+
 def classify_flag(
     gld_ret_3m: Decimal,
     gld_max_drawdown_3m: Decimal,
@@ -207,30 +269,84 @@ def main() -> int:
         if not api_key:
             raise DataFetchError("FRED_API_KEY is not set")
 
+        now_utc = datetime.now(timezone.utc)
+        now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
+
         gld_rows = fetch_gld_prices()
         fred_rows = fetch_fred_dfii10(api_key)
         holdings_rows = fetch_gld_holdings()
 
+        gld_dates = [row[0] for row in gld_rows]
         gld_prices = [row[1] for row in gld_rows]
         gld_ret_1m = compute_return(gld_prices, TRADING_DAYS_1M)
         gld_ret_3m = compute_return(gld_prices, TRADING_DAYS_3M)
         gld_window = gld_prices[-TRADING_DAYS_3M:]
         gld_max_drawdown_3m = compute_max_drawdown(gld_window)
 
+        fred_dates = [row[0] for row in fred_rows]
         fred_values = [row[1] for row in fred_rows]
         real_yield_today = fred_values[-1]
         real_yield_change_1m_bp = (real_yield_today - fred_values[-(TRADING_DAYS_1M + 1)]) * Decimal("100")
         real_yield_change_3m_bp = (real_yield_today - fred_values[-(TRADING_DAYS_3M + 1)]) * Decimal("100")
 
+        holdings_dates = [row[0] for row in holdings_rows]
         holdings_values = [row[1] for row in holdings_rows]
         gld_holdings_today = holdings_values[-1]
         gld_holdings_change_5d_pct = compute_return(holdings_values, TRADING_DAYS_1W)
         gld_holdings_change_21d_pct = compute_return(holdings_values, TRADING_DAYS_1M)
 
-        flag = classify_flag(gld_ret_3m, gld_max_drawdown_3m, real_yield_change_1m_bp)
+        cutoff_date = percentile_history_cutoff(now_utc)
+        gld_ret_1m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_1M, cutoff_date)
+        gld_ret_3m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
+        gld_drawdown_history = compute_drawdown_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
+        real_yield_change_1m_history = compute_change_series(
+            fred_dates,
+            fred_values,
+            TRADING_DAYS_1M,
+            cutoff_date,
+            Decimal("100"),
+        )
+        real_yield_change_3m_history = compute_change_series(
+            fred_dates,
+            fred_values,
+            TRADING_DAYS_3M,
+            cutoff_date,
+            Decimal("100"),
+        )
+        holdings_change_5d_history = compute_return_series(
+            holdings_dates,
+            holdings_values,
+            TRADING_DAYS_1W,
+            cutoff_date,
+        )
+        holdings_change_21d_history = compute_return_series(
+            holdings_dates,
+            holdings_values,
+            TRADING_DAYS_1M,
+            cutoff_date,
+        )
 
-        now_utc = datetime.now(timezone.utc)
-        now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
+        gld_ret_1m_pctile_5y = compute_percentile(gld_ret_1m, gld_ret_1m_history)
+        gld_ret_3m_pctile_5y = compute_percentile(gld_ret_3m, gld_ret_3m_history)
+        gld_drawdown_pctile_5y = compute_percentile(gld_max_drawdown_3m, gld_drawdown_history)
+        real_yield_change_1m_pctile_5y = compute_percentile(
+            real_yield_change_1m_bp,
+            real_yield_change_1m_history,
+        )
+        real_yield_change_3m_pctile_5y = compute_percentile(
+            real_yield_change_3m_bp,
+            real_yield_change_3m_history,
+        )
+        holdings_change_5d_pctile_5y = compute_percentile(
+            gld_holdings_change_5d_pct,
+            holdings_change_5d_history,
+        )
+        holdings_change_21d_pctile_5y = compute_percentile(
+            gld_holdings_change_21d_pct,
+            holdings_change_21d_history,
+        )
+
+        flag = classify_flag(gld_ret_3m, gld_max_drawdown_3m, real_yield_change_1m_bp)
 
         repository = None
         repo_env = os.environ.get("GITHUB_REPOSITORY")
@@ -251,12 +367,19 @@ def main() -> int:
                 "gld_holdings_today": float(gld_holdings_today),
                 "gld_holdings_change_5d_pct": float(gld_holdings_change_5d_pct),
                 "gld_holdings_change_21d_pct": float(gld_holdings_change_21d_pct),
+                "gld_holdings_change_5d_pct_pctile_5y": gld_holdings_change_5d_pctile_5y,
+                "gld_holdings_change_21d_pct_pctile_5y": gld_holdings_change_21d_pctile_5y,
                 "gld_ret_1m": float(gld_ret_1m),
                 "gld_ret_3m": float(gld_ret_3m),
                 "gld_max_drawdown_3m": float(gld_max_drawdown_3m),
+                "gld_ret_1m_pctile_5y": gld_ret_1m_pctile_5y,
+                "gld_ret_3m_pctile_5y": gld_ret_3m_pctile_5y,
+                "gld_max_drawdown_3m_pctile_5y": gld_drawdown_pctile_5y,
                 "real_yield_today": float(real_yield_today),
                 "real_yield_change_1m_bp": float(real_yield_change_1m_bp),
                 "real_yield_change_3m_bp": float(real_yield_change_3m_bp),
+                "real_yield_change_1m_bp_pctile_5y": real_yield_change_1m_pctile_5y,
+                "real_yield_change_3m_bp_pctile_5y": real_yield_change_3m_pctile_5y,
             },
             "flag": flag,
             "rules": {

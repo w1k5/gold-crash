@@ -26,6 +26,7 @@ Metrics:
 - `gld_holdings_today = latest GLD holdings in tonnes`
 - `gld_holdings_change_5d_pct = (holdings_today / holdings_5d_ago) - 1`
 - `gld_holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
+- `*_pctile_5y = 5-year percentile for the corresponding metric`
 
 Flags:
 - **RED** if `(gld_ret_3m <= -0.15) OR (gld_max_drawdown_3m <= -0.18) OR (real_yield_change_1m_bp >= 50)`

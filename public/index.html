@@ -170,27 +170,17 @@
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
 
-    const contextTag = (text) => `<span class="context">${text}</span>`;
-    const classifyReturn = (value, yellowThreshold, redThreshold) => {
-      if (value == null) return '';
-      if (value <= redThreshold) return 'Historically rare drawdown range.';
-      if (value <= yellowThreshold) return 'Below-average period vs 5-year history.';
-      return 'Within normal range vs 5-year history.';
+    const contextTag = (text) => (text ? `<span class="context">${text}</span>` : '');
+    const formatOrdinal = (value) => {
+      const rounded = Math.round(value);
+      const mod10 = rounded % 10;
+      const mod100 = rounded % 100;
+      if (mod10 === 1 && mod100 !== 11) return `${rounded}st`;
+      if (mod10 === 2 && mod100 !== 12) return `${rounded}nd`;
+      if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
+      return `${rounded}th`;
     };
-
-    const classifyYieldChange = (value, yellowThreshold, redThreshold) => {
-      if (value == null) return '';
-      if (value >= redThreshold) return 'Large rate shock vs 5-year history.';
-      if (value >= yellowThreshold) return 'Elevated move vs 5-year history.';
-      return 'Normal move vs 5-year history.';
-    };
-
-    const classifyHoldingsChange = (value, warningThreshold, redThreshold) => {
-      if (value == null) return '';
-      if (value <= redThreshold) return 'Sharp outflows; capitulation risk.';
-      if (value <= warningThreshold) return 'Outflows building; watch for confirmation.';
-      return 'Stable to rising holdings.';
-    };
+    const percentileText = (value) => (value == null ? '' : `${formatOrdinal(value)} percentile (5y)`);
 
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
@@ -202,13 +192,13 @@
         timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
 
         const metrics = data.metrics || {};
-        const gldRet1mContext = classifyReturn(metrics.gld_ret_1m, -0.04, -0.1);
-        const gldRet3mContext = classifyReturn(metrics.gld_ret_3m, -0.08, -0.15);
-        const gldDrawdownContext = classifyReturn(metrics.gld_max_drawdown_3m, -0.12, -0.18);
-        const yieldChange1mContext = classifyYieldChange(metrics.real_yield_change_1m_bp, 25, 50);
-        const yieldChange3mContext = classifyYieldChange(metrics.real_yield_change_3m_bp, 35, 65);
-        const holdingsChange5dContext = classifyHoldingsChange(metrics.gld_holdings_change_5d_pct, -0.01, -0.02);
-        const holdingsChange21dContext = classifyHoldingsChange(metrics.gld_holdings_change_21d_pct, -0.02, -0.03);
+        const gldRet1mContext = percentileText(metrics.gld_ret_1m_pctile_5y);
+        const gldRet3mContext = percentileText(metrics.gld_ret_3m_pctile_5y);
+        const gldDrawdownContext = percentileText(metrics.gld_max_drawdown_3m_pctile_5y);
+        const yieldChange1mContext = percentileText(metrics.real_yield_change_1m_bp_pctile_5y);
+        const yieldChange3mContext = percentileText(metrics.real_yield_change_3m_bp_pctile_5y);
+        const holdingsChange5dContext = percentileText(metrics.gld_holdings_change_5d_pct_pctile_5y);
+        const holdingsChange21dContext = percentileText(metrics.gld_holdings_change_21d_pct_pctile_5y);
 
         metricsEl.innerHTML = `
           <tr>
@@ -217,15 +207,15 @@
           </tr>
           <tr>
             <td>GLD 1M return</td>
-            <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext || 'Short-term noise; compare to recent 5-year swings.')}</td>
+            <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext)}</td>
           </tr>
           <tr>
             <td>GLD 3M return</td>
-            <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext || 'Primary momentum signal vs 5-year history.')}</td>
+            <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext)}</td>
           </tr>
           <tr>
             <td>GLD 3M max drawdown</td>
-            <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext || 'Drawdown context vs 5-year history.')}</td>
+            <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext)}</td>
           </tr>
           <tr>
             <td>DFII10 level</td>
@@ -233,11 +223,11 @@
           </tr>
           <tr>
             <td>DFII10 1M change</td>
-            <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext || 'Rate shock gauge vs 5-year history.')}</td>
+            <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext)}</td>
           </tr>
           <tr>
             <td>DFII10 3M change</td>
-            <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext || 'Medium-term rate trend vs 5-year history.')}</td>
+            <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext)}</td>
           </tr>
           <tr>
             <td>GLD holdings (tonnes)</td>
@@ -245,11 +235,11 @@
           </tr>
           <tr>
             <td>GLD holdings 5D change</td>
-            <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext || 'Weekly flow pulse; look for rapid outflows.')}</td>
+            <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext)}</td>
           </tr>
           <tr>
             <td>GLD holdings 21D change</td>
-            <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext || 'Monthly flow trend; confirms sustained exits.')}</td>
+            <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext)}</td>
           </tr>
         `;
 
