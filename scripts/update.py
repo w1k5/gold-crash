@@ -170,6 +170,11 @@ def main() -> int:
         now_utc = datetime.now(timezone.utc)
         now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
 
+        repository = None
+        repo_env = os.environ.get("GITHUB_REPOSITORY")
+        if repo_env:
+            repository = f"https://github.com/{repo_env}"
+
         data = {
             "updated_utc": now_utc.isoformat().replace("+00:00", "Z"),
             "updated_et": now_et.isoformat(),
@@ -177,6 +182,7 @@ def main() -> int:
                 "gld_prices": GLD_STOOQ_URL,
                 "dfii10": "https://fred.stlouisfed.org/series/DFII10",
             },
+            "repository": repository,
             "metrics": {
                 "gld_price": float(gld_prices[-1]),
                 "gld_ret_1m": float(gld_ret_1m),

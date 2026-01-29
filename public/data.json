@@ -5,6 +5,7 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "dfii10": "https://fred.stlouisfed.org/series/DFII10"
   },
+  "repository": "https://github.com/<OWNER>/<REPO>",
   "metrics": {
     "gld_price": null,
     "gld_ret_1m": null,
