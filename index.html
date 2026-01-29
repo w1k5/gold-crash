@@ -80,6 +80,16 @@
       font-size: 14px;
       color: var(--muted);
     }
+    .header-note {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .section-explainer {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
     .section {
       margin-top: 28px;
     }
@@ -238,18 +248,21 @@
   <main>
     <header>
       <h1>Gold Risk Monitor</h1>
+      <p class="header-note">This monitor is designed to describe market regimes and transitions, not to forecast specific price levels or timing.</p>
       <div class="status-row">
         <div id="status" class="badge">Loading...</div>
         <div id="statusSummary" class="status-summary">Loading status summary...</div>
       </div>
-      <div class="status-explainer">This page summarizes <strong>price extension</strong>, <strong>flows</strong>, and <strong>real yields</strong> into a market regime label.</div>
+      <div class="status-explainer">The status label summarizes multiple indicators into a single market regime. It reflects whether conditions look typical, extended, or show signs of stress based on price behavior, investor flows, and macro conditions. The label is designed to describe the current environment rather than predict exact timing.</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
       <div class="meta" id="confidence">Data coverage: checking...</div>
+      <div class="meta">Percentiles compare current values with historical distributions to provide context rather than absolute judgments. Coverage notes indicate whether comparisons are based on a full five-year window or a shorter available history, helping calibrate confidence in the percentile labels.</div>
       <div class="meta">Status describes market regime only; it does not imply actions.</div>
     </header>
 
     <section class="section">
       <h2>At a glance</h2>
+      <p class="section-explainer">This section highlights the small set of indicators that most often explain the current regime. Together, they show how stretched price is relative to trend, how recent momentum looks, whether investor demand is supportive, and whether macro conditions are acting as a headwind or tailwind.</p>
       <div class="card-grid" id="glanceCards">
         <div class="metric-card">Loading key metrics...</div>
       </div>
@@ -257,6 +270,7 @@
 
     <section class="section">
       <h2>Regime drivers</h2>
+      <p class="section-explainer">Regime drivers list the specific signals responsible for the current status. These are the conditions that crossed defined thresholds and explain why the monitor classifies the market the way it does today. This is intended to make the classification transparent rather than opaque.</p>
       <div class="section-card">
         <div class="meta" id="reasonLead">Loading regime drivers...</div>
         <ul id="reasons">
@@ -267,6 +281,7 @@
 
     <section class="section">
       <h2>What would change the color</h2>
+      <p class="section-explainer">This section documents the definitions behind regime transitions. It shows the conditions that would cause the status to move from one regime to another, making the framework explicit and repeatable rather than subjective.</p>
       <div class="section-card" id="escalation">
         <p>Loading escalation conditions...</p>
       </div>
@@ -274,6 +289,7 @@
 
     <section class="section">
       <h2>Horizon Snapshot</h2>
+      <p class="section-explainer">The horizon snapshot shows returns and drawdowns across multiple time frames to provide context on how broad or narrow recent strength has been. Comparing short-term and longer-term horizons helps distinguish isolated momentum from more persistent trends, as well as whether drawdowns are shallow or deepening.</p>
       <details id="horizonDetails">
         <summary id="horizonSummary">Horizon snapshot loading...</summary>
         <table>
@@ -297,6 +313,7 @@
 
     <section class="section">
       <h2>Extension</h2>
+      <p class="section-explainer">Extension measures how far price has moved relative to its longer-term trend. It provides context on whether recent gains are close to historical norms or unusually stretched compared with prior periods.</p>
       <table>
         <thead>
           <tr>
@@ -313,6 +330,7 @@
 
     <section class="section">
       <h2>Flow (short-term)</h2>
+      <p class="section-explainer">Flow metrics track changes in GLD holdings as a proxy for investor demand. They help distinguish between price moves that are broadly supported by inflows and those that occur alongside weakening participation.</p>
       <table>
         <thead>
           <tr>
@@ -329,6 +347,7 @@
 
     <section class="section">
       <h2>Macro (short-term)</h2>
+      <p class="section-explainer">Macro metrics focus on changes in real yields, which historically influence gold pricing. Rapid shifts in real yields can coincide with repricing across gold and related assets, making them useful for contextualizing price action.</p>
       <table>
         <thead>
           <tr>
