@@ -39,6 +39,7 @@ A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/I
 
 - Percentiles use a rolling 5-year context window when possible.
 - If a 5-year window is insufficient (e.g., for 5Y horizon metrics), the percentile is computed on available history and flagged with a note, or set to `null` with an explanation.
+- Each percentile includes its basis (`5y` or `available`) and the sample count (`n`) to show how much history backed the calculation.
 
 ### Regime rules (one state; primary horizon = 3M)
 

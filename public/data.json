@@ -22,14 +22,20 @@
     "pct_above_200dma": null,
     "pct_above_200dma_pctile_5y": null,
     "pct_above_200dma_pctile_5y_explain": "insufficient history",
+    "pct_above_200dma_pctile_basis": "none",
+    "pct_above_200dma_pctile_n": 0,
     "flows": {
       "holdings_today_tonnes": null,
       "holdings_change_5d_pct": null,
       "holdings_change_21d_pct": null,
       "holdings_change_5d_pct_pctile_5y": null,
       "holdings_change_5d_pct_pctile_5y_explain": "insufficient history",
+      "holdings_change_5d_pctile_basis": "none",
+      "holdings_change_5d_pctile_n": 0,
       "holdings_change_21d_pct_pctile_5y": null,
-      "holdings_change_21d_pct_pctile_5y_explain": "insufficient history"
+      "holdings_change_21d_pct_pctile_5y_explain": "insufficient history",
+      "holdings_change_21d_pctile_basis": "none",
+      "holdings_change_21d_pctile_n": 0
     },
     "macro": {
       "real_yield_today": null,
@@ -37,8 +43,12 @@
       "real_yield_change_3m_bp": null,
       "real_yield_change_1m_bp_pctile_5y": null,
       "real_yield_change_1m_bp_pctile_5y_explain": "insufficient history",
+      "real_yield_change_1m_bp_pctile_basis": "none",
+      "real_yield_change_1m_bp_pctile_n": 0,
       "real_yield_change_3m_bp_pctile_5y": null,
-      "real_yield_change_3m_bp_pctile_5y_explain": "insufficient history"
+      "real_yield_change_3m_bp_pctile_5y_explain": "insufficient history",
+      "real_yield_change_3m_bp_pctile_basis": "none",
+      "real_yield_change_3m_bp_pctile_n": 0
     },
     "horizons": {
       "3M": {
@@ -47,9 +57,13 @@
         "ret": null,
         "ret_pctile_5y": null,
         "ret_pctile_5y_explain": "insufficient history",
+        "ret_pctile_basis": "none",
+        "ret_pctile_n": 0,
         "max_drawdown": null,
         "max_drawdown_pctile_5y": null,
-        "max_drawdown_pctile_5y_explain": "insufficient history"
+        "max_drawdown_pctile_5y_explain": "insufficient history",
+        "max_drawdown_pctile_basis": "none",
+        "max_drawdown_pctile_n": 0
       },
       "6M": {
         "days": 126,
@@ -57,9 +71,13 @@
         "ret": null,
         "ret_pctile_5y": null,
         "ret_pctile_5y_explain": "insufficient history",
+        "ret_pctile_basis": "none",
+        "ret_pctile_n": 0,
         "max_drawdown": null,
         "max_drawdown_pctile_5y": null,
-        "max_drawdown_pctile_5y_explain": "insufficient history"
+        "max_drawdown_pctile_5y_explain": "insufficient history",
+        "max_drawdown_pctile_basis": "none",
+        "max_drawdown_pctile_n": 0
       },
       "1Y": {
         "days": 252,
@@ -67,9 +85,13 @@
         "ret": null,
         "ret_pctile_5y": null,
         "ret_pctile_5y_explain": "insufficient history",
+        "ret_pctile_basis": "none",
+        "ret_pctile_n": 0,
         "max_drawdown": null,
         "max_drawdown_pctile_5y": null,
-        "max_drawdown_pctile_5y_explain": "insufficient history"
+        "max_drawdown_pctile_5y_explain": "insufficient history",
+        "max_drawdown_pctile_basis": "none",
+        "max_drawdown_pctile_n": 0
       },
       "3Y": {
         "days": 756,
@@ -77,9 +99,13 @@
         "ret": null,
         "ret_pctile_5y": null,
         "ret_pctile_5y_explain": "insufficient history",
+        "ret_pctile_basis": "none",
+        "ret_pctile_n": 0,
         "max_drawdown": null,
         "max_drawdown_pctile_5y": null,
-        "max_drawdown_pctile_5y_explain": "insufficient history"
+        "max_drawdown_pctile_5y_explain": "insufficient history",
+        "max_drawdown_pctile_basis": "none",
+        "max_drawdown_pctile_n": 0
       },
       "5Y": {
         "days": 1260,
@@ -87,9 +113,13 @@
         "ret": null,
         "ret_pctile_5y": null,
         "ret_pctile_5y_explain": "insufficient history",
+        "ret_pctile_basis": "none",
+        "ret_pctile_n": 0,
         "max_drawdown": null,
         "max_drawdown_pctile_5y": null,
-        "max_drawdown_pctile_5y_explain": "insufficient history"
+        "max_drawdown_pctile_5y_explain": "insufficient history",
+        "max_drawdown_pctile_basis": "none",
+        "max_drawdown_pctile_n": 0
       }
     }
   },

@@ -237,11 +237,18 @@
       if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
       return `${rounded}th`;
     };
-    const percentileText = (value, explain) => {
+    const percentileLabel = (basis, count) => {
+      if (!basis || basis === 'none') return 'N/A';
+      const label = basis === 'available' ? 'available history' : '5y window';
+      const suffix = typeof count === 'number' ? ` (n=${count})` : '';
+      return `${label}${suffix}`;
+    };
+    const percentileText = (value, explain, basis, count) => {
       if (value == null) {
         return `N/A${contextTag(explain || 'insufficient history')}`;
       }
-      return `${formatOrdinal(value)} percentile${contextTag(explain ? `Note: ${explain}` : '5y window')}`;
+      const basisLabel = percentileLabel(basis, count);
+      return `${formatOrdinal(value)} percentile${contextTag(explain ? `Note: ${explain}` : basisLabel)}`;
     };
     const valueOrNA = (value, formatter, explain) => {
       if (value == null) {
@@ -277,13 +284,23 @@
             ? formatPercent(horizon.ret)
             : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
           const returnPctCell = available
-            ? percentileText(horizon.ret_pctile_5y, horizon.ret_pctile_5y_explain)
+            ? percentileText(
+              horizon.ret_pctile_5y,
+              horizon.ret_pctile_5y_explain,
+              horizon.ret_pctile_basis,
+              horizon.ret_pctile_n
+            )
             : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
           const drawdownCell = available
             ? formatPercent(horizon.max_drawdown)
             : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
           const drawdownPctCell = available
-            ? percentileText(horizon.max_drawdown_pctile_5y, horizon.max_drawdown_pctile_5y_explain)
+            ? percentileText(
+              horizon.max_drawdown_pctile_5y,
+              horizon.max_drawdown_pctile_5y_explain,
+              horizon.max_drawdown_pctile_basis,
+              horizon.max_drawdown_pctile_n
+            )
             : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
           const labelNote = (data.notes && data.notes.percentile_notes && data.notes.percentile_notes[label])
             ? contextTag(data.notes.percentile_notes[label])
@@ -311,7 +328,12 @@
           <tr>
             <td>GLD % above 200DMA</td>
             <td>${valueOrNA(metrics.pct_above_200dma, formatPercent)}</td>
-            <td>${percentileText(metrics.pct_above_200dma_pctile_5y, metrics.pct_above_200dma_pctile_5y_explain)}</td>
+            <td>${percentileText(
+              metrics.pct_above_200dma_pctile_5y,
+              metrics.pct_above_200dma_pctile_5y_explain,
+              metrics.pct_above_200dma_pctile_basis,
+              metrics.pct_above_200dma_pctile_n
+            )}</td>
           </tr>
         `;
 
@@ -325,12 +347,22 @@
           <tr>
             <td>Holdings change (5D)</td>
             <td>${valueOrNA(flows.holdings_change_5d_pct, formatPercent)}</td>
-            <td>${percentileText(flows.holdings_change_5d_pct_pctile_5y, flows.holdings_change_5d_pct_pctile_5y_explain)}</td>
+            <td>${percentileText(
+              flows.holdings_change_5d_pct_pctile_5y,
+              flows.holdings_change_5d_pct_pctile_5y_explain,
+              flows.holdings_change_5d_pctile_basis,
+              flows.holdings_change_5d_pctile_n
+            )}</td>
           </tr>
           <tr>
             <td>Holdings change (21D)</td>
             <td>${valueOrNA(flows.holdings_change_21d_pct, formatPercent)}</td>
-            <td>${percentileText(flows.holdings_change_21d_pct_pctile_5y, flows.holdings_change_21d_pct_pctile_5y_explain)}</td>
+            <td>${percentileText(
+              flows.holdings_change_21d_pct_pctile_5y,
+              flows.holdings_change_21d_pct_pctile_5y_explain,
+              flows.holdings_change_21d_pctile_basis,
+              flows.holdings_change_21d_pctile_n
+            )}</td>
           </tr>
         `;
 
@@ -344,12 +376,22 @@
           <tr>
             <td>Real yield change (1M)</td>
             <td>${valueOrNA(macro.real_yield_change_1m_bp, formatBp)}</td>
-            <td>${percentileText(macro.real_yield_change_1m_bp_pctile_5y, macro.real_yield_change_1m_bp_pctile_5y_explain)}</td>
+            <td>${percentileText(
+              macro.real_yield_change_1m_bp_pctile_5y,
+              macro.real_yield_change_1m_bp_pctile_5y_explain,
+              macro.real_yield_change_1m_bp_pctile_basis,
+              macro.real_yield_change_1m_bp_pctile_n
+            )}</td>
           </tr>
           <tr>
             <td>Real yield change (3M)</td>
             <td>${valueOrNA(macro.real_yield_change_3m_bp, formatBp)}</td>
-            <td>${percentileText(macro.real_yield_change_3m_bp_pctile_5y, macro.real_yield_change_3m_bp_pctile_5y_explain)}</td>
+            <td>${percentileText(
+              macro.real_yield_change_3m_bp_pctile_5y,
+              macro.real_yield_change_3m_bp_pctile_5y_explain,
+              macro.real_yield_change_3m_bp_pctile_basis,
+              macro.real_yield_change_3m_bp_pctile_n
+            )}</td>
           </tr>
         `;
 
