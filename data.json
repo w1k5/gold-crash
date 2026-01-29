@@ -3,6 +3,9 @@
   "metrics": {
     "gld_max_drawdown_3m": -0.04902337188654797,
     "gld_price": 494.56,
+    "gld_holdings_change_21d_pct": -0.023,
+    "gld_holdings_change_5d_pct": -0.012,
+    "gld_holdings_today": 920.5,
     "gld_ret_1m": 0.18673513461630753,
     "gld_ret_3m": 0.34753821421759623,
     "real_yield_change_1m_bp": -3.0,
