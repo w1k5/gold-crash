@@ -52,7 +52,7 @@ jobs:
               f"{issue_body}\n"
               "EOF\n"
           )
-PY
+          PY
 
       - name: Create or update issue
         id: issue
@@ -100,7 +100,7 @@ PY
 
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
               handle.write(f"issue_url={issue_url}\n")
-PY
+          PY
 
       - name: Attach latest issue URL to data.json
         if: steps.status.outputs.fetch_ok == 'true' && steps.issue.outputs.issue_url != ''
@@ -116,7 +116,7 @@ PY
           data = json.loads(path.read_text())
           data['latest_issue_url'] = '${{ steps.issue.outputs.issue_url }}'
           path.write_text(json.dumps(data, indent=2, sort_keys=True) + '\n')
-PY
+          PY
 
       - name: Commit updated dashboard
         if: steps.status.outputs.fetch_ok == 'true'
