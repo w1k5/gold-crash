@@ -268,19 +268,22 @@
       main {
         overflow-x: hidden;
       }
-      table {
-        min-width: 600px;
-        display: block;
+      .status-row {
+        align-items: stretch;
+      }
+      #status {
+        width: auto;
+        align-self: stretch;
+        justify-content: center;
+      }
+      .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         width: 100%;
       }
-      thead, tbody {
-        display: table;
+      .table-container table {
+        min-width: 600px;
         width: 100%;
-      }
-      tr {
-        display: table-row;
       }
       th, td {
         display: table-cell;
@@ -360,73 +363,81 @@
       <h2>Horizon Snapshot</h2>
       <p class="section-explainer">The horizon snapshot shows returns and drawdowns across multiple time frames to provide context on how broad or narrow recent strength has been. Comparing short-term and longer-term horizons helps distinguish isolated momentum from more persistent trends, as well as whether drawdowns are shallow or deepening.</p>
       <p class="section-explainer" id="horizonSummary">Horizon snapshot loading...</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Horizon</th>
-            <th class="num">Return</th>
-            <th class="num">Return Percentile</th>
-            <th class="num">Max Drawdown</th>
-            <th class="num">Drawdown Percentile</th>
-            <th>Context</th>
-          </tr>
-        </thead>
-        <tbody id="horizonRows">
-          <tr><td colspan="6">Loading horizon metrics...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">Return</th>
+              <th class="num">Return Percentile</th>
+              <th class="num">Max Drawdown</th>
+              <th class="num">Drawdown Percentile</th>
+              <th>Context</th>
+            </tr>
+          </thead>
+          <tbody id="horizonRows">
+            <tr><td colspan="6">Loading horizon metrics...</td></tr>
+          </tbody>
+        </table>
+      </div>
       <div class="note" id="percentileNotes"></div>
     </section>
 
     <section class="section">
       <h2>Extension</h2>
       <p class="section-explainer">Extension measures how far price has moved relative to its longer-term trend. It provides context on whether recent gains are close to historical norms or unusually stretched compared with prior periods.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th class="num">Value</th>
-            <th class="num">Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="extensionRows">
-          <tr><td colspan="3">Loading extension data...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+              <th class="num">Percentile</th>
+            </tr>
+          </thead>
+          <tbody id="extensionRows">
+            <tr><td colspan="3">Loading extension data...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section">
       <h2>Flow (short-term)</h2>
       <p class="section-explainer">Flow metrics track changes in GLD holdings as a proxy for investor demand. They help distinguish between price moves that are broadly supported by inflows and those that occur alongside weakening participation.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th class="num">Value</th>
-            <th class="num">Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="flowRows">
-          <tr><td colspan="3">Loading flow data...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+              <th class="num">Percentile</th>
+            </tr>
+          </thead>
+          <tbody id="flowRows">
+            <tr><td colspan="3">Loading flow data...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section">
       <h2>Macro (short-term)</h2>
       <p class="section-explainer">Macro metrics focus on changes in real yields, which historically influence gold pricing. Rapid shifts in real yields can coincide with repricing across gold and related assets, making them useful for contextualizing price action.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th class="num">Value</th>
-            <th class="num">Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="macroRows">
-          <tr><td colspan="3">Loading macro data...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+              <th class="num">Percentile</th>
+            </tr>
+          </thead>
+          <tbody id="macroRows">
+            <tr><td colspan="3">Loading macro data...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section">
@@ -768,33 +779,34 @@
         const priceNow = horizons['3M']?.ret;
         const drawdownNow = horizons['3M']?.max_drawdown;
         escalationEl.innerHTML = `
-
-          <table>
-            <thead>
-              <tr>
-                <th>Trigger</th>
-                <th class="num">Threshold</th>
-                <th class="num">Current</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Flow divergence (ORANGE)</td>
-                <td class="num">Holdings 21D ≤ ${formatPercent(flowThreshold)}</td>
-                <td class="num">${flowNow == null ? 'N/A' : formatPercent(flowNow)}</td>
-              </tr>
-              <tr>
-                <td>Macro turn (ORANGE)</td>
-                <td class="num">Real yield 1M ≥ ${formatBp(macroThreshold)}</td>
-                <td class="num">${macroNow == null ? 'N/A' : formatBp(macroNow)}</td>
-              </tr>
-              <tr>
-                <td>Price crack (ORANGE)</td>
-                <td class="num">3M return ≤ ${formatPercent(priceCrackThresholdReturn)} or drawdown ≤ ${formatPercent(priceCrackThresholdDrawdown)}</td>
-                <td class="num">${priceNow == null ? 'N/A' : formatPercent(priceNow)} / ${drawdownNow == null ? 'N/A' : formatPercent(drawdownNow)}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Trigger</th>
+                  <th class="num">Threshold</th>
+                  <th class="num">Current</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Flow divergence (ORANGE)</td>
+                  <td class="num">Holdings 21D ≤ ${formatPercent(flowThreshold)}</td>
+                  <td class="num">${flowNow == null ? 'N/A' : formatPercent(flowNow)}</td>
+                </tr>
+                <tr>
+                  <td>Macro turn (ORANGE)</td>
+                  <td class="num">Real yield 1M ≥ ${formatBp(macroThreshold)}</td>
+                  <td class="num">${macroNow == null ? 'N/A' : formatBp(macroNow)}</td>
+                </tr>
+                <tr>
+                  <td>Price crack (ORANGE)</td>
+                  <td class="num">3M return ≤ ${formatPercent(priceCrackThresholdReturn)} or drawdown ≤ ${formatPercent(priceCrackThresholdDrawdown)}</td>
+                  <td class="num">${priceNow == null ? 'N/A' : formatPercent(priceNow)} / ${drawdownNow == null ? 'N/A' : formatPercent(drawdownNow)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         `;
 
         const shortTermContext = percentileContext(horizons['3M']?.ret_pctile_5y);
