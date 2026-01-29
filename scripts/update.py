@@ -406,7 +406,7 @@ def main() -> int:
                 "gld_holdings_today": float(gld_holdings_today),
                 "gld_holdings_change_5d_pct": float(gld_holdings_change_5d_pct),
                 "gld_holdings_change_21d_pct": float(gld_holdings_change_21d_pct),
-                "gld_holdings_change_5d_pct_pctile_5y": gld_holdings_change_5d_pctile_5y,
+                "gld_holdings_change_5d_pct_pctile_5y": holdings_change_5d_pctile_5y,
                 "gld_holdings_change_21d_pct_pctile_5y": gld_holdings_change_21d_pctile_5y,
                 "gld_ret_1m": float(gld_ret_1m),
                 "gld_ret_3m": float(gld_ret_3m),
