@@ -29,27 +29,26 @@ jobs:
           python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
 
       - name: Read status
-        id: status
         run: |
           python scripts/workflow_status.py
 
       - name: Create or update issue
         id: issue
-        if: steps.status.outputs.issue_needed == 'true'
+        if: env.ISSUE_NEEDED == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_TITLE: ${{ steps.status.outputs.issue_title }}
-          ISSUE_BODY: ${{ steps.status.outputs.issue_body }}
+          ISSUE_TITLE: ${{ env.ISSUE_TITLE }}
+          ISSUE_BODY: ${{ env.ISSUE_BODY }}
         run: |
           python scripts/workflow_issue.py
 
       - name: Attach latest issue URL to data.json
-        if: steps.status.outputs.fetch_ok == 'true' && steps.issue.outputs.issue_url != ''
+        if: env.FETCH_OK == 'true' && env.ISSUE_URL != ''
         run: |
-          ISSUE_URL="${{ steps.issue.outputs.issue_url }}" python scripts/workflow_attach_issue.py
+          ISSUE_URL="${{ env.ISSUE_URL }}" python scripts/workflow_attach_issue.py
 
       - name: Commit updated dashboard
-        if: steps.status.outputs.fetch_ok == 'true'
+        if: env.FETCH_OK == 'true'
         run: |
           if git status --porcelain data.json | grep -q .; then
             git config user.name "github-actions[bot]"

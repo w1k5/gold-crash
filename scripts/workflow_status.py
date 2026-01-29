@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 
@@ -15,11 +16,17 @@ def main() -> int:
     issue_body = status.get("issue_body") or ""
     issue_needed = "true" if issue_title and issue_body else "false"
 
-    print(f"::set-output name=fetch_ok::{fetch_ok}")
-    print(f"::set-output name=flag::{flag}")
-    print(f"::set-output name=issue_needed::{issue_needed}")
-    print(f"::set-output name=issue_title::{issue_title}")
-    print(f"::set-output name=issue_body::{issue_body}")
+    env_file = os.environ.get("GITHUB_ENV", "").strip()
+    if not env_file:
+        raise RuntimeError("GITHUB_ENV is not set")
+
+    env_path = Path(env_file)
+    with env_path.open("a", encoding="utf-8") as handle:
+        handle.write(f"FETCH_OK={fetch_ok}\n")
+        handle.write(f"FLAG={flag}\n")
+        handle.write(f"ISSUE_NEEDED={issue_needed}\n")
+        handle.write(f"ISSUE_TITLE={issue_title}\n")
+        handle.write(f"ISSUE_BODY={issue_body}\n")
     return 0
 
 

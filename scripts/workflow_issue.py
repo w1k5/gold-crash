@@ -40,7 +40,12 @@ def main() -> int:
         created = request(f"https://api.github.com/repos/{repo}/issues", method="POST", payload=payload, headers=headers)
         issue_url = created.get("html_url", "")
 
-    print(f"::set-output name=issue_url::{issue_url}")
+    env_file = os.environ.get("GITHUB_ENV", "").strip()
+    if not env_file:
+        raise RuntimeError("GITHUB_ENV is not set")
+
+    with open(env_file, "a", encoding="utf-8") as handle:
+        handle.write(f"ISSUE_URL={issue_url}\n")
 
     return 0
 
