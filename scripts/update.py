@@ -223,34 +223,43 @@ def compute_change_series(
 
 
 def classify_flag(
-    p_ret3m: float | None,
-    p_mdd3m: float | None,
-    p_ry_chg1m: float | None,
-    p_hold21d: float | None,
+    gld_ret_3m: Decimal,
+    gld_max_drawdown_3m: Decimal,
+    real_yield_change_1m_bp: Decimal,
+    gld_holdings_change_21d_pct: Decimal,
+    gld_holdings_change_5d_pct: Decimal,
 ) -> str:
-    if None in (p_ret3m, p_mdd3m, p_ry_chg1m, p_hold21d):
-        raise DataFetchError("Insufficient percentile history to classify flag")
+    score = 0
+    price_two = gld_ret_3m <= Decimal("-0.15") or gld_max_drawdown_3m <= Decimal("-0.18")
+    price_one = gld_ret_3m <= Decimal("-0.08") or gld_max_drawdown_3m <= Decimal("-0.10")
+    if price_two:
+        score += 2
+    elif price_one:
+        score += 1
 
-    extreme_tail = (
-        p_ret3m <= 5
-        or p_mdd3m <= 5
-        or p_ry_chg1m >= 95
-        or p_hold21d <= 5
-    )
-    if extreme_tail:
-        return "RED"
+    macro_two = real_yield_change_1m_bp >= Decimal("50")
+    macro_one = real_yield_change_1m_bp >= Decimal("25")
+    if macro_two:
+        score += 2
+    elif macro_one:
+        score += 1
 
-    yellow_flags = sum(
-        [
-            p_ret3m <= 20,
-            p_mdd3m <= 20,
-            p_ry_chg1m >= 80,
-            p_hold21d <= 20,
-        ]
-    )
-    if yellow_flags >= 2:
+    flow_two = gld_holdings_change_21d_pct <= Decimal("-0.03")
+    flow_one = gld_holdings_change_21d_pct <= Decimal("-0.015")
+    if flow_two:
+        score += 2
+    elif flow_one:
+        score += 1
+
+    flow_speed = gld_holdings_change_5d_pct <= Decimal("-0.01")
+    if flow_speed:
+        score += 1
+
+    any_two = price_two or macro_two or flow_two
+    any_one = price_one or macro_one or flow_one or flow_speed
+    if score >= 4 or (any_two and any_one):
         return "RED"
-    if yellow_flags >= 1:
+    if score >= 2:
         return "YELLOW"
     return "GREEN"
 
@@ -362,10 +371,11 @@ def main() -> int:
         )
 
         flag = classify_flag(
-            gld_ret_3m_pctile_5y,
-            gld_drawdown_pctile_5y,
-            real_yield_change_1m_pctile_5y,
-            holdings_change_21d_pctile_5y,
+            gld_ret_3m,
+            gld_max_drawdown_3m,
+            real_yield_change_1m_bp,
+            gld_holdings_change_21d_pct,
+            gld_holdings_change_5d_pct,
         )
 
         repository = None
@@ -404,14 +414,18 @@ def main() -> int:
             "flag": flag,
             "rules": {
                 "red": (
-                    "Extreme tail: p_ret3m <= 5 OR p_mdd3m <= 5 OR "
-                    "p_ry_chg1m >= 95 OR p_hold21d <= 5 OR two YELLOWs"
+                    "Score >= 4 OR any +2 trigger plus any other +1. "
+                    "Price +2: 3M return <= -15% OR 3M drawdown <= -18%. "
+                    "Macro +2: DFII10 1M change >= +50 bp. "
+                    "Flow +2: holdings 21D change <= -3.0%. "
+                    "Flow speed +1: holdings 5D change <= -1.0%."
                 ),
                 "yellow": (
-                    "Any one: p_ret3m <= 20 OR p_mdd3m <= 20 OR "
-                    "p_ry_chg1m >= 80 OR p_hold21d <= 20"
+                    "Score 2-3. Price +1: 3M return <= -8% OR 3M drawdown <= -10%. "
+                    "Macro +1: DFII10 1M change >= +25 bp. "
+                    "Flow +1: holdings 21D change <= -1.5%."
                 ),
-                "green": "No unusual tails in 5y percentile view",
+                "green": "Score 0-1",
             },
         }
 

@@ -21,9 +21,9 @@
   },
   "repository": "https://github.com/w1k5/gold-crash",
   "rules": {
-    "green": "No unusual tails in 5y percentile view",
-    "red": "Extreme tail: p_ret3m <= 5 OR p_mdd3m <= 5 OR p_ry_chg1m >= 95 OR p_hold21d <= 5 OR two YELLOWs",
-    "yellow": "Any one: p_ret3m <= 20 OR p_mdd3m <= 20 OR p_ry_chg1m >= 80 OR p_hold21d <= 20"
+    "green": "Score 0-1",
+    "red": "Score >= 4 OR any +2 trigger plus any other +1. Price +2: 3M return <= -15% OR 3M drawdown <= -18%. Macro +2: DFII10 1M change >= +50 bp. Flow +2: holdings 21D change <= -3.0%. Flow speed +1: holdings 5D change <= -1.0%.",
+    "yellow": "Score 2-3. Price +1: 3M return <= -8% OR 3M drawdown <= -10%. Macro +1: DFII10 1M change >= +25 bp. Flow +1: holdings 21D change <= -1.5%."
   },
   "sources": {
     "dfii10": "https://fred.stlouisfed.org/series/DFII10",

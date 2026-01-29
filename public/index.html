@@ -97,6 +97,22 @@
       font-size: 14px;
       color: #334155;
     }
+    .metric-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .metric-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      background: #94a3b8;
+    }
+    .metric-indicator.green { background: var(--green); }
+    .metric-indicator.yellow { background: var(--yellow); }
+    .metric-indicator.red { background: var(--red); }
     footer {
       margin-top: 32px;
       font-size: 13px;
@@ -181,6 +197,19 @@
       return `${rounded}th`;
     };
     const percentileText = (value) => (value == null ? '' : `${formatOrdinal(value)} percentile (5y)`);
+    const indicatorTag = (level) => `<span class="metric-indicator ${level}"></span>`;
+    const labelTag = (level, label) => `<span class="metric-label">${indicatorTag(level)}${label}</span>`;
+    const severityFromThresholds = (value, yellowThreshold, redThreshold, higherIsRisk = false) => {
+      if (value == null) return 'green';
+      if (higherIsRisk) {
+        if (value >= redThreshold) return 'red';
+        if (value >= yellowThreshold) return 'yellow';
+        return 'green';
+      }
+      if (value <= redThreshold) return 'red';
+      if (value <= yellowThreshold) return 'yellow';
+      return 'green';
+    };
 
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
@@ -200,45 +229,53 @@
         const holdingsChange5dContext = percentileText(metrics.gld_holdings_change_5d_pct_pctile_5y);
         const holdingsChange21dContext = percentileText(metrics.gld_holdings_change_21d_pct_pctile_5y);
 
+        const gldRet1mLevel = severityFromThresholds(metrics.gld_ret_1m, -0.05, -0.1);
+        const gldRet3mLevel = severityFromThresholds(metrics.gld_ret_3m, -0.08, -0.15);
+        const gldDrawdownLevel = severityFromThresholds(metrics.gld_max_drawdown_3m, -0.1, -0.18);
+        const yieldChange1mLevel = severityFromThresholds(metrics.real_yield_change_1m_bp, 25, 50, true);
+        const yieldChange3mLevel = severityFromThresholds(metrics.real_yield_change_3m_bp, 25, 50, true);
+        const holdings5dLevel = severityFromThresholds(metrics.gld_holdings_change_5d_pct, -0.01, -0.02);
+        const holdings21dLevel = severityFromThresholds(metrics.gld_holdings_change_21d_pct, -0.015, -0.03);
+
         metricsEl.innerHTML = `
           <tr>
-            <td>GLD price</td>
+            <td>${labelTag('green', 'GLD price')}</td>
             <td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}${contextTag('Spot level for reference; compare with recent range.')}</td>
           </tr>
           <tr>
-            <td>GLD 1M return</td>
+            <td>${labelTag(gldRet1mLevel, 'GLD 1M return')}</td>
             <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext)}</td>
           </tr>
           <tr>
-            <td>GLD 3M return</td>
+            <td>${labelTag(gldRet3mLevel, 'GLD 3M return')}</td>
             <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext)}</td>
           </tr>
           <tr>
-            <td>GLD 3M max drawdown</td>
+            <td>${labelTag(gldDrawdownLevel, 'GLD 3M max drawdown')}</td>
             <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext)}</td>
           </tr>
           <tr>
-            <td>DFII10 level</td>
+            <td>${labelTag('green', 'DFII10 level')}</td>
             <td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}${contextTag('High real yields tend to pressure gold; compare to recent cycle.')}</td>
           </tr>
           <tr>
-            <td>DFII10 1M change</td>
+            <td>${labelTag(yieldChange1mLevel, 'DFII10 1M change')}</td>
             <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext)}</td>
           </tr>
           <tr>
-            <td>DFII10 3M change</td>
+            <td>${labelTag(yieldChange3mLevel, 'DFII10 3M change')}</td>
             <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext)}</td>
           </tr>
           <tr>
-            <td>GLD holdings (tonnes)</td>
+            <td>${labelTag('green', 'GLD holdings (tonnes)')}</td>
             <td>${metrics.gld_holdings_today != null ? formatTonnes(metrics.gld_holdings_today) : 'n/a'}${contextTag('ETF holdings show investor demand, not just price effects.')}</td>
           </tr>
           <tr>
-            <td>GLD holdings 5D change</td>
+            <td>${labelTag(holdings5dLevel, 'GLD holdings 5D change')}</td>
             <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext)}</td>
           </tr>
           <tr>
-            <td>GLD holdings 21D change</td>
+            <td>${labelTag(holdings21dLevel, 'GLD holdings 21D change')}</td>
             <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext)}</td>
           </tr>
         `;
