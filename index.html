@@ -203,7 +203,6 @@
       <div id="status" class="badge">Loading...</div>
       <div id="statusSummary" class="status-summary">Loading status summary...</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
-      <div class="meta" id="confidence">Data coverage: checking...</div>
       <div class="meta">Status describes market regime only; it does not imply actions.</div>
     </header>
 
@@ -318,7 +317,6 @@
     const statusEl = document.getElementById('status');
     const statusSummaryEl = document.getElementById('statusSummary');
     const timestampsEl = document.getElementById('timestamps');
-    const confidenceEl = document.getElementById('confidence');
     const reasonsEl = document.getElementById('reasons');
     const glanceCardsEl = document.getElementById('glanceCards');
     const escalationEl = document.getElementById('escalation');
@@ -394,16 +392,6 @@
         <div class="subtle">${label}${percentile != null ? ` • ${formatOrdinal(percentile)} percentile (${percentileContext(percentile)})` : ''}</div>
       </div>
     `;
-    const coverageSummary = (basisValues, missingCount) => {
-      if (missingCount > 0) {
-        return 'Data coverage: limited (some percentiles are unavailable).';
-      }
-      if (basisValues.includes('available')) {
-        return 'Data coverage: mixed (some percentiles use available history).';
-      }
-      return 'Data coverage: strong (most percentiles use a 5y window).';
-    };
-
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
@@ -411,10 +399,10 @@
         const state = regime.state || data.flag || 'UNKNOWN';
         statusEl.textContent = state;
         statusEl.classList.add(state.toLowerCase());
-        statusSummaryEl.textContent = `${state} — ${badgeDescriptions[state] || 'Status summary unavailable.'}`;
+        statusSummaryEl.textContent = badgeDescriptions[state] || 'Status summary unavailable.';
 
         if (data.updated_et && data.updated_utc) {
-          timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
+          timestampsEl.textContent = `Updated ${data.updated_et} (ET) • ${data.updated_utc} (UTC)`;
         }
 
         const reasons = regime.reasons || data.flag_triggers || [];
@@ -428,8 +416,6 @@
         const metrics = data.metrics || {};
         const horizons = metrics.horizons || {};
         const horizonOrder = ['3M', '6M', '1Y', '3Y', '5Y'];
-        const basisValues = [];
-        let missingCount = 0;
         horizonRows.innerHTML = horizonOrder.map((label) => {
           const horizon = horizons[label] || {};
           const available = horizon.available !== false && horizon.ret != null;
@@ -455,9 +441,6 @@
               horizon.max_drawdown_pctile_n
             )
             : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
-          if (horizon.ret_pctile_basis) basisValues.push(horizon.ret_pctile_basis);
-          if (horizon.max_drawdown_pctile_basis) basisValues.push(horizon.max_drawdown_pctile_basis);
-          if (!available) missingCount += 1;
           const labelNote = basisTag(horizon.ret_pctile_basis || horizon.max_drawdown_pctile_basis);
           const contextValue = percentileContext(horizon.ret_pctile_5y ?? horizon.max_drawdown_pctile_5y);
           return `
@@ -492,8 +475,6 @@
             )}</td>
           </tr>
         `;
-        if (metrics.pct_above_200dma_pctile_basis) basisValues.push(metrics.pct_above_200dma_pctile_basis);
-
         const flows = metrics.flows || {};
         flowRows.innerHTML = `
           <tr>
@@ -522,9 +503,6 @@
             )}</td>
           </tr>
         `;
-        if (flows.holdings_change_5d_pctile_basis) basisValues.push(flows.holdings_change_5d_pctile_basis);
-        if (flows.holdings_change_21d_pctile_basis) basisValues.push(flows.holdings_change_21d_pctile_basis);
-
         const macro = metrics.macro || {};
         macroRows.innerHTML = `
           <tr>
@@ -553,9 +531,6 @@
             )}</td>
           </tr>
         `;
-        if (macro.real_yield_change_1m_bp_pctile_basis) basisValues.push(macro.real_yield_change_1m_bp_pctile_basis);
-        if (macro.real_yield_change_3m_bp_pctile_basis) basisValues.push(macro.real_yield_change_3m_bp_pctile_basis);
-
         const glanceCards = [
           buildCard(
             'Extension',
@@ -608,9 +583,6 @@
         const shortTermContext = percentileContext(horizons['3M']?.ret_pctile_5y);
         const longTermContext = percentileContext(horizons['1Y']?.ret_pctile_5y);
         horizonSummaryEl.textContent = `Horizon snapshot: short-term ${shortTermContext}; long-term ${longTermContext}.`;
-
-        const basisSummary = coverageSummary(basisValues, missingCount);
-        confidenceEl.textContent = basisSummary;
 
         const repo = data.repository || 'https://github.com/';
         repoLink.href = repo;
