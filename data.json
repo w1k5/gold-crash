@@ -1,48 +1,100 @@
 {
-  "flag": "BLUE",
-  "flag_triggers": [
-    "GLD 3M return \u2265 90th percentile",
-    "GLD % above 200DMA \u2265 90th percentile",
-    "GLD 3M drawdown \u2265 70th percentile (smooth)"
-  ],
-  "metrics": {
-    "gld_200dma": 345.69115,
-    "gld_holdings_change_21d_pct": 0.017579565505587556,
-    "gld_holdings_change_21d_pct_pctile_5y": 79.18660287081339,
-    "gld_holdings_change_5d_pct": 0.011413618395412281,
-    "gld_holdings_change_5d_pct_pctile_5y": 91.06858054226475,
-    "gld_holdings_today": 1089.96,
-    "gld_max_drawdown_3m": -0.04902337188654797,
-    "gld_max_drawdown_3m_pctile_5y": 71.1323763955343,
-    "gld_pct_above_200dma": 0.43064119518246274,
-    "gld_pct_above_200dma_pctile_5y": 100.0,
-    "gld_price": 494.56,
-    "gld_ret_1m": 0.18673513461630753,
-    "gld_ret_1m_pctile_5y": 99.92025518341308,
-    "gld_ret_3m": 0.34753821421759623,
-    "gld_ret_3m_pctile_5y": 100.0,
-    "real_yield_change_1m_bp": -1.0,
-    "real_yield_change_1m_bp_pctile_5y": 46.03047313552526,
-    "real_yield_change_3m_bp": 19.0,
-    "real_yield_change_3m_bp_pctile_5y": 59.34242181234964,
-    "real_yield_today": 1.9
-  },
-  "repository": "https://github.com/w1k5/gold-crash",
-  "rules": {
-    "blue": "Extension score >= 2. +1 each: 3M return percentile >= 90, % above 200DMA percentile >= 90, 3M drawdown percentile >= 70.",
-    "green": "No extension or deterioration signals.",
-    "orange": "Extension score >= 2 AND deterioration score >= 1. Deterioration signals: flow divergence (holdings 21D <= -1.5% with 1M return > 0), real yield 1M change >= +25 bp, or price crack (1M return <= 0 or 3M drawdown <= -8%).",
-    "red": "Primary: 3M return <= -15% OR 3M drawdown <= -18% OR DFII10 1M change >= +50 bp. Composite: 2 of 4 (3M return <= -8%, holdings 21D <= -2%, holdings 5D <= -1%, DFII10 1M change >= +25 bp). Enter RED after 2 consecutive composite runs; exit after 5 clean runs."
-  },
+  "updated_utc": "",
+  "updated_et": "",
   "sources": {
-    "dfii10": "https://fred.stlouisfed.org/series/DFII10",
+    "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
-    "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
+    "dfii10": "https://fred.stlouisfed.org/series/DFII10"
   },
-  "state": {
-    "no_red_streak": 1,
-    "red_streak": 0
+  "repository": "https://github.com/<OWNER>/<REPO>",
+  "regime": {
+    "state": "GREEN",
+    "primary_horizon": "3M",
+    "reasons": [],
+    "persistence": {
+      "red_enter_streak": 0,
+      "red_exit_streak": 0
+    }
   },
-  "updated_et": "2026-01-29T09:23:54.871953-05:00",
-  "updated_utc": "2026-01-29T14:23:54.871953Z"
+  "metrics": {
+    "gld_price": null,
+    "ma_200": null,
+    "pct_above_200dma": null,
+    "pct_above_200dma_pctile_5y": null,
+    "pct_above_200dma_pctile_5y_explain": "insufficient history",
+    "flows": {
+      "holdings_today_tonnes": null,
+      "holdings_change_5d_pct": null,
+      "holdings_change_21d_pct": null,
+      "holdings_change_5d_pct_pctile_5y": null,
+      "holdings_change_5d_pct_pctile_5y_explain": "insufficient history",
+      "holdings_change_21d_pct_pctile_5y": null,
+      "holdings_change_21d_pct_pctile_5y_explain": "insufficient history"
+    },
+    "macro": {
+      "real_yield_today": null,
+      "real_yield_change_1m_bp": null,
+      "real_yield_change_3m_bp": null,
+      "real_yield_change_1m_bp_pctile_5y": null,
+      "real_yield_change_1m_bp_pctile_5y_explain": "insufficient history",
+      "real_yield_change_3m_bp_pctile_5y": null,
+      "real_yield_change_3m_bp_pctile_5y_explain": "insufficient history"
+    },
+    "horizons": {
+      "3M": {
+        "days": 63,
+        "available": false,
+        "ret": null,
+        "ret_pctile_5y": null,
+        "ret_pctile_5y_explain": "insufficient history",
+        "max_drawdown": null,
+        "max_drawdown_pctile_5y": null,
+        "max_drawdown_pctile_5y_explain": "insufficient history"
+      },
+      "6M": {
+        "days": 126,
+        "available": false,
+        "ret": null,
+        "ret_pctile_5y": null,
+        "ret_pctile_5y_explain": "insufficient history",
+        "max_drawdown": null,
+        "max_drawdown_pctile_5y": null,
+        "max_drawdown_pctile_5y_explain": "insufficient history"
+      },
+      "1Y": {
+        "days": 252,
+        "available": false,
+        "ret": null,
+        "ret_pctile_5y": null,
+        "ret_pctile_5y_explain": "insufficient history",
+        "max_drawdown": null,
+        "max_drawdown_pctile_5y": null,
+        "max_drawdown_pctile_5y_explain": "insufficient history"
+      },
+      "3Y": {
+        "days": 756,
+        "available": false,
+        "ret": null,
+        "ret_pctile_5y": null,
+        "ret_pctile_5y_explain": "insufficient history",
+        "max_drawdown": null,
+        "max_drawdown_pctile_5y": null,
+        "max_drawdown_pctile_5y_explain": "insufficient history"
+      },
+      "5Y": {
+        "days": 1260,
+        "available": false,
+        "ret": null,
+        "ret_pctile_5y": null,
+        "ret_pctile_5y_explain": "insufficient history",
+        "max_drawdown": null,
+        "max_drawdown_pctile_5y": null,
+        "max_drawdown_pctile_5y_explain": "insufficient history"
+      }
+    }
+  },
+  "notes": {
+    "percentile_notes": {},
+    "methodology": "Descriptive market regime; no implied actions."
+  }
 }
