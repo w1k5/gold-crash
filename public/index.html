@@ -82,6 +82,21 @@
       font-size: 14px;
       color: #334155;
     }
+    .context {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .note {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      font-size: 14px;
+      color: #334155;
+    }
     footer {
       margin-top: 32px;
       font-size: 13px;
@@ -96,6 +111,7 @@
       <h1>Gold Risk Monitor</h1>
       <div id="status" class="badge">Loading...</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
+      <div class="meta" id="statusNote">Status = risk regime indicator, not an automatic sell signal.</div>
     </header>
 
     <table>
@@ -117,6 +133,22 @@
       </ul>
     </section>
 
+    <section class="note">
+      <h2>Flow confirmation (v2)</h2>
+      <ul>
+        <li>Flow-confirmed risk: GLD 3M return ≤ -10% AND holdings 21D change ≤ -2% → treat as RED.</li>
+        <li>Capitulation watch: holdings 5D change ≤ -1% AND GLD 1M return ≤ -5% → RED (flow).</li>
+      </ul>
+    </section>
+
+    <section class="note">
+      <h2>Portfolio notes</h2>
+      <ul>
+        <li>Silver &amp; miners historically amplify gold moves (2–3× volatility).</li>
+        <li>GLD holdings changes help separate macro repricing from investor exits.</li>
+      </ul>
+    </section>
+
     <footer>
       <p>
         Data is refreshed daily by GitHub Actions. View the repository on
@@ -129,6 +161,7 @@
   <script>
     const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
     const formatBp = (value) => `${value.toFixed(0)} bp`;
+    const formatTonnes = (value) => `${value.toFixed(1)} t`;
 
     const statusEl = document.getElementById('status');
     const metricsEl = document.getElementById('metrics');
@@ -136,6 +169,18 @@
     const rulesEl = document.getElementById('rules');
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
+
+    const contextTag = (text) => (text ? `<span class="context">${text}</span>` : '');
+    const formatOrdinal = (value) => {
+      const rounded = Math.round(value);
+      const mod10 = rounded % 10;
+      const mod100 = rounded % 100;
+      if (mod10 === 1 && mod100 !== 11) return `${rounded}st`;
+      if (mod10 === 2 && mod100 !== 12) return `${rounded}nd`;
+      if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
+      return `${rounded}th`;
+    };
+    const percentileText = (value) => (value == null ? '' : `${formatOrdinal(value)} percentile (5y)`);
 
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
@@ -147,14 +192,55 @@
         timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
 
         const metrics = data.metrics || {};
+        const gldRet1mContext = percentileText(metrics.gld_ret_1m_pctile_5y);
+        const gldRet3mContext = percentileText(metrics.gld_ret_3m_pctile_5y);
+        const gldDrawdownContext = percentileText(metrics.gld_max_drawdown_3m_pctile_5y);
+        const yieldChange1mContext = percentileText(metrics.real_yield_change_1m_bp_pctile_5y);
+        const yieldChange3mContext = percentileText(metrics.real_yield_change_3m_bp_pctile_5y);
+        const holdingsChange5dContext = percentileText(metrics.gld_holdings_change_5d_pct_pctile_5y);
+        const holdingsChange21dContext = percentileText(metrics.gld_holdings_change_21d_pct_pctile_5y);
+
         metricsEl.innerHTML = `
-          <tr><td>GLD price</td><td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}</td></tr>
-          <tr><td>GLD 1M return</td><td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}</td></tr>
-          <tr><td>GLD 3M return</td><td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}</td></tr>
-          <tr><td>GLD 3M max drawdown</td><td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}</td></tr>
-          <tr><td>DFII10 level</td><td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}</td></tr>
-          <tr><td>DFII10 1M change</td><td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}</td></tr>
-          <tr><td>DFII10 3M change</td><td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}</td></tr>
+          <tr>
+            <td>GLD price</td>
+            <td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}${contextTag('Spot level for reference; compare with recent range.')}</td>
+          </tr>
+          <tr>
+            <td>GLD 1M return</td>
+            <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext)}</td>
+          </tr>
+          <tr>
+            <td>GLD 3M return</td>
+            <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext)}</td>
+          </tr>
+          <tr>
+            <td>GLD 3M max drawdown</td>
+            <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext)}</td>
+          </tr>
+          <tr>
+            <td>DFII10 level</td>
+            <td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}${contextTag('High real yields tend to pressure gold; compare to recent cycle.')}</td>
+          </tr>
+          <tr>
+            <td>DFII10 1M change</td>
+            <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext)}</td>
+          </tr>
+          <tr>
+            <td>DFII10 3M change</td>
+            <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext)}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings (tonnes)</td>
+            <td>${metrics.gld_holdings_today != null ? formatTonnes(metrics.gld_holdings_today) : 'n/a'}${contextTag('ETF holdings show investor demand, not just price effects.')}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings 5D change</td>
+            <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext)}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings 21D change</td>
+            <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext)}</td>
+          </tr>
         `;
 
         const rules = data.rules || {};

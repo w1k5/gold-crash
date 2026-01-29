@@ -4,8 +4,8 @@ A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/I
 
 ## What it does
 
-- Fetches GLD daily prices (no API key) and DFII10 real yield data from FRED (API key required).
-- Computes 1M/3M returns, 3M max drawdown, and real-yield changes.
+- Fetches GLD daily prices (no API key), GLD holdings (SPDR CSV), and DFII10 real yield data from FRED (API key required).
+- Computes 1M/3M returns, 3M max drawdown, real-yield changes, and GLD holdings flow changes.
 - Assigns a GREEN/YELLOW/RED flag based on explicit rules.
 - Publishes `data.json` and a static dashboard (`index.html`).
 - Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED flag”** when RED is triggered.
@@ -23,6 +23,10 @@ Metrics:
 - `real_yield_today = DFII10 latest value (percent)`
 - `real_yield_change_1m_bp = (today - 21d_ago) * 100`
 - `real_yield_change_3m_bp = (today - 63d_ago) * 100`
+- `gld_holdings_today = latest GLD holdings in tonnes`
+- `gld_holdings_change_5d_pct = (holdings_today / holdings_5d_ago) - 1`
+- `gld_holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
+- `*_pctile_5y = 5-year percentile for the corresponding metric`
 
 Flags:
 - **RED** if `(gld_ret_3m <= -0.15) OR (gld_max_drawdown_3m <= -0.18) OR (real_yield_change_1m_bp >= 50)`
@@ -73,6 +77,7 @@ The scheduled workflow runs daily at **07:05 America/New_York**. GitHub Actions 
 ## Data sources
 
 - GLD prices: Stooq CSV (no key required): https://stooq.com/q/d/l/?s=gld.us&i=d
+- GLD holdings: SPDR Gold Shares CSV: https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv
 - Real yields: FRED DFII10: https://fred.stlouisfed.org/series/DFII10
 
 ## What you must do by hand
