@@ -82,6 +82,21 @@
       font-size: 14px;
       color: #334155;
     }
+    .context {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .note {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      font-size: 14px;
+      color: #334155;
+    }
     footer {
       margin-top: 32px;
       font-size: 13px;
@@ -96,6 +111,7 @@
       <h1>Gold Risk Monitor</h1>
       <div id="status" class="badge">Loading...</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
+      <div class="meta" id="statusNote">Status = risk regime indicator, not an automatic sell signal.</div>
     </header>
 
     <table>
@@ -114,6 +130,14 @@
       <h2>Flag rules</h2>
       <ul id="rules">
         <li>Loading rules...</li>
+      </ul>
+    </section>
+
+    <section class="note">
+      <h2>Portfolio notes</h2>
+      <ul>
+        <li>Silver &amp; miners historically amplify gold moves (2–3× volatility).</li>
+        <li>Potential v2 add-on: flow proxy (GLD holdings change or futures positioning).</li>
       </ul>
     </section>
 
@@ -137,6 +161,21 @@
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
 
+    const contextTag = (text) => `<span class="context">${text}</span>`;
+    const classifyReturn = (value, yellowThreshold, redThreshold) => {
+      if (value == null) return '';
+      if (value <= redThreshold) return 'Historically rare drawdown range.';
+      if (value <= yellowThreshold) return 'Below-average period vs 5-year history.';
+      return 'Within normal range vs 5-year history.';
+    };
+
+    const classifyYieldChange = (value, yellowThreshold, redThreshold) => {
+      if (value == null) return '';
+      if (value >= redThreshold) return 'Large rate shock vs 5-year history.';
+      if (value >= yellowThreshold) return 'Elevated move vs 5-year history.';
+      return 'Normal move vs 5-year history.';
+    };
+
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
@@ -147,14 +186,41 @@
         timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
 
         const metrics = data.metrics || {};
+        const gldRet1mContext = classifyReturn(metrics.gld_ret_1m, -0.04, -0.1);
+        const gldRet3mContext = classifyReturn(metrics.gld_ret_3m, -0.08, -0.15);
+        const gldDrawdownContext = classifyReturn(metrics.gld_max_drawdown_3m, -0.12, -0.18);
+        const yieldChange1mContext = classifyYieldChange(metrics.real_yield_change_1m_bp, 25, 50);
+        const yieldChange3mContext = classifyYieldChange(metrics.real_yield_change_3m_bp, 35, 65);
+
         metricsEl.innerHTML = `
-          <tr><td>GLD price</td><td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}</td></tr>
-          <tr><td>GLD 1M return</td><td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}</td></tr>
-          <tr><td>GLD 3M return</td><td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}</td></tr>
-          <tr><td>GLD 3M max drawdown</td><td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}</td></tr>
-          <tr><td>DFII10 level</td><td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}</td></tr>
-          <tr><td>DFII10 1M change</td><td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}</td></tr>
-          <tr><td>DFII10 3M change</td><td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}</td></tr>
+          <tr>
+            <td>GLD price</td>
+            <td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}${contextTag('Spot level for reference; compare with recent range.')}</td>
+          </tr>
+          <tr>
+            <td>GLD 1M return</td>
+            <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext || 'Short-term noise; compare to recent 5-year swings.')}</td>
+          </tr>
+          <tr>
+            <td>GLD 3M return</td>
+            <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext || 'Primary momentum signal vs 5-year history.')}</td>
+          </tr>
+          <tr>
+            <td>GLD 3M max drawdown</td>
+            <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext || 'Drawdown context vs 5-year history.')}</td>
+          </tr>
+          <tr>
+            <td>DFII10 level</td>
+            <td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}${contextTag('High real yields tend to pressure gold; compare to recent cycle.')}</td>
+          </tr>
+          <tr>
+            <td>DFII10 1M change</td>
+            <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext || 'Rate shock gauge vs 5-year history.')}</td>
+          </tr>
+          <tr>
+            <td>DFII10 3M change</td>
+            <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext || 'Medium-term rate trend vs 5-year history.')}</td>
+          </tr>
         `;
 
         const rules = data.rules || {};
