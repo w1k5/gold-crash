@@ -40,9 +40,7 @@ def main() -> int:
         created = request(f"https://api.github.com/repos/{repo}/issues", method="POST", payload=payload, headers=headers)
         issue_url = created.get("html_url", "")
 
-    output_path = os.environ["GITHUB_OUTPUT"]
-    with open(output_path, "a", encoding="utf-8") as handle:
-        handle.write(f"issue_url={issue_url}\n")
+    print(f"::set-output name=issue_url::{issue_url}")
 
     return 0
 

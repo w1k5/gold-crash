@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 
@@ -16,16 +15,11 @@ def main() -> int:
     issue_body = status.get("issue_body") or ""
     issue_needed = "true" if issue_title and issue_body else "false"
 
-    output_path = Path(os.environ["GITHUB_OUTPUT"])
-    output_path.write_text(
-        f"fetch_ok={fetch_ok}\n"
-        f"flag={flag}\n"
-        f"issue_needed={issue_needed}\n"
-        f"issue_title={issue_title}\n"
-        "issue_body<<EOF\n"
-        f"{issue_body}\n"
-        "EOF\n"
-    )
+    print(f"::set-output name=fetch_ok::{fetch_ok}")
+    print(f"::set-output name=flag::{flag}")
+    print(f"::set-output name=issue_needed::{issue_needed}")
+    print(f"::set-output name=issue_title::{issue_title}")
+    print(f"::set-output name=issue_body::{issue_body}")
     return 0
 
 
