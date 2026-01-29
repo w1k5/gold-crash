@@ -1,6 +1,5 @@
 {
-  "updated_utc": "",
-  "updated_et": "",
+  "updated_at": "",
   "sources": {
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",

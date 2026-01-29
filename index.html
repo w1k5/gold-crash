@@ -61,7 +61,8 @@
       color: #0f172a;
       background: #e2e8f0;
       border: 1px solid #cbd5f5;
-      width: fit-content;
+      min-width: 100px;
+      justify-content: center;
     }
     .badge.green { background: #dcfce7; color: #14532d; border-color: #bbf7d0; }
     .badge.blue { background: #dbeafe; color: #1e3a8a; border-color: #bfdbfe; }
@@ -99,6 +100,24 @@
       padding: 18px 20px;
       box-shadow: none;
       border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+    .section-card #reasonLead {
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .section-card #reasons {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .section-card #reasons li {
+      margin-bottom: 8px;
+    }
+    .section-card #reasons li:last-child {
+      margin-bottom: 0;
     }
     .card-grid {
       display: grid;
@@ -253,7 +272,6 @@
         <div id="status" class="badge">Loading...</div>
         <div id="statusSummary" class="status-summary">Loading status summary...</div>
       </div>
-      <div class="status-explainer">The status label summarizes multiple indicators into a single market regime. It reflects whether conditions look typical, extended, or show signs of stress based on price behavior, investor flows, and macro conditions. The label is designed to describe the current environment rather than predict exact timing.</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
       <div class="meta" id="confidence">Data coverage: checking...</div>
       <div class="meta">Percentiles compare current values with historical distributions to provide context rather than absolute judgments. Coverage notes indicate whether comparisons are based on a full five-year window or a shorter available history, helping calibrate confidence in the percentile labels.</div>
@@ -282,7 +300,7 @@
     <section class="section">
       <h2>What would change the color</h2>
       <p class="section-explainer">This section documents the definitions behind regime transitions. It shows the conditions that would cause the status to move from one regime to another, making the framework explicit and repeatable rather than subjective.</p>
-      <div class="section-card" id="escalation">
+      <div id="escalation">
         <p>Loading escalation conditions...</p>
       </div>
     </section>
@@ -290,25 +308,23 @@
     <section class="section">
       <h2>Horizon Snapshot</h2>
       <p class="section-explainer">The horizon snapshot shows returns and drawdowns across multiple time frames to provide context on how broad or narrow recent strength has been. Comparing short-term and longer-term horizons helps distinguish isolated momentum from more persistent trends, as well as whether drawdowns are shallow or deepening.</p>
-      <details id="horizonDetails">
-        <summary id="horizonSummary">Horizon snapshot loading...</summary>
-        <table>
-          <thead>
-            <tr>
-              <th>Horizon</th>
-              <th class="num">Return</th>
-              <th class="num">Return Percentile</th>
-              <th class="num">Max Drawdown</th>
-              <th class="num">Drawdown Percentile</th>
-              <th>Context</th>
-            </tr>
-          </thead>
-          <tbody id="horizonRows">
-            <tr><td colspan="6">Loading horizon metrics...</td></tr>
-          </tbody>
-        </table>
-        <div class="note" id="percentileNotes"></div>
-      </details>
+      <p class="section-explainer" id="horizonSummary">Horizon snapshot loading...</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th class="num">Return</th>
+            <th class="num">Return Percentile</th>
+            <th class="num">Max Drawdown</th>
+            <th class="num">Drawdown Percentile</th>
+            <th>Context</th>
+          </tr>
+        </thead>
+        <tbody id="horizonRows">
+          <tr><td colspan="6">Loading horizon metrics...</td></tr>
+        </tbody>
+      </table>
+      <div class="note" id="percentileNotes"></div>
     </section>
 
     <section class="section">
@@ -362,6 +378,29 @@
       </table>
     </section>
 
+    <section class="section">
+      <h2>Status colors</h2>
+      <p class="section-explainer">The status label summarizes multiple indicators into a single market regime classification.</p>
+      <div class="section-card">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div class="badge green">GREEN</div>
+          <div>Typical conditions.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div class="badge blue">BLUE</div>
+          <div>Extended rally; no confirmed deterioration.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div class="badge orange">ORANGE</div>
+          <div>Extended + early deterioration signals.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="badge red">RED</div>
+          <div>Breakdown-style stress signals present.</div>
+        </div>
+      </div>
+    </section>
+
     <footer>
       <p>
         Data is refreshed daily by GitHub Actions. View the repository on
@@ -375,6 +414,14 @@
     const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
     const formatBp = (value) => `${value.toFixed(0)} bp`;
     const formatTonnes = (value) => `${value.toFixed(1)} t`;
+    const formatTimestamp = (isoString) => {
+      const date = new Date(isoString);
+      const month = date.toLocaleString('en-US', { month: 'short' });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      const time = date.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return `${month} ${day}, ${year} ${time}`;
+    };
 
     const statusEl = document.getElementById('status');
     const statusSummaryEl = document.getElementById('statusSummary');
@@ -482,8 +529,9 @@
         statusEl.classList.add(state.toLowerCase());
         statusSummaryEl.textContent = badgeDescriptions[state] || 'Status summary unavailable.';
 
-        if (data.updated_et && data.updated_utc) {
-          timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
+        if (data.updated_at) {
+          const etFormatted = formatTimestamp(data.updated_at);
+          timestampsEl.textContent = `Updated ${etFormatted}`;
         }
 
         const reasons = regime.reasons || data.flag_triggers || [];
@@ -669,7 +717,7 @@
         const priceNow = horizons['3M']?.ret;
         const drawdownNow = horizons['3M']?.max_drawdown;
         escalationEl.innerHTML = `
-          <p><strong>Trigger definitions</strong></p>
+
           <table>
             <thead>
               <tr>

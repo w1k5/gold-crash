@@ -131,6 +131,5 @@
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
-  "updated_et": "2026-01-29T11:41:22.199787-05:00",
-  "updated_utc": "2026-01-29T16:41:22.199787Z"
+  "updated_at": "2026-01-29T11:41:22.199787-05:00"
 }
