@@ -303,6 +303,7 @@ def main() -> int:
 
         now_utc = datetime.now(timezone.utc)
         now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
+        now_utc_naive = now_utc.replace(tzinfo=None)
 
         gld_rows = fetch_gld_prices()
         fred_rows = fetch_fred_dfii10(api_key)
@@ -327,7 +328,7 @@ def main() -> int:
         gld_holdings_change_5d_pct = compute_return(holdings_values, TRADING_DAYS_1W)
         gld_holdings_change_21d_pct = compute_return(holdings_values, TRADING_DAYS_1M)
 
-        cutoff_date = percentile_history_cutoff(now_utc)
+        cutoff_date = percentile_history_cutoff(now_utc_naive)
         gld_ret_1m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_1M, cutoff_date)
         gld_ret_3m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
         gld_drawdown_history = compute_drawdown_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
