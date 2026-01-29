@@ -8,7 +8,8 @@
     :root {
       color-scheme: light dark;
       --green: #2d6a4f;
-      --yellow: #b45309;
+      --blue: #2563eb;
+      --orange: #f97316;
       --red: #b91c1c;
       --gray: #334155;
       --bg: #f8fafc;
@@ -43,7 +44,8 @@
       background: var(--gray);
     }
     .badge.green { background: var(--green); }
-    .badge.yellow { background: var(--yellow); }
+    .badge.blue { background: var(--blue); }
+    .badge.orange { background: var(--orange); }
     .badge.red { background: var(--red); }
     .meta {
       font-size: 14px;
@@ -111,7 +113,7 @@
       background: #94a3b8;
     }
     .metric-indicator.green { background: var(--green); }
-    .metric-indicator.yellow { background: var(--yellow); }
+    .metric-indicator.orange { background: var(--orange); }
     .metric-indicator.red { background: var(--red); }
     footer {
       margin-top: 32px;
@@ -150,6 +152,13 @@
     </section>
 
     <section class="note">
+      <h2>Active triggers</h2>
+      <ul id="triggers">
+        <li>Loading triggers...</li>
+      </ul>
+    </section>
+
+    <section class="note">
       <h2>Flow confirmation (v2)</h2>
       <ul>
         <li>Flow-confirmed risk: GLD 3M return ≤ -10% AND holdings 21D change ≤ -2% → treat as RED.</li>
@@ -183,6 +192,7 @@
     const metricsEl = document.getElementById('metrics');
     const timestampsEl = document.getElementById('timestamps');
     const rulesEl = document.getElementById('rules');
+    const triggersEl = document.getElementById('triggers');
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
 
@@ -203,11 +213,11 @@
       if (value == null) return 'green';
       if (higherIsRisk) {
         if (value >= redThreshold) return 'red';
-        if (value >= yellowThreshold) return 'yellow';
+        if (value >= yellowThreshold) return 'orange';
         return 'green';
       }
       if (value <= redThreshold) return 'red';
-      if (value <= yellowThreshold) return 'yellow';
+      if (value <= yellowThreshold) return 'orange';
       return 'green';
     };
 
@@ -224,6 +234,7 @@
         const gldRet1mContext = percentileText(metrics.gld_ret_1m_pctile_5y);
         const gldRet3mContext = percentileText(metrics.gld_ret_3m_pctile_5y);
         const gldDrawdownContext = percentileText(metrics.gld_max_drawdown_3m_pctile_5y);
+        const gldPctAbove200dmaContext = percentileText(metrics.gld_pct_above_200dma_pctile_5y);
         const yieldChange1mContext = percentileText(metrics.real_yield_change_1m_bp_pctile_5y);
         const yieldChange3mContext = percentileText(metrics.real_yield_change_3m_bp_pctile_5y);
         const holdingsChange5dContext = percentileText(metrics.gld_holdings_change_5d_pct_pctile_5y);
@@ -232,6 +243,7 @@
         const gldRet1mLevel = severityFromThresholds(metrics.gld_ret_1m, -0.05, -0.1);
         const gldRet3mLevel = severityFromThresholds(metrics.gld_ret_3m, -0.08, -0.15);
         const gldDrawdownLevel = severityFromThresholds(metrics.gld_max_drawdown_3m, -0.1, -0.18);
+        const gldPctAbove200dmaLevel = severityFromThresholds(metrics.gld_pct_above_200dma, 0.1, 0.2, true);
         const yieldChange1mLevel = severityFromThresholds(metrics.real_yield_change_1m_bp, 25, 50, true);
         const yieldChange3mLevel = severityFromThresholds(metrics.real_yield_change_3m_bp, 25, 50, true);
         const holdings5dLevel = severityFromThresholds(metrics.gld_holdings_change_5d_pct, -0.01, -0.02);
@@ -253,6 +265,10 @@
           <tr>
             <td>${labelTag(gldDrawdownLevel, 'GLD 3M max drawdown')}</td>
             <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext)}</td>
+          </tr>
+          <tr>
+            <td>${labelTag(gldPctAbove200dmaLevel, 'GLD % above 200DMA')}</td>
+            <td>${metrics.gld_pct_above_200dma != null ? formatPercent(metrics.gld_pct_above_200dma) : 'n/a'}${contextTag(gldPctAbove200dmaContext)}</td>
           </tr>
           <tr>
             <td>${labelTag('green', 'DFII10 level')}</td>
@@ -283,9 +299,15 @@
         const rules = data.rules || {};
         rulesEl.innerHTML = `
           <li><strong>RED:</strong> ${rules.red || 'n/a'}</li>
-          <li><strong>YELLOW:</strong> ${rules.yellow || 'n/a'}</li>
+          <li><strong>ORANGE:</strong> ${rules.orange || 'n/a'}</li>
+          <li><strong>BLUE:</strong> ${rules.blue || 'n/a'}</li>
           <li><strong>GREEN:</strong> ${rules.green || 'n/a'}</li>
         `;
+
+        const triggers = data.flag_triggers || [];
+        triggersEl.innerHTML = triggers.length
+          ? triggers.map((item) => `<li>${item}</li>`).join('')
+          : '<li>No active triggers.</li>';
 
         const repo = data.repository || 'https://github.com/';
         repoLink.href = repo;

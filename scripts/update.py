@@ -21,6 +21,7 @@ GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_arc
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
 TRADING_DAYS_1W = 5
+TRADING_DAYS_200 = 200
 HISTORY_YEARS = 5
 
 
@@ -170,6 +171,13 @@ def compute_max_drawdown(prices: List[Decimal]) -> Decimal:
     return max_drawdown
 
 
+def compute_simple_moving_average(prices: List[Decimal], window: int) -> Decimal:
+    if len(prices) < window:
+        raise DataFetchError("Insufficient price history for moving average calculation")
+    window_prices = prices[-window:]
+    return sum(window_prices, Decimal("0")) / Decimal(window)
+
+
 def compute_percentile(value: Decimal, history: List[Decimal]) -> float | None:
     if not history:
         return None
@@ -231,46 +239,117 @@ def compute_change_series(
     return history
 
 
+def compute_pct_above_ma_series(
+    dates: List[datetime],
+    prices: List[Decimal],
+    window: int,
+    cutoff: datetime,
+) -> List[Decimal]:
+    history: List[Decimal] = []
+    for idx in range(window - 1, len(prices)):
+        if dates[idx] < cutoff:
+            continue
+        window_prices = prices[idx - window + 1 : idx + 1]
+        moving_avg = sum(window_prices, Decimal("0")) / Decimal(window)
+        history.append((prices[idx] / moving_avg) - Decimal("1"))
+    return history
+
+
 def classify_flag(
+    gld_ret_1m: Decimal,
     gld_ret_3m: Decimal,
     gld_max_drawdown_3m: Decimal,
+    gld_ret_3m_pctile_5y: float | None,
+    gld_max_drawdown_pctile_5y: float | None,
+    gld_pct_above_200dma_pctile_5y: float | None,
     real_yield_change_1m_bp: Decimal,
     gld_holdings_change_21d_pct: Decimal,
     gld_holdings_change_5d_pct: Decimal,
-) -> str:
-    score = 0
-    price_two = gld_ret_3m <= Decimal("-0.15") or gld_max_drawdown_3m <= Decimal("-0.18")
-    price_one = gld_ret_3m <= Decimal("-0.08") or gld_max_drawdown_3m <= Decimal("-0.10")
-    if price_two:
-        score += 2
-    elif price_one:
-        score += 1
+    previous_flag: str | None,
+    red_streak: int,
+    no_red_streak: int,
+) -> tuple[str, List[str], int, int]:
+    extension_score = 0
+    extension_triggers = []
+    if gld_ret_3m_pctile_5y is not None and gld_ret_3m_pctile_5y >= 90:
+        extension_score += 1
+        extension_triggers.append("GLD 3M return ≥ 90th percentile")
+    if gld_pct_above_200dma_pctile_5y is not None and gld_pct_above_200dma_pctile_5y >= 90:
+        extension_score += 1
+        extension_triggers.append("GLD % above 200DMA ≥ 90th percentile")
+    if gld_max_drawdown_pctile_5y is not None and gld_max_drawdown_pctile_5y >= 70:
+        extension_score += 1
+        extension_triggers.append("GLD 3M drawdown ≥ 70th percentile (smooth)")
 
-    macro_two = real_yield_change_1m_bp >= Decimal("50")
-    macro_one = real_yield_change_1m_bp >= Decimal("25")
-    if macro_two:
-        score += 2
-    elif macro_one:
-        score += 1
+    deterioration_score = 0
+    deterioration_triggers = []
+    if gld_holdings_change_21d_pct <= Decimal("-0.015") and gld_ret_1m > Decimal("0"):
+        deterioration_score += 1
+        deterioration_triggers.append("Holdings 21D ≤ -1.5% with positive 1M return (divergence)")
+    if real_yield_change_1m_bp >= Decimal("25"):
+        deterioration_score += 1
+        deterioration_triggers.append("Real yield change 1M ≥ +25 bp")
+    if gld_ret_1m <= Decimal("0") or gld_max_drawdown_3m <= Decimal("-0.08"):
+        deterioration_score += 1
+        deterioration_triggers.append("Price crack: 1M return ≤ 0% or 3M drawdown ≤ -8%")
 
-    flow_two = gld_holdings_change_21d_pct <= Decimal("-0.03")
-    flow_one = gld_holdings_change_21d_pct <= Decimal("-0.015")
-    if flow_two:
-        score += 2
-    elif flow_one:
-        score += 1
+    red_primary = (
+        gld_ret_3m <= Decimal("-0.15")
+        or gld_max_drawdown_3m <= Decimal("-0.18")
+        or real_yield_change_1m_bp >= Decimal("50")
+    )
+    red_primary_triggers = []
+    if gld_ret_3m <= Decimal("-0.15"):
+        red_primary_triggers.append("GLD 3M return ≤ -15%")
+    if gld_max_drawdown_3m <= Decimal("-0.18"):
+        red_primary_triggers.append("GLD 3M drawdown ≤ -18%")
+    if real_yield_change_1m_bp >= Decimal("50"):
+        red_primary_triggers.append("Real yield change 1M ≥ +50 bp")
 
-    flow_speed = gld_holdings_change_5d_pct <= Decimal("-0.01")
-    if flow_speed:
-        score += 1
+    composite_conditions = [
+        ("GLD 3M return ≤ -8%", gld_ret_3m <= Decimal("-0.08")),
+        ("Holdings 21D ≤ -2.0%", gld_holdings_change_21d_pct <= Decimal("-0.02")),
+        ("Holdings 5D ≤ -1.0%", gld_holdings_change_5d_pct <= Decimal("-0.01")),
+        ("Real yield change 1M ≥ +25 bp", real_yield_change_1m_bp >= Decimal("25")),
+    ]
+    composite_hits = [label for label, hit in composite_conditions if hit]
+    red_composite = len(composite_hits) >= 2
 
-    any_two = price_two or macro_two or flow_two
-    any_one = price_one or macro_one or flow_one or flow_speed
-    if score >= 4 or (any_two and any_one):
-        return "RED"
-    if score >= 2:
-        return "YELLOW"
-    return "GREEN"
+    candidate_red = red_primary or red_composite
+    candidate_orange = extension_score >= 2 and deterioration_score >= 1
+    candidate_blue = extension_score >= 2
+
+    if candidate_red:
+        red_streak += 1
+        no_red_streak = 0
+    else:
+        red_streak = 0
+        no_red_streak += 1
+
+    red_persisted = False
+    if red_primary:
+        red_persisted = True
+    elif candidate_red and red_streak >= 2:
+        red_persisted = True
+    elif previous_flag == "RED" and no_red_streak < 5:
+        red_persisted = True
+
+    if red_persisted:
+        triggers = []
+        if red_primary_triggers:
+            triggers.extend(red_primary_triggers)
+        if red_composite:
+            triggers.append(f"Composite stress (2 of 4): {', '.join(composite_hits)}")
+        if not candidate_red and previous_flag == "RED":
+            triggers.append("RED persistence: cooldown period (needs 5 clear runs)")
+        if not triggers:
+            triggers.append("RED: persistence without active triggers")
+        return "RED", triggers, red_streak, no_red_streak
+    if candidate_orange:
+        return "ORANGE", extension_triggers + deterioration_triggers, red_streak, no_red_streak
+    if candidate_blue:
+        return "BLUE", extension_triggers, red_streak, no_red_streak
+    return "GREEN", [], red_streak, no_red_streak
 
 
 def build_issue_body(metrics: dict) -> str:
@@ -280,6 +359,7 @@ def build_issue_body(metrics: dict) -> str:
         f"- GLD 1M return: {metrics['gld_ret_1m']:+.2%}",
         f"- GLD 3M return: {metrics['gld_ret_3m']:+.2%}",
         f"- GLD 3M max drawdown: {metrics['gld_max_drawdown_3m']:+.2%}",
+        f"- GLD % above 200DMA: {metrics['gld_pct_above_200dma']:+.2%}",
         f"- DFII10 level: {metrics['real_yield_today']:.2f}%",
         f"- DFII10 1M change: {metrics['real_yield_change_1m_bp']:+.0f} bp",
         f"- DFII10 3M change: {metrics['real_yield_change_3m_bp']:+.0f} bp",
@@ -297,6 +377,17 @@ def main() -> int:
     args = parser.parse_args()
 
     status = Status(fetch_ok=False, flag=None, issue_title=None, issue_body=None, error=None)
+    previous_state = {}
+    previous_flag = None
+    if os.path.exists(args.output):
+        try:
+            with open(args.output, "r", encoding="utf-8") as handle:
+                previous_data = json.load(handle)
+                previous_state = previous_data.get("state", {}) if isinstance(previous_data, dict) else {}
+                previous_flag = previous_data.get("flag") if isinstance(previous_data, dict) else None
+        except (OSError, json.JSONDecodeError):
+            previous_state = {}
+            previous_flag = None
     try:
         api_key = os.environ.get("FRED_API_KEY")
         if not api_key:
@@ -316,6 +407,8 @@ def main() -> int:
         gld_ret_3m = compute_return(gld_prices, TRADING_DAYS_3M)
         gld_window = gld_prices[-TRADING_DAYS_3M:]
         gld_max_drawdown_3m = compute_max_drawdown(gld_window)
+        gld_200dma = compute_simple_moving_average(gld_prices, TRADING_DAYS_200)
+        gld_pct_above_200dma = (gld_prices[-1] / gld_200dma) - Decimal("1")
 
         fred_dates = [row[0] for row in fred_rows]
         fred_values = [row[1] for row in fred_rows]
@@ -333,6 +426,12 @@ def main() -> int:
         gld_ret_1m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_1M, cutoff_date)
         gld_ret_3m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
         gld_drawdown_history = compute_drawdown_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
+        gld_pct_above_200dma_history = compute_pct_above_ma_series(
+            gld_dates,
+            gld_prices,
+            TRADING_DAYS_200,
+            cutoff_date,
+        )
         real_yield_change_1m_history = compute_change_series(
             fred_dates,
             fred_values,
@@ -363,6 +462,10 @@ def main() -> int:
         gld_ret_1m_pctile_5y = compute_percentile(gld_ret_1m, gld_ret_1m_history)
         gld_ret_3m_pctile_5y = compute_percentile(gld_ret_3m, gld_ret_3m_history)
         gld_drawdown_pctile_5y = compute_percentile(gld_max_drawdown_3m, gld_drawdown_history)
+        gld_pct_above_200dma_pctile_5y = compute_percentile(
+            gld_pct_above_200dma,
+            gld_pct_above_200dma_history,
+        )
         real_yield_change_1m_pctile_5y = compute_percentile(
             real_yield_change_1m_bp,
             real_yield_change_1m_history,
@@ -380,12 +483,21 @@ def main() -> int:
             holdings_change_21d_history,
         )
 
-        flag = classify_flag(
+        red_streak = int(previous_state.get("red_streak", 0) or 0)
+        no_red_streak = int(previous_state.get("no_red_streak", 0) or 0)
+        flag, flag_triggers, red_streak, no_red_streak = classify_flag(
+            gld_ret_1m,
             gld_ret_3m,
             gld_max_drawdown_3m,
+            gld_ret_3m_pctile_5y,
+            gld_drawdown_pctile_5y,
+            gld_pct_above_200dma_pctile_5y,
             real_yield_change_1m_bp,
             gld_holdings_change_21d_pct,
             gld_holdings_change_5d_pct,
+            previous_flag,
+            red_streak,
+            no_red_streak,
         )
 
         repository = None
@@ -412,9 +524,12 @@ def main() -> int:
                 "gld_ret_1m": float(gld_ret_1m),
                 "gld_ret_3m": float(gld_ret_3m),
                 "gld_max_drawdown_3m": float(gld_max_drawdown_3m),
+                "gld_200dma": float(gld_200dma),
+                "gld_pct_above_200dma": float(gld_pct_above_200dma),
                 "gld_ret_1m_pctile_5y": gld_ret_1m_pctile_5y,
                 "gld_ret_3m_pctile_5y": gld_ret_3m_pctile_5y,
                 "gld_max_drawdown_3m_pctile_5y": gld_drawdown_pctile_5y,
+                "gld_pct_above_200dma_pctile_5y": gld_pct_above_200dma_pctile_5y,
                 "real_yield_today": float(real_yield_today),
                 "real_yield_change_1m_bp": float(real_yield_change_1m_bp),
                 "real_yield_change_3m_bp": float(real_yield_change_3m_bp),
@@ -422,20 +537,28 @@ def main() -> int:
                 "real_yield_change_3m_bp_pctile_5y": real_yield_change_3m_pctile_5y,
             },
             "flag": flag,
+            "flag_triggers": flag_triggers,
+            "state": {
+                "red_streak": red_streak,
+                "no_red_streak": no_red_streak,
+            },
             "rules": {
                 "red": (
-                    "Score >= 4 OR any +2 trigger plus any other +1. "
-                    "Price +2: 3M return <= -15% OR 3M drawdown <= -18%. "
-                    "Macro +2: DFII10 1M change >= +50 bp. "
-                    "Flow +2: holdings 21D change <= -3.0%. "
-                    "Flow speed +1: holdings 5D change <= -1.0%."
+                    "Primary: 3M return <= -15% OR 3M drawdown <= -18% OR DFII10 1M change >= +50 bp. "
+                    "Composite: 2 of 4 (3M return <= -8%, holdings 21D <= -2%, "
+                    "holdings 5D <= -1%, DFII10 1M change >= +25 bp). "
+                    "Enter RED after 2 consecutive composite runs; exit after 5 clean runs."
                 ),
-                "yellow": (
-                    "Score 2-3. Price +1: 3M return <= -8% OR 3M drawdown <= -10%. "
-                    "Macro +1: DFII10 1M change >= +25 bp. "
-                    "Flow +1: holdings 21D change <= -1.5%."
+                "orange": (
+                    "Extension score >= 2 AND deterioration score >= 1. "
+                    "Deterioration signals: flow divergence (holdings 21D <= -1.5% with 1M return > 0), "
+                    "real yield 1M change >= +25 bp, or price crack (1M return <= 0 or 3M drawdown <= -8%)."
                 ),
-                "green": "Score 0-1",
+                "blue": (
+                    "Extension score >= 2. +1 each: 3M return percentile >= 90, "
+                    "% above 200DMA percentile >= 90, 3M drawdown percentile >= 70."
+                ),
+                "green": "No extension or deterioration signals.",
             },
         }
 

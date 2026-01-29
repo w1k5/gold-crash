@@ -5,8 +5,8 @@ A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/I
 ## What it does
 
 - Fetches GLD daily prices (no API key), GLD holdings (SPDR CSV), and DFII10 real yield data from FRED (API key required).
-- Computes 1M/3M returns, 3M max drawdown, real-yield changes, and GLD holdings flow changes.
-- Assigns a GREEN/YELLOW/RED flag based on explicit rules.
+- Computes 1M/3M returns, 3M max drawdown, 200DMA extension, real-yield changes, and GLD holdings flow changes.
+- Assigns a GREEN/BLUE/ORANGE/RED flag based on explicit rules.
 - Publishes `data.json` and a static dashboard (`index.html`).
 - Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED flag”** when RED is triggered.
 - Opens or updates a GitHub Issue titled **“⚠️ Gold Risk Monitor: data fetch failed”** when data fetch fails, without overwriting the last known good dashboard.
@@ -20,6 +20,8 @@ Metrics:
 - `gld_ret_1m = (price_today / price_21d_ago) - 1`
 - `gld_ret_3m = (price_today / price_63d_ago) - 1`
 - `gld_max_drawdown_3m = max peak-to-trough decline within last 63 days`
+- `gld_200dma = 200-day simple moving average of GLD`
+- `gld_pct_above_200dma = (price_today / gld_200dma) - 1`
 - `real_yield_today = DFII10 latest value (percent)`
 - `real_yield_change_1m_bp = (today - 21d_ago) * 100`
 - `real_yield_change_3m_bp = (today - 63d_ago) * 100`
@@ -28,23 +30,20 @@ Metrics:
 - `gld_holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
 - `*_pctile_5y = 5-year percentile for the corresponding metric`
 
-Flags (score-based tightening):
-- **Price bucket**
-  - +1 if 3M return <= -8% OR 3M max drawdown <= -10%
-  - +2 if 3M return <= -15% OR 3M max drawdown <= -18%
-- **Macro bucket (DFII10 1M change)**
-  - +1 if >= +25 bp
-  - +2 if >= +50 bp
-- **Flow bucket (GLD holdings 21D change)**
-  - +1 if <= -1.5%
-  - +2 if <= -3.0%
-- **Flow speed (optional)**
-  - +1 if holdings 5D change <= -1.0%
-
-Scores:
-- **GREEN** = 0–1
-- **YELLOW** = 2–3
-- **RED** = 4+ or any single +2 trigger plus any other +1
+Flags (extension → deterioration → breakdown):
+- **BLUE (extension score >= 2)**: +1 each
+  - 3M return percentile >= 90
+  - % above 200DMA percentile >= 90
+  - 3M drawdown percentile >= 70 (smooth rally)
+- **ORANGE (extension + deterioration)**: extension score >= 2 AND deterioration score >= 1
+  - Flow divergence: holdings 21D <= -1.5% and 1M return > 0
+  - Macro turn: DFII10 1M change >= +25 bp
+  - Price crack: 1M return <= 0 or 3M drawdown <= -8%
+- **RED (breakdown)**
+  - Primary triggers (immediate): 3M return <= -15% OR 3M drawdown <= -18% OR DFII10 1M change >= +50 bp
+  - Composite stress (2 of 4): 3M return <= -8%, holdings 21D <= -2%, holdings 5D <= -1%, DFII10 1M change >= +25 bp
+  - Enter RED after 2 consecutive composite runs; exit after 5 clean runs
+- **GREEN** otherwise
 
 ## Setup
 
