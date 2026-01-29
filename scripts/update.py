@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 FRED_SERIES_ID = "DFII10"
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
-GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv"
+GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
 TRADING_DAYS_1W = 5
@@ -76,7 +76,12 @@ def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
     for key in reader.fieldnames:
         if key and key.strip().lower() in {"date", "as of date", "asofdate"}:
             date_key = key
-        if key and "holdings" in key.strip().lower():
+        if not key:
+            continue
+        normalized = key.strip().lower()
+        if "tonnes" in normalized:
+            holdings_key = key
+        elif "holdings" in normalized and not holdings_key:
             holdings_key = key
     if not date_key:
         date_key = reader.fieldnames[0]
@@ -88,6 +93,8 @@ def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
         date_str = row.get(date_key, "").strip()
         holdings_str = row.get(holdings_key, "").strip()
         if not date_str or not holdings_str:
+            continue
+        if date_str.lower() == "holiday" or holdings_str.lower() == "holiday":
             continue
         parsed_date = parse_holdings_date(date_str)
         if not parsed_date:
