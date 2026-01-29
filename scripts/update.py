@@ -17,8 +17,10 @@ from zoneinfo import ZoneInfo
 
 FRED_SERIES_ID = "DFII10"
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
+GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv"
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
+TRADING_DAYS_1W = 5
 
 
 @dataclass
@@ -61,6 +63,57 @@ def parse_stooq_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
 def fetch_gld_prices() -> List[Tuple[datetime, Decimal]]:
     csv_text = fetch_url(GLD_STOOQ_URL)
     return parse_stooq_csv(csv_text)
+
+
+def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
+    reader = csv.DictReader(csv_text.splitlines())
+    if not reader.fieldnames:
+        raise DataFetchError("Holdings CSV missing header")
+    date_key = None
+    holdings_key = None
+    for key in reader.fieldnames:
+        if key and key.strip().lower() in {"date", "as of date", "asofdate"}:
+            date_key = key
+        if key and "holdings" in key.strip().lower():
+            holdings_key = key
+    if not date_key:
+        date_key = reader.fieldnames[0]
+    if not holdings_key:
+        raise DataFetchError("Holdings CSV missing holdings column")
+
+    rows: List[Tuple[datetime, Decimal]] = []
+    for row in reader:
+        date_str = row.get(date_key, "").strip()
+        holdings_str = row.get(holdings_key, "").strip()
+        if not date_str or not holdings_str:
+            continue
+        parsed_date = parse_holdings_date(date_str)
+        if not parsed_date:
+            continue
+        sanitized = holdings_str.replace(",", "").replace("t", "").strip()
+        try:
+            holdings = Decimal(sanitized)
+        except Exception:
+            continue
+        rows.append((parsed_date, holdings))
+    if len(rows) < TRADING_DAYS_1M + 1:
+        raise DataFetchError("Not enough GLD holdings data points")
+    rows.sort(key=lambda item: item[0])
+    return rows
+
+
+def parse_holdings_date(value: str) -> datetime | None:
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d-%b-%Y", "%d-%b-%y"):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def fetch_gld_holdings() -> List[Tuple[datetime, Decimal]]:
+    csv_text = fetch_url(GLD_HOLDINGS_URL)
+    return parse_holdings_csv(csv_text)
 
 
 def fetch_fred_dfii10(api_key: str) -> List[Tuple[datetime, Decimal]]:
@@ -135,6 +188,9 @@ def build_issue_body(metrics: dict) -> str:
         f"- DFII10 level: {metrics['real_yield_today']:.2f}%",
         f"- DFII10 1M change: {metrics['real_yield_change_1m_bp']:+.0f} bp",
         f"- DFII10 3M change: {metrics['real_yield_change_3m_bp']:+.0f} bp",
+        f"- GLD holdings today: {metrics['gld_holdings_today']:.1f} t",
+        f"- GLD holdings 5D change: {metrics['gld_holdings_change_5d_pct']:+.2%}",
+        f"- GLD holdings 21D change: {metrics['gld_holdings_change_21d_pct']:+.2%}",
     ]
     return "\n".join(lines)
 
@@ -153,6 +209,7 @@ def main() -> int:
 
         gld_rows = fetch_gld_prices()
         fred_rows = fetch_fred_dfii10(api_key)
+        holdings_rows = fetch_gld_holdings()
 
         gld_prices = [row[1] for row in gld_rows]
         gld_ret_1m = compute_return(gld_prices, TRADING_DAYS_1M)
@@ -164,6 +221,11 @@ def main() -> int:
         real_yield_today = fred_values[-1]
         real_yield_change_1m_bp = (real_yield_today - fred_values[-(TRADING_DAYS_1M + 1)]) * Decimal("100")
         real_yield_change_3m_bp = (real_yield_today - fred_values[-(TRADING_DAYS_3M + 1)]) * Decimal("100")
+
+        holdings_values = [row[1] for row in holdings_rows]
+        gld_holdings_today = holdings_values[-1]
+        gld_holdings_change_5d_pct = compute_return(holdings_values, TRADING_DAYS_1W)
+        gld_holdings_change_21d_pct = compute_return(holdings_values, TRADING_DAYS_1M)
 
         flag = classify_flag(gld_ret_3m, gld_max_drawdown_3m, real_yield_change_1m_bp)
 
@@ -180,11 +242,15 @@ def main() -> int:
             "updated_et": now_et.isoformat(),
             "sources": {
                 "gld_prices": GLD_STOOQ_URL,
+                "gld_holdings": GLD_HOLDINGS_URL,
                 "dfii10": "https://fred.stlouisfed.org/series/DFII10",
             },
             "repository": repository,
             "metrics": {
                 "gld_price": float(gld_prices[-1]),
+                "gld_holdings_today": float(gld_holdings_today),
+                "gld_holdings_change_5d_pct": float(gld_holdings_change_5d_pct),
+                "gld_holdings_change_21d_pct": float(gld_holdings_change_21d_pct),
                 "gld_ret_1m": float(gld_ret_1m),
                 "gld_ret_3m": float(gld_ret_3m),
                 "gld_max_drawdown_3m": float(gld_max_drawdown_3m),

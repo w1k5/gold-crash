@@ -134,10 +134,18 @@
     </section>
 
     <section class="note">
+      <h2>Flow confirmation (v2)</h2>
+      <ul>
+        <li>Flow-confirmed risk: GLD 3M return ≤ -10% AND holdings 21D change ≤ -2% → treat as RED.</li>
+        <li>Capitulation watch: holdings 5D change ≤ -1% AND GLD 1M return ≤ -5% → RED (flow).</li>
+      </ul>
+    </section>
+
+    <section class="note">
       <h2>Portfolio notes</h2>
       <ul>
         <li>Silver &amp; miners historically amplify gold moves (2–3× volatility).</li>
-        <li>Potential v2 add-on: flow proxy (GLD holdings change or futures positioning).</li>
+        <li>GLD holdings changes help separate macro repricing from investor exits.</li>
       </ul>
     </section>
 
@@ -153,6 +161,7 @@
   <script>
     const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
     const formatBp = (value) => `${value.toFixed(0)} bp`;
+    const formatTonnes = (value) => `${value.toFixed(1)} t`;
 
     const statusEl = document.getElementById('status');
     const metricsEl = document.getElementById('metrics');
@@ -176,6 +185,13 @@
       return 'Normal move vs 5-year history.';
     };
 
+    const classifyHoldingsChange = (value, warningThreshold, redThreshold) => {
+      if (value == null) return '';
+      if (value <= redThreshold) return 'Sharp outflows; capitulation risk.';
+      if (value <= warningThreshold) return 'Outflows building; watch for confirmation.';
+      return 'Stable to rising holdings.';
+    };
+
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
@@ -191,6 +207,8 @@
         const gldDrawdownContext = classifyReturn(metrics.gld_max_drawdown_3m, -0.12, -0.18);
         const yieldChange1mContext = classifyYieldChange(metrics.real_yield_change_1m_bp, 25, 50);
         const yieldChange3mContext = classifyYieldChange(metrics.real_yield_change_3m_bp, 35, 65);
+        const holdingsChange5dContext = classifyHoldingsChange(metrics.gld_holdings_change_5d_pct, -0.01, -0.02);
+        const holdingsChange21dContext = classifyHoldingsChange(metrics.gld_holdings_change_21d_pct, -0.02, -0.03);
 
         metricsEl.innerHTML = `
           <tr>
@@ -220,6 +238,18 @@
           <tr>
             <td>DFII10 3M change</td>
             <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext || 'Medium-term rate trend vs 5-year history.')}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings (tonnes)</td>
+            <td>${metrics.gld_holdings_today != null ? formatTonnes(metrics.gld_holdings_today) : 'n/a'}${contextTag('ETF holdings show investor demand, not just price effects.')}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings 5D change</td>
+            <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext || 'Weekly flow pulse; look for rapid outflows.')}</td>
+          </tr>
+          <tr>
+            <td>GLD holdings 21D change</td>
+            <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext || 'Monthly flow trend; confirms sustained exits.')}</td>
           </tr>
         `;
 
