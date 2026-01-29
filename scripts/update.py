@@ -810,8 +810,7 @@ def main() -> int:
         }
 
         data = {
-            "updated_utc": now_utc.isoformat().replace("+00:00", "Z"),
-            "updated_et": now_et.isoformat(),
+            "updated_at": now_et.isoformat(),
             "sources": {
                 "gld_prices": GLD_STOOQ_URL,
                 "gld_holdings": GLD_HOLDINGS_URL,
