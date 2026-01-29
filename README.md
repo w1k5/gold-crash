@@ -28,10 +28,11 @@ Metrics:
 - `gld_holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
 - `*_pctile_5y = 5-year percentile for the corresponding metric`
 
-Flags:
-- **RED** if `(gld_ret_3m <= -0.15) OR (gld_max_drawdown_3m <= -0.18) OR (real_yield_change_1m_bp >= 50)`
-- **YELLOW** if `(gld_ret_3m <= -0.08) OR (real_yield_change_1m_bp >= 25)`
-- **GREEN** otherwise
+Flags (percentile-based, 5y rolling history):
+- **RED** if any extreme tail (`p_ret3m <= 5` OR `p_mdd3m <= 5` OR `p_ry_chg1m >= 95` OR `p_hold21d <= 5`)
+  or if two YELLOW conditions trigger simultaneously.
+- **YELLOW** if any one is in the unusual tail (`p_ret3m <= 20` OR `p_mdd3m <= 20` OR `p_ry_chg1m >= 80` OR `p_hold21d <= 20`).
+- **GREEN** otherwise (no unusual tails in the 5y percentile view).
 
 ## Setup
 

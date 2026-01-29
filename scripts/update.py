@@ -223,19 +223,34 @@ def compute_change_series(
 
 
 def classify_flag(
-    gld_ret_3m: Decimal,
-    gld_max_drawdown_3m: Decimal,
-    real_yield_change_1m_bp: Decimal,
+    p_ret3m: float | None,
+    p_mdd3m: float | None,
+    p_ry_chg1m: float | None,
+    p_hold21d: float | None,
 ) -> str:
-    if gld_ret_3m <= Decimal("-0.15"):
+    if None in (p_ret3m, p_mdd3m, p_ry_chg1m, p_hold21d):
+        raise DataFetchError("Insufficient percentile history to classify flag")
+
+    extreme_tail = (
+        p_ret3m <= 5
+        or p_mdd3m <= 5
+        or p_ry_chg1m >= 95
+        or p_hold21d <= 5
+    )
+    if extreme_tail:
         return "RED"
-    if gld_max_drawdown_3m <= Decimal("-0.18"):
+
+    yellow_flags = sum(
+        [
+            p_ret3m <= 20,
+            p_mdd3m <= 20,
+            p_ry_chg1m >= 80,
+            p_hold21d <= 20,
+        ]
+    )
+    if yellow_flags >= 2:
         return "RED"
-    if real_yield_change_1m_bp >= Decimal("50"):
-        return "RED"
-    if gld_ret_3m <= Decimal("-0.08"):
-        return "YELLOW"
-    if real_yield_change_1m_bp >= Decimal("25"):
+    if yellow_flags >= 1:
         return "YELLOW"
     return "GREEN"
 
@@ -346,7 +361,12 @@ def main() -> int:
             holdings_change_21d_history,
         )
 
-        flag = classify_flag(gld_ret_3m, gld_max_drawdown_3m, real_yield_change_1m_bp)
+        flag = classify_flag(
+            gld_ret_3m_pctile_5y,
+            gld_drawdown_pctile_5y,
+            real_yield_change_1m_pctile_5y,
+            holdings_change_21d_pctile_5y,
+        )
 
         repository = None
         repo_env = os.environ.get("GITHUB_REPOSITORY")
@@ -383,9 +403,15 @@ def main() -> int:
             },
             "flag": flag,
             "rules": {
-                "red": "GLD 3M return <= -15% OR GLD 3M max drawdown <= -18% OR DFII10 1M change >= +50 bp",
-                "yellow": "GLD 3M return <= -8% OR DFII10 1M change >= +25 bp",
-                "green": "Otherwise",
+                "red": (
+                    "Extreme tail: p_ret3m <= 5 OR p_mdd3m <= 5 OR "
+                    "p_ry_chg1m >= 95 OR p_hold21d <= 5 OR two YELLOWs"
+                ),
+                "yellow": (
+                    "Any one: p_ret3m <= 20 OR p_mdd3m <= 20 OR "
+                    "p_ry_chg1m >= 80 OR p_hold21d <= 20"
+                ),
+                "green": "No unusual tails in 5y percentile view",
             },
         }
 

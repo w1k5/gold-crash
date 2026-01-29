@@ -1,5 +1,5 @@
 {
-  "flag": "GREEN",
+  "flag": "YELLOW",
   "metrics": {
     "gld_max_drawdown_3m": -0.04902337188654797,
     "gld_price": 494.56,
@@ -21,9 +21,9 @@
   },
   "repository": "https://github.com/w1k5/gold-crash",
   "rules": {
-    "green": "Otherwise",
-    "red": "GLD 3M return <= -15% OR GLD 3M max drawdown <= -18% OR DFII10 1M change >= +50 bp",
-    "yellow": "GLD 3M return <= -8% OR DFII10 1M change >= +25 bp"
+    "green": "No unusual tails in 5y percentile view",
+    "red": "Extreme tail: p_ret3m <= 5 OR p_mdd3m <= 5 OR p_ry_chg1m >= 95 OR p_hold21d <= 5 OR two YELLOWs",
+    "yellow": "Any one: p_ret3m <= 20 OR p_mdd3m <= 20 OR p_ry_chg1m >= 80 OR p_hold21d <= 20"
   },
   "sources": {
     "dfii10": "https://fred.stlouisfed.org/series/DFII10",
