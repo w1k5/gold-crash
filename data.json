@@ -2,10 +2,11 @@
   "flag": "BLUE",
   "flag_triggers": [
     "GLD 3M return \u2265 90th percentile",
+    "GLD % above 200DMA \u2265 90th percentile",
     "GLD 3M drawdown \u2265 70th percentile (smooth)"
   ],
   "metrics": {
-    "gld_200dma": null,
+    "gld_200dma": 345.69115,
     "gld_holdings_change_21d_pct": 0.017579565505587556,
     "gld_holdings_change_21d_pct_pctile_5y": 79.18660287081339,
     "gld_holdings_change_5d_pct": 0.011413618395412281,
@@ -13,8 +14,8 @@
     "gld_holdings_today": 1089.96,
     "gld_max_drawdown_3m": -0.04902337188654797,
     "gld_max_drawdown_3m_pctile_5y": 71.1323763955343,
-    "gld_pct_above_200dma": null,
-    "gld_pct_above_200dma_pctile_5y": null,
+    "gld_pct_above_200dma": 0.43064119518246274,
+    "gld_pct_above_200dma_pctile_5y": 100.0,
     "gld_price": 494.56,
     "gld_ret_1m": 0.18673513461630753,
     "gld_ret_1m_pctile_5y": 99.92025518341308,
@@ -39,9 +40,9 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
   "state": {
-    "no_red_streak": 0,
+    "no_red_streak": 1,
     "red_streak": 0
   },
-  "updated_et": "2026-01-29T08:52:10.791650-05:00",
-  "updated_utc": "2026-01-29T13:52:10.791650Z"
+  "updated_et": "2026-01-29T09:23:54.871953-05:00",
+  "updated_utc": "2026-01-29T14:23:54.871953Z"
 }
