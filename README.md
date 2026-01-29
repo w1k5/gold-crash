@@ -5,45 +5,64 @@ A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/I
 ## What it does
 
 - Fetches GLD daily prices (no API key), GLD holdings (SPDR CSV), and DFII10 real yield data from FRED (API key required).
-- Computes 1M/3M returns, 3M max drawdown, 200DMA extension, real-yield changes, and GLD holdings flow changes.
-- Assigns a GREEN/BLUE/ORANGE/RED flag based on explicit rules.
-- Publishes `data.json` and a static dashboard (`index.html`).
-- Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED flag”** when RED is triggered.
+- Computes multi-horizon GLD returns/drawdowns (3M/6M/1Y/3Y/5Y), a 200DMA extension metric, and short-term flow + macro changes.
+- Assigns a single GREEN/BLUE/ORANGE/RED regime based on the **primary 3M horizon** plus extension, flow, and macro signals.
+- Publishes `data.json` and a static dashboard (`index.html`) with a Horizon Snapshot table for context.
+- Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED regime”** only when the regime transitions into RED, and updates the same issue when it exits RED.
 - Opens or updates a GitHub Issue titled **“⚠️ Gold Risk Monitor: data fetch failed”** when data fetch fails, without overwriting the last known good dashboard.
 
-## Flag logic (exact)
+## Regime logic (exact)
 
-- 1M = 21 trading days
-- 3M = 63 trading days
+### Time horizons
 
-Metrics:
-- `gld_ret_1m = (price_today / price_21d_ago) - 1`
-- `gld_ret_3m = (price_today / price_63d_ago) - 1`
-- `gld_max_drawdown_3m = max peak-to-trough decline within last 63 days`
-- `gld_200dma = 200-day simple moving average of GLD`
-- `gld_pct_above_200dma = (price_today / gld_200dma) - 1`
+- 3M = 63 trading days (primary)
+- 6M = 126 trading days
+- 1Y = 252 trading days
+- 3Y = 756 trading days
+- 5Y = 1260 trading days
+
+### Metrics
+
+- `ret_H = (price_today / price_H_days_ago) - 1`
+- `max_drawdown_H = max peak-to-trough decline within last H days`
+- `ma_200 = 200-day simple moving average of GLD`
+- `pct_above_200dma = (price_today / ma_200) - 1`
 - `real_yield_today = DFII10 latest value (percent)`
 - `real_yield_change_1m_bp = (today - 21d_ago) * 100`
 - `real_yield_change_3m_bp = (today - 63d_ago) * 100`
-- `gld_holdings_today = latest GLD holdings in tonnes`
-- `gld_holdings_change_5d_pct = (holdings_today / holdings_5d_ago) - 1`
-- `gld_holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
-- `*_pctile_5y = 5-year percentile for the corresponding metric`
+- `holdings_today_tonnes = latest GLD holdings in tonnes`
+- `holdings_change_5d_pct = (holdings_today / holdings_5d_ago) - 1`
+- `holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
+- `*_pctile_5y = percentile for the corresponding metric over the last 5 years`
 
-Flags (extension → deterioration → breakdown):
-- **BLUE (extension score >= 2)**: +1 each
+### Percentiles
+
+- Percentiles use a rolling 5-year context window when possible.
+- If a 5-year window is insufficient (e.g., for 5Y horizon metrics), the percentile is computed on available history and flagged with a note, or set to `null` with an explanation.
+
+### Regime rules (one state; primary horizon = 3M)
+
+- **GREEN (normal)** if all are true:
+  - 3M return percentile < 80
+  - % above 200DMA percentile < 80
+  - Holdings 21D change percentile > 20
+  - Real yield 1M change percentile < 80
+- **BLUE (overheated)** if not GREEN and extension score >= 2, where extension score counts:
   - 3M return percentile >= 90
   - % above 200DMA percentile >= 90
-  - 3M drawdown percentile >= 70 (smooth rally)
-- **ORANGE (extension + deterioration)**: extension score >= 2 AND deterioration score >= 1
-  - Flow divergence: holdings 21D <= -1.5% and 1M return > 0
-  - Macro turn: DFII10 1M change >= +25 bp
-  - Price crack: 1M return <= 0 or 3M drawdown <= -8%
-- **RED (breakdown)**
-  - Primary triggers (immediate): 3M return <= -15% OR 3M drawdown <= -18% OR DFII10 1M change >= +50 bp
-  - Composite stress (2 of 4): 3M return <= -8%, holdings 21D <= -2%, holdings 5D <= -1%, DFII10 1M change >= +25 bp
-  - Enter RED after 2 consecutive composite runs; exit after 5 clean runs
-- **GREEN** otherwise
+  - 3M drawdown percentile >= 70
+- **ORANGE (topping risk)** if BLUE and deterioration is present:
+  - Flow divergence: holdings 21D <= -1.5% AND 3M return > 0 AND 1M return > 0 (if 1M exists)
+  - Macro turn: real yield 1M change >= +25 bp
+  - Price crack: 1M return <= 0 OR 3M drawdown <= -8%
+- **RED (breakdown risk)** if any primary trigger OR composite stress:
+  - Primary triggers: 3M return <= -15%, 3M drawdown <= -18%, real yield 1M change >= +50 bp
+  - Composite stress (2 of 4): 3M return <= -8%, holdings 21D <= -2%, holdings 5D <= -1%, real yield 1M change >= +25 bp
+
+### Persistence
+
+- Entering RED requires 2 consecutive runs meeting RED unless a primary trigger is true.
+- Exiting RED requires 5 consecutive runs not meeting RED.
 
 ## Setup
 
