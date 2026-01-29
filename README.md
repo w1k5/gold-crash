@@ -7,7 +7,7 @@ A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/I
 - Fetches GLD daily prices (no API key) and DFII10 real yield data from FRED (API key required).
 - Computes 1M/3M returns, 3M max drawdown, and real-yield changes.
 - Assigns a GREEN/YELLOW/RED flag based on explicit rules.
-- Publishes `public/data.json` and a static dashboard (`public/index.html`).
+- Publishes `data.json` and a static dashboard (`index.html`).
 - Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED flag”** when RED is triggered.
 - Opens or updates a GitHub Issue titled **“⚠️ Gold Risk Monitor: data fetch failed”** when data fetch fails, without overwriting the last known good dashboard.
 
@@ -56,14 +56,14 @@ If you believe a key has been exposed, revoke it in FRED and replace it in GitHu
 
 1. Go to **Settings → Pages**.
 2. Under **Build and deployment**, select **Deploy from a branch**.
-3. Set **Branch** to `main` and **/public** as the folder.
+3. Set **Branch** to `main` and **/(root)** as the folder.
 4. Save; your dashboard will be available at `https://<OWNER>.github.io/<REPO>/`.
 
 ### 4) (Optional) Local test
 
 ```bash
 export FRED_API_KEY=your_key
-python scripts/update.py --output public/data.json --status-file /tmp/monitor_status.json
+python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
 ```
 
 ## Automation
@@ -79,7 +79,7 @@ The scheduled workflow runs daily at **07:05 America/New_York**. GitHub Actions 
 
 - Create the GitHub repository and push the code.
 - Add the `FRED_API_KEY` secret.
-- Enable GitHub Pages from `/public`.
+- Enable GitHub Pages from `/(root)`.
 - Rotate any compromised API keys.
 
 ## License

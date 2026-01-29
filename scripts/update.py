@@ -141,7 +141,7 @@ def build_issue_body(metrics: dict) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Update Gold Risk Monitor data")
-    parser.add_argument("--output", default="public/data.json")
+    parser.add_argument("--output", default="data.json")
     parser.add_argument("--status-file", default="/tmp/monitor_status.json")
     args = parser.parse_args()
 

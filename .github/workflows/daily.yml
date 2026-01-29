@@ -26,7 +26,7 @@ jobs:
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
-          python scripts/update.py --output public/data.json --status-file /tmp/monitor_status.json
+          python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
 
       - name: Read status
         id: status
@@ -109,7 +109,7 @@ PY
           import json
           from pathlib import Path
 
-          path = Path('public/data.json')
+          path = Path('data.json')
           if not path.exists():
               raise SystemExit(0)
 
@@ -121,10 +121,10 @@ PY
       - name: Commit updated dashboard
         if: steps.status.outputs.fetch_ok == 'true'
         run: |
-          if git status --porcelain public | grep -q .; then
+          if git status --porcelain data.json | grep -q .; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add public/data.json
+            git add data.json
             git commit -m "Update gold risk data"
             git push
           else
