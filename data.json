@@ -13,11 +13,11 @@
     "gld_ret_1m_pctile_5y": 99.92025518341308,
     "gld_ret_3m": 0.34753821421759623,
     "gld_ret_3m_pctile_5y": 100.0,
-    "real_yield_change_1m_bp": -3.0,
-    "real_yield_change_1m_bp_pctile_5y": null,
-    "real_yield_change_3m_bp": 24.0,
-    "real_yield_change_3m_bp_pctile_5y": null,
-    "real_yield_today": 2.18
+    "real_yield_change_1m_bp": -1.0,
+    "real_yield_change_1m_bp_pctile_5y": 46.03047313552526,
+    "real_yield_change_3m_bp": 19.0,
+    "real_yield_change_3m_bp_pctile_5y": 59.34242181234964,
+    "real_yield_today": 1.9
   },
   "repository": "https://github.com/w1k5/gold-crash",
   "rules": {
@@ -30,6 +30,6 @@
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
-  "updated_et": "2026-01-29T08:37:52.229136-05:00",
-  "updated_utc": "2026-01-29T13:37:52.229136Z"
+  "updated_et": "2026-01-29T08:52:10.791650-05:00",
+  "updated_utc": "2026-01-29T13:52:10.791650Z"
 }
