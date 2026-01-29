@@ -1,0 +1,132 @@
+name: Gold Risk Monitor Daily
+
+on:
+  schedule:
+    # 07:05 America/New_York = 12:05 UTC during standard time (07:05 EST)
+    # and 11:05 UTC during daylight time (07:05 EDT). Adjust if desired.
+    - cron: "5 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run updater
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          python scripts/update.py --output public/data.json --status-file /tmp/monitor_status.json
+
+      - name: Read status
+        id: status
+        run: |
+          python - <<'PY'
+import json
+from pathlib import Path
+status_path = Path('/tmp/monitor_status.json')
+status = json.loads(status_path.read_text())
+fetch_ok = 'true' if status.get('fetch_ok') else 'false'
+flag = status.get('flag') or ''
+issue_title = status.get('issue_title') or ''
+issue_body = status.get('issue_body') or ''
+issue_needed = 'true' if issue_title and issue_body else 'false'
+output = Path('${GITHUB_OUTPUT}')
+output.write_text(
+    f"fetch_ok={fetch_ok}\n"
+    f"flag={flag}\n"
+    f"issue_needed={issue_needed}\n"
+    f"issue_title={issue_title}\n"
+    "issue_body<<EOF\n"
+    f"{issue_body}\n"
+    "EOF\n"
+)
+PY
+
+      - name: Create or update issue
+        id: issue
+        if: steps.status.outputs.issue_needed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ steps.status.outputs.issue_title }}
+          ISSUE_BODY: ${{ steps.status.outputs.issue_body }}
+        run: |
+          python - <<'PY'
+import json
+import os
+import urllib.request
+
+repo = os.environ['GITHUB_REPOSITORY']
+token = os.environ['GITHUB_TOKEN']
+title = os.environ['ISSUE_TITLE']
+body = os.environ['ISSUE_BODY']
+
+headers = {
+    'Authorization': f'Bearer {token}',
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'gold-risk-monitor',
+}
+
+
+def request(url, method='GET', payload=None):
+    data = None
+    if payload is not None:
+        data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req) as response:
+        return json.loads(response.read().decode('utf-8'))
+
+issues_url = f"https://api.github.com/repos/{repo}/issues?state=open&per_page=100"
+issues = request(issues_url)
+issue = next((item for item in issues if item.get('title') == title and 'pull_request' not in item), None)
+
+payload = {'title': title, 'body': body}
+if issue:
+    updated = request(issue['url'], method='PATCH', payload=payload)
+    issue_url = updated.get('html_url', '')
+else:
+    created = request(f"https://api.github.com/repos/{repo}/issues", method='POST', payload=payload)
+    issue_url = created.get('html_url', '')
+
+with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
+    handle.write(f"issue_url={issue_url}\n")
+PY
+
+      - name: Attach latest issue URL to data.json
+        if: steps.status.outputs.fetch_ok == 'true' && steps.issue.outputs.issue_url != ''
+        run: |
+          python - <<'PY'
+import json
+from pathlib import Path
+
+path = Path('public/data.json')
+if not path.exists():
+    raise SystemExit(0)
+
+data = json.loads(path.read_text())
+data['latest_issue_url'] = '${{ steps.issue.outputs.issue_url }}'
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + '\n')
+PY
+
+      - name: Commit updated dashboard
+        if: steps.status.outputs.fetch_ok == 'true'
+        run: |
+          if git status --porcelain public | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add public/data.json
+            git commit -m "Update gold risk data"
+            git push
+          else
+            echo "No dashboard changes to commit."
+          fi
