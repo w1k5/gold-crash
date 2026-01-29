@@ -1,22 +1,33 @@
 {
-  "flag": "GREEN",
+  "flag": "YELLOW",
   "metrics": {
     "gld_max_drawdown_3m": -0.04902337188654797,
     "gld_price": 494.56,
+    "gld_holdings_change_21d_pct": -0.023,
+    "gld_holdings_change_21d_pct_pctile_5y": 18,
+    "gld_holdings_change_5d_pct": -0.012,
+    "gld_holdings_change_5d_pct_pctile_5y": 22,
+    "gld_holdings_today": 920.5,
     "gld_ret_1m": 0.18673513461630753,
+    "gld_ret_1m_pctile_5y": 84,
     "gld_ret_3m": 0.34753821421759623,
+    "gld_ret_3m_pctile_5y": 92,
+    "gld_max_drawdown_3m_pctile_5y": 41,
     "real_yield_change_1m_bp": -3.0,
+    "real_yield_change_1m_bp_pctile_5y": 33,
     "real_yield_change_3m_bp": 24.0,
+    "real_yield_change_3m_bp_pctile_5y": 66,
     "real_yield_today": 2.18
   },
   "repository": "https://github.com/w1k5/gold-crash",
   "rules": {
-    "green": "Otherwise",
-    "red": "GLD 3M return <= -15% OR GLD 3M max drawdown <= -18% OR DFII10 1M change >= +50 bp",
-    "yellow": "GLD 3M return <= -8% OR DFII10 1M change >= +25 bp"
+    "green": "Score 0-1",
+    "red": "Score >= 4 OR any +2 trigger plus any other +1. Price +2: 3M return <= -15% OR 3M drawdown <= -18%. Macro +2: DFII10 1M change >= +50 bp. Flow +2: holdings 21D change <= -3.0%. Flow speed +1: holdings 5D change <= -1.0%.",
+    "yellow": "Score 2-3. Price +1: 3M return <= -8% OR 3M drawdown <= -10%. Macro +1: DFII10 1M change >= +25 bp. Flow +1: holdings 21D change <= -1.5%."
   },
   "sources": {
     "dfii10": "https://fred.stlouisfed.org/series/DFII10",
+    "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv",
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
   "updated_et": "2026-01-28T21:54:16.414144-05:00",
