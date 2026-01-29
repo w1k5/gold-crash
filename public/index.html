@@ -21,7 +21,7 @@
       color: #0f172a;
     }
     main {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 32px 20px 64px;
     }
@@ -42,6 +42,7 @@
       text-transform: uppercase;
       color: white;
       background: var(--gray);
+      width: fit-content;
     }
     .badge.green { background: var(--green); }
     .badge.blue { background: var(--blue); }
@@ -51,10 +52,13 @@
       font-size: 14px;
       color: #475569;
     }
+    .section {
+      margin-top: 28px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 24px;
+      margin-top: 16px;
       background: white;
       border-radius: 12px;
       overflow: hidden;
@@ -65,6 +69,7 @@
       border-bottom: 1px solid #e2e8f0;
       text-align: left;
       font-size: 15px;
+      vertical-align: top;
     }
     th {
       background: #e2e8f0;
@@ -75,15 +80,6 @@
     tbody tr:last-child td {
       border-bottom: none;
     }
-    .rules {
-      margin-top: 28px;
-      padding: 16px 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      font-size: 14px;
-      color: #334155;
-    }
     .context {
       display: block;
       margin-top: 4px;
@@ -91,8 +87,8 @@
       color: #64748b;
     }
     .note {
-      margin-top: 20px;
-      padding: 16px 20px;
+      margin-top: 12px;
+      padding: 12px 16px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
@@ -129,49 +125,81 @@
       <h1>Gold Risk Monitor</h1>
       <div id="status" class="badge">Loading...</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
-      <div class="meta" id="statusNote">Status = risk regime indicator, not an automatic sell signal.</div>
+      <div class="meta">Status describes market regime only; it does not imply actions.</div>
     </header>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Metric</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody id="metrics">
-        <tr><td colspan="2">Loading metrics...</td></tr>
-      </tbody>
-    </table>
-
-    <section class="rules">
-      <h2>Flag rules</h2>
-      <ul id="rules">
-        <li>Loading rules...</li>
+    <section class="section">
+      <h2>Regime drivers</h2>
+      <ul id="reasons" class="note">
+        <li>Loading regime drivers...</li>
       </ul>
     </section>
 
-    <section class="note">
-      <h2>Active triggers</h2>
-      <ul id="triggers">
-        <li>Loading triggers...</li>
-      </ul>
+    <section class="section">
+      <h2>Horizon Snapshot</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>Return</th>
+            <th>Return Percentile</th>
+            <th>Max Drawdown</th>
+            <th>Drawdown Percentile</th>
+          </tr>
+        </thead>
+        <tbody id="horizonRows">
+          <tr><td colspan="5">Loading horizon metrics...</td></tr>
+        </tbody>
+      </table>
+      <div class="note" id="percentileNotes"></div>
     </section>
 
-    <section class="note">
-      <h2>Flow confirmation (v2)</h2>
-      <ul>
-        <li>Flow-confirmed risk: GLD 3M return ≤ -10% AND holdings 21D change ≤ -2% → treat as RED.</li>
-        <li>Capitulation watch: holdings 5D change ≤ -1% AND GLD 1M return ≤ -5% → RED (flow).</li>
-      </ul>
+    <section class="section">
+      <h2>Extension</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Percentile</th>
+          </tr>
+        </thead>
+        <tbody id="extensionRows">
+          <tr><td colspan="3">Loading extension data...</td></tr>
+        </tbody>
+      </table>
     </section>
 
-    <section class="note">
-      <h2>Portfolio notes</h2>
-      <ul>
-        <li>Silver &amp; miners historically amplify gold moves (2–3× volatility).</li>
-        <li>GLD holdings changes help separate macro repricing from investor exits.</li>
-      </ul>
+    <section class="section">
+      <h2>Flow (short-term)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Percentile</th>
+          </tr>
+        </thead>
+        <tbody id="flowRows">
+          <tr><td colspan="3">Loading flow data...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Macro (short-term)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Percentile</th>
+          </tr>
+        </thead>
+        <tbody id="macroRows">
+          <tr><td colspan="3">Loading macro data...</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <footer>
@@ -189,10 +217,13 @@
     const formatTonnes = (value) => `${value.toFixed(1)} t`;
 
     const statusEl = document.getElementById('status');
-    const metricsEl = document.getElementById('metrics');
     const timestampsEl = document.getElementById('timestamps');
-    const rulesEl = document.getElementById('rules');
-    const triggersEl = document.getElementById('triggers');
+    const reasonsEl = document.getElementById('reasons');
+    const horizonRows = document.getElementById('horizonRows');
+    const percentileNotesEl = document.getElementById('percentileNotes');
+    const extensionRows = document.getElementById('extensionRows');
+    const flowRows = document.getElementById('flowRows');
+    const macroRows = document.getElementById('macroRows');
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
 
@@ -206,108 +237,163 @@
       if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
       return `${rounded}th`;
     };
-    const percentileText = (value) => (value == null ? '' : `${formatOrdinal(value)} percentile (5y)`);
-    const indicatorTag = (level) => `<span class="metric-indicator ${level}"></span>`;
-    const labelTag = (level, label) => `<span class="metric-label">${indicatorTag(level)}${label}</span>`;
-    const severityFromThresholds = (value, yellowThreshold, redThreshold, higherIsRisk = false) => {
-      if (value == null) return 'green';
-      if (higherIsRisk) {
-        if (value >= redThreshold) return 'red';
-        if (value >= yellowThreshold) return 'orange';
-        return 'green';
+    const percentileLabel = (basis, count) => {
+      if (!basis || basis === 'none') return 'N/A';
+      const label = basis === 'available' ? 'available history' : '5y window';
+      const suffix = typeof count === 'number' ? ` (n=${count})` : '';
+      return `${label}${suffix}`;
+    };
+    const percentileText = (value, explain, basis, count) => {
+      if (value == null) {
+        return `N/A${contextTag(explain || 'insufficient history')}`;
       }
-      if (value <= redThreshold) return 'red';
-      if (value <= yellowThreshold) return 'orange';
-      return 'green';
+      const basisLabel = percentileLabel(basis, count);
+      return `${formatOrdinal(value)} percentile${contextTag(explain ? `Note: ${explain}` : basisLabel)}`;
+    };
+    const valueOrNA = (value, formatter, explain) => {
+      if (value == null) {
+        return `N/A${contextTag(explain || 'insufficient history')}`;
+      }
+      return `${formatter(value)}${contextTag(explain)}`;
     };
 
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
-        const flag = data.flag || 'UNKNOWN';
-        statusEl.textContent = flag;
-        statusEl.classList.add(flag.toLowerCase());
+        const regime = data.regime || {};
+        const state = regime.state || data.flag || 'UNKNOWN';
+        statusEl.textContent = state;
+        statusEl.classList.add(state.toLowerCase());
 
-        timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
+        if (data.updated_et && data.updated_utc) {
+          timestampsEl.textContent = `Updated ${data.updated_et} (ET) / ${data.updated_utc} (UTC)`;
+        }
+
+        const reasons = regime.reasons || data.flag_triggers || [];
+        reasonsEl.innerHTML = reasons.length
+          ? reasons.map((item) => `<li>${item}</li>`).join('')
+          : '<li>No active triggers.</li>';
 
         const metrics = data.metrics || {};
-        const gldRet1mContext = percentileText(metrics.gld_ret_1m_pctile_5y);
-        const gldRet3mContext = percentileText(metrics.gld_ret_3m_pctile_5y);
-        const gldDrawdownContext = percentileText(metrics.gld_max_drawdown_3m_pctile_5y);
-        const gldPctAbove200dmaContext = percentileText(metrics.gld_pct_above_200dma_pctile_5y);
-        const yieldChange1mContext = percentileText(metrics.real_yield_change_1m_bp_pctile_5y);
-        const yieldChange3mContext = percentileText(metrics.real_yield_change_3m_bp_pctile_5y);
-        const holdingsChange5dContext = percentileText(metrics.gld_holdings_change_5d_pct_pctile_5y);
-        const holdingsChange21dContext = percentileText(metrics.gld_holdings_change_21d_pct_pctile_5y);
+        const horizons = metrics.horizons || {};
+        const horizonOrder = ['3M', '6M', '1Y', '3Y', '5Y'];
+        horizonRows.innerHTML = horizonOrder.map((label) => {
+          const horizon = horizons[label] || {};
+          const available = horizon.available !== false && horizon.ret != null;
+          const returnCell = available
+            ? formatPercent(horizon.ret)
+            : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
+          const returnPctCell = available
+            ? percentileText(
+              horizon.ret_pctile_5y,
+              horizon.ret_pctile_5y_explain,
+              horizon.ret_pctile_basis,
+              horizon.ret_pctile_n
+            )
+            : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
+          const drawdownCell = available
+            ? formatPercent(horizon.max_drawdown)
+            : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
+          const drawdownPctCell = available
+            ? percentileText(
+              horizon.max_drawdown_pctile_5y,
+              horizon.max_drawdown_pctile_5y_explain,
+              horizon.max_drawdown_pctile_basis,
+              horizon.max_drawdown_pctile_n
+            )
+            : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
+          const labelNote = (data.notes && data.notes.percentile_notes && data.notes.percentile_notes[label])
+            ? contextTag(data.notes.percentile_notes[label])
+            : '';
+          return `
+            <tr>
+              <td>${label}${labelNote}</td>
+              <td>${returnCell}</td>
+              <td>${returnPctCell}</td>
+              <td>${drawdownCell}</td>
+              <td>${drawdownPctCell}</td>
+            </tr>
+          `;
+        }).join('');
 
-        const gldRet1mLevel = severityFromThresholds(metrics.gld_ret_1m, -0.05, -0.1);
-        const gldRet3mLevel = severityFromThresholds(metrics.gld_ret_3m, -0.08, -0.15);
-        const gldDrawdownLevel = severityFromThresholds(metrics.gld_max_drawdown_3m, -0.1, -0.18);
-        const gldPctAbove200dmaLevel = severityFromThresholds(metrics.gld_pct_above_200dma, 0.1, 0.2, true);
-        const yieldChange1mLevel = severityFromThresholds(metrics.real_yield_change_1m_bp, 25, 50, true);
-        const yieldChange3mLevel = severityFromThresholds(metrics.real_yield_change_3m_bp, 25, 50, true);
-        const holdings5dLevel = severityFromThresholds(metrics.gld_holdings_change_5d_pct, -0.01, -0.02);
-        const holdings21dLevel = severityFromThresholds(metrics.gld_holdings_change_21d_pct, -0.015, -0.03);
+        const percentileNotes = data.notes?.percentile_notes || {};
+        const notesList = Object.keys(percentileNotes).length
+          ? `<strong>Percentile notes:</strong> ${Object.entries(percentileNotes)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(' | ')}`
+          : 'Percentile notes: none.';
+        percentileNotesEl.innerHTML = notesList;
 
-        metricsEl.innerHTML = `
+        extensionRows.innerHTML = `
           <tr>
-            <td>${labelTag('green', 'GLD price')}</td>
-            <td>${metrics.gld_price?.toFixed(2) ?? 'n/a'}${contextTag('Spot level for reference; compare with recent range.')}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(gldRet1mLevel, 'GLD 1M return')}</td>
-            <td>${metrics.gld_ret_1m != null ? formatPercent(metrics.gld_ret_1m) : 'n/a'}${contextTag(gldRet1mContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(gldRet3mLevel, 'GLD 3M return')}</td>
-            <td>${metrics.gld_ret_3m != null ? formatPercent(metrics.gld_ret_3m) : 'n/a'}${contextTag(gldRet3mContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(gldDrawdownLevel, 'GLD 3M max drawdown')}</td>
-            <td>${metrics.gld_max_drawdown_3m != null ? formatPercent(metrics.gld_max_drawdown_3m) : 'n/a'}${contextTag(gldDrawdownContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(gldPctAbove200dmaLevel, 'GLD % above 200DMA')}</td>
-            <td>${metrics.gld_pct_above_200dma != null ? formatPercent(metrics.gld_pct_above_200dma) : 'n/a'}${contextTag(gldPctAbove200dmaContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag('green', 'DFII10 level')}</td>
-            <td>${metrics.real_yield_today != null ? metrics.real_yield_today.toFixed(2) + '%' : 'n/a'}${contextTag('High real yields tend to pressure gold; compare to recent cycle.')}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(yieldChange1mLevel, 'DFII10 1M change')}</td>
-            <td>${metrics.real_yield_change_1m_bp != null ? formatBp(metrics.real_yield_change_1m_bp) : 'n/a'}${contextTag(yieldChange1mContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(yieldChange3mLevel, 'DFII10 3M change')}</td>
-            <td>${metrics.real_yield_change_3m_bp != null ? formatBp(metrics.real_yield_change_3m_bp) : 'n/a'}${contextTag(yieldChange3mContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag('green', 'GLD holdings (tonnes)')}</td>
-            <td>${metrics.gld_holdings_today != null ? formatTonnes(metrics.gld_holdings_today) : 'n/a'}${contextTag('ETF holdings show investor demand, not just price effects.')}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(holdings5dLevel, 'GLD holdings 5D change')}</td>
-            <td>${metrics.gld_holdings_change_5d_pct != null ? formatPercent(metrics.gld_holdings_change_5d_pct) : 'n/a'}${contextTag(holdingsChange5dContext)}</td>
-          </tr>
-          <tr>
-            <td>${labelTag(holdings21dLevel, 'GLD holdings 21D change')}</td>
-            <td>${metrics.gld_holdings_change_21d_pct != null ? formatPercent(metrics.gld_holdings_change_21d_pct) : 'n/a'}${contextTag(holdingsChange21dContext)}</td>
+            <td>GLD % above 200DMA</td>
+            <td>${valueOrNA(metrics.pct_above_200dma, formatPercent)}</td>
+            <td>${percentileText(
+              metrics.pct_above_200dma_pctile_5y,
+              metrics.pct_above_200dma_pctile_5y_explain,
+              metrics.pct_above_200dma_pctile_basis,
+              metrics.pct_above_200dma_pctile_n
+            )}</td>
           </tr>
         `;
 
-        const rules = data.rules || {};
-        rulesEl.innerHTML = `
-          <li><strong>RED:</strong> ${rules.red || 'n/a'}</li>
-          <li><strong>ORANGE:</strong> ${rules.orange || 'n/a'}</li>
-          <li><strong>BLUE:</strong> ${rules.blue || 'n/a'}</li>
-          <li><strong>GREEN:</strong> ${rules.green || 'n/a'}</li>
+        const flows = metrics.flows || {};
+        flowRows.innerHTML = `
+          <tr>
+            <td>Holdings today (tonnes)</td>
+            <td>${valueOrNA(flows.holdings_today_tonnes, formatTonnes)}</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td>Holdings change (5D)</td>
+            <td>${valueOrNA(flows.holdings_change_5d_pct, formatPercent)}</td>
+            <td>${percentileText(
+              flows.holdings_change_5d_pct_pctile_5y,
+              flows.holdings_change_5d_pct_pctile_5y_explain,
+              flows.holdings_change_5d_pctile_basis,
+              flows.holdings_change_5d_pctile_n
+            )}</td>
+          </tr>
+          <tr>
+            <td>Holdings change (21D)</td>
+            <td>${valueOrNA(flows.holdings_change_21d_pct, formatPercent)}</td>
+            <td>${percentileText(
+              flows.holdings_change_21d_pct_pctile_5y,
+              flows.holdings_change_21d_pct_pctile_5y_explain,
+              flows.holdings_change_21d_pctile_basis,
+              flows.holdings_change_21d_pctile_n
+            )}</td>
+          </tr>
         `;
 
-        const triggers = data.flag_triggers || [];
-        triggersEl.innerHTML = triggers.length
-          ? triggers.map((item) => `<li>${item}</li>`).join('')
-          : '<li>No active triggers.</li>';
+        const macro = metrics.macro || {};
+        macroRows.innerHTML = `
+          <tr>
+            <td>Real yield today (DFII10)</td>
+            <td>${valueOrNA(macro.real_yield_today, (value) => `${value.toFixed(2)}%`)}</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td>Real yield change (1M)</td>
+            <td>${valueOrNA(macro.real_yield_change_1m_bp, formatBp)}</td>
+            <td>${percentileText(
+              macro.real_yield_change_1m_bp_pctile_5y,
+              macro.real_yield_change_1m_bp_pctile_5y_explain,
+              macro.real_yield_change_1m_bp_pctile_basis,
+              macro.real_yield_change_1m_bp_pctile_n
+            )}</td>
+          </tr>
+          <tr>
+            <td>Real yield change (3M)</td>
+            <td>${valueOrNA(macro.real_yield_change_3m_bp, formatBp)}</td>
+            <td>${percentileText(
+              macro.real_yield_change_3m_bp_pctile_5y,
+              macro.real_yield_change_3m_bp_pctile_5y_explain,
+              macro.real_yield_change_3m_bp_pctile_basis,
+              macro.real_yield_change_3m_bp_pctile_n
+            )}</td>
+          </tr>
+        `;
 
         const repo = data.repository || 'https://github.com/';
         repoLink.href = repo;
@@ -319,7 +405,7 @@
       .catch((error) => {
         statusEl.textContent = 'DATA ERROR';
         statusEl.classList.add('red');
-        metricsEl.innerHTML = `<tr><td colspan="2">Failed to load data.json: ${error}</td></tr>`;
+        horizonRows.innerHTML = `<tr><td colspan="5">Failed to load data.json: ${error}</td></tr>`;
       });
   </script>
 </body>
