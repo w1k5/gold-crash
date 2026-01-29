@@ -1,0 +1,62 @@
+name: Gold Risk Monitor Daily
+
+on:
+  schedule:
+    # 07:05 America/New_York = 12:05 UTC during standard time (07:05 EST)
+    # and 11:05 UTC during daylight time (07:05 EDT). Adjust if desired.
+    - cron: "5 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run updater
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
+
+      - name: Read status
+        id: status
+        run: |
+          python scripts/workflow_status.py
+
+      - name: Create or update issue
+        id: issue
+        if: steps.status.outputs.issue_needed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ steps.status.outputs.issue_title }}
+          ISSUE_BODY: ${{ steps.status.outputs.issue_body }}
+        run: |
+          python scripts/workflow_issue.py
+
+      - name: Attach latest issue URL to data.json
+        if: steps.status.outputs.fetch_ok == 'true' && steps.issue.outputs.issue_url != ''
+        run: |
+          ISSUE_URL="${{ steps.issue.outputs.issue_url }}" python scripts/workflow_attach_issue.py
+
+      - name: Commit updated dashboard
+        if: steps.status.outputs.fetch_ok == 'true'
+        run: |
+          if git status --porcelain data.json | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data.json
+            git commit -m "Update gold risk data"
+            git push
+          else
+            echo "No dashboard changes to commit."
+          fi
