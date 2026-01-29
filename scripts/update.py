@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import List, Tuple
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 
@@ -39,7 +39,8 @@ class DataFetchError(RuntimeError):
 
 def fetch_url(url: str, timeout: int = 20) -> str:
     try:
-        with urlopen(url, timeout=timeout) as response:
+        req = Request(url, headers={"User-Agent": "gold-risk-monitor"})
+        with urlopen(req, timeout=timeout) as response:
             return response.read().decode("utf-8")
     except URLError as exc:
         raise DataFetchError(f"Failed to fetch {url}: {exc}") from exc
