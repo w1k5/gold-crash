@@ -39,6 +39,8 @@ def main() -> int:
     else:
         created = request(f"https://api.github.com/repos/{repo}/issues", method="POST", payload=payload, headers=headers)
         issue_url = created.get("html_url", "")
+    if not issue_url:
+        raise RuntimeError("Create or update issue step failed (missing issue URL).")
 
     env_file = os.environ.get("GITHUB_ENV", "").strip()
     if not env_file:

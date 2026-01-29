@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 FRED_SERIES_ID = "DFII10"
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
-GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv"
+GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
 TRADING_DAYS_1W = 5
@@ -76,7 +76,12 @@ def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
     for key in reader.fieldnames:
         if key and key.strip().lower() in {"date", "as of date", "asofdate"}:
             date_key = key
-        if key and "holdings" in key.strip().lower():
+        if not key:
+            continue
+        normalized = key.strip().lower()
+        if "tonnes" in normalized:
+            holdings_key = key
+        elif "holdings" in normalized and not holdings_key:
             holdings_key = key
     if not date_key:
         date_key = reader.fieldnames[0]
@@ -88,6 +93,8 @@ def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
         date_str = row.get(date_key, "").strip()
         holdings_str = row.get(holdings_key, "").strip()
         if not date_str or not holdings_str:
+            continue
+        if date_str.lower() == "holiday" or holdings_str.lower() == "holiday":
             continue
         parsed_date = parse_holdings_date(date_str)
         if not parsed_date:
@@ -296,6 +303,7 @@ def main() -> int:
 
         now_utc = datetime.now(timezone.utc)
         now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
+        now_utc_naive = now_utc.replace(tzinfo=None)
 
         gld_rows = fetch_gld_prices()
         fred_rows = fetch_fred_dfii10(api_key)
@@ -320,7 +328,7 @@ def main() -> int:
         gld_holdings_change_5d_pct = compute_return(holdings_values, TRADING_DAYS_1W)
         gld_holdings_change_21d_pct = compute_return(holdings_values, TRADING_DAYS_1M)
 
-        cutoff_date = percentile_history_cutoff(now_utc)
+        cutoff_date = percentile_history_cutoff(now_utc_naive)
         gld_ret_1m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_1M, cutoff_date)
         gld_ret_3m_history = compute_return_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
         gld_drawdown_history = compute_drawdown_series(gld_dates, gld_prices, TRADING_DAYS_3M, cutoff_date)
@@ -398,8 +406,8 @@ def main() -> int:
                 "gld_holdings_today": float(gld_holdings_today),
                 "gld_holdings_change_5d_pct": float(gld_holdings_change_5d_pct),
                 "gld_holdings_change_21d_pct": float(gld_holdings_change_21d_pct),
-                "gld_holdings_change_5d_pct_pctile_5y": gld_holdings_change_5d_pctile_5y,
-                "gld_holdings_change_21d_pct_pctile_5y": gld_holdings_change_21d_pctile_5y,
+                "gld_holdings_change_5d_pct_pctile_5y": holdings_change_5d_pctile_5y,
+                "gld_holdings_change_21d_pct_pctile_5y": holdings_change_21d_pctile_5y,
                 "gld_ret_1m": float(gld_ret_1m),
                 "gld_ret_3m": float(gld_ret_3m),
                 "gld_max_drawdown_3m": float(gld_max_drawdown_3m),

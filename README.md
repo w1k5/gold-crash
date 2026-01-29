@@ -90,7 +90,7 @@ The scheduled workflow runs daily at **07:05 America/New_York**. GitHub Actions 
 ## Data sources
 
 - GLD prices: Stooq CSV (no key required): https://stooq.com/q/d/l/?s=gld.us&i=d
-- GLD holdings: SPDR Gold Shares CSV: https://www.spdrgoldshares.com/assets/dynamic/GLD/file/GLD_Holdings.csv
+- GLD holdings: SPDR Gold Shares CSV: https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv
 - Real yields: FRED DFII10: https://fred.stlouisfed.org/series/DFII10
 
 ## What you must do by hand
