@@ -13,7 +13,7 @@
       "holdings_change_5d_pctile_n": 1250,
       "holdings_today_tonnes": 1086.53
     },
-    "gld_price": 453.32,
+    "gld_price": 452.42,
     "horizons": {
       "1Y": {
         "available": true,
@@ -23,7 +23,7 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1005,
-        "ret": 0.7833202202989772,
+        "ret": 0.7797797010228167,
         "ret_pctile_5y": 99,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -32,12 +32,12 @@
       "3M": {
         "available": true,
         "days": 63,
-        "max_drawdown": -0.08586408550110909,
-        "max_drawdown_pctile_5y": 19,
+        "max_drawdown": -0.08767896753377698,
+        "max_drawdown_pctile_5y": 17,
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1194,
-        "ret": 0.24881542699724518,
+        "ret": 0.24633608815426997,
         "ret_pctile_5y": 99,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -51,7 +51,7 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 501,
-        "ret": 1.5030092209154657,
+        "ret": 1.4980398652752471,
         "ret_pctile_5y": 98,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -65,7 +65,7 @@
         "max_drawdown_pctile_5y_explain": "insufficient 5y history (used available history)",
         "max_drawdown_pctile_basis": "available",
         "max_drawdown_pctile_n": 4006,
-        "ret": 1.6045389255960931,
+        "ret": 1.5993679977018098,
         "ret_pctile_5y": 92,
         "ret_pctile_5y_explain": "insufficient 5y history (used available history)",
         "ret_pctile_basis": "available",
@@ -79,14 +79,14 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1131,
-        "ret": 0.49630314232902034,
+        "ret": 0.49333245312912594,
         "ret_pctile_5y": 100,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
         "ret_pctile_n": 1130
       }
     },
-    "ma_200": 347.46645,
+    "ma_200": 347.46195,
     "macro": {
       "real_yield_change_1m_bp": -1.0,
       "real_yield_change_1m_bp_pctile_5y": 46,
@@ -100,7 +100,7 @@
       "real_yield_change_3m_bp_pctile_n": 1248,
       "real_yield_today": 1.9
     },
-    "pct_above_200dma": 0.30464394476071,
+    "pct_above_200dma": 0.3020706296041912,
     "pct_above_200dma_pctile_5y": 99,
     "pct_above_200dma_pctile_5y_explain": null,
     "pct_above_200dma_pctile_basis": "5y",
@@ -115,7 +115,7 @@
   "regime": {
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 6
+      "red_exit_streak": 7
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -127,17 +127,17 @@
     "transitions": {
       "deescalate_to_blue": [
         {
-          "current": null,
-          "distance": null,
-          "fired": null,
+          "current": 0.13419739777883627,
+          "distance": 0.0,
+          "fired": true,
           "note": null,
           "threshold": "1M return > 0%",
           "trigger": "Price crack clears (1M return)",
           "unit": "percent"
         },
         {
-          "current": -0.08586408550110909,
-          "distance": 0.00586408550110909,
+          "current": -0.08767896753377698,
+          "distance": 0.00767896753377698,
           "fired": false,
           "note": null,
           "threshold": "3M drawdown > -8%",
@@ -165,8 +165,8 @@
       ],
       "escalate_to_red_composite": [
         {
-          "current": 0.24881542699724518,
-          "distance": -0.3288154269972452,
+          "current": 0.24633608815426997,
+          "distance": -0.32633608815426995,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -8%",
@@ -203,8 +203,8 @@
       ],
       "escalate_to_red_primary": [
         {
-          "current": 0.24881542699724518,
-          "distance": -0.3988154269972452,
+          "current": 0.24633608815426997,
+          "distance": -0.39633608815426996,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -15%",
@@ -212,8 +212,8 @@
           "unit": "percent"
         },
         {
-          "current": -0.08586408550110909,
-          "distance": -0.09413591449889092,
+          "current": -0.08767896753377698,
+          "distance": -0.09232103246622302,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -18%",
@@ -281,5 +281,5 @@
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
-  "updated_at": "2026-01-30T12:23:21.853210-05:00"
+  "updated_at": "2026-01-30T12:43:01.551538-05:00"
 }
