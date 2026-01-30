@@ -1,19 +1,19 @@
 {
   "metrics": {
     "flows": {
-      "holdings_change_21d_pct": 0.017579565505587556,
-      "holdings_change_21d_pct_pctile_5y": 79,
+      "holdings_change_21d_pct": 0.013563559361561209,
+      "holdings_change_21d_pct_pctile_5y": 72,
       "holdings_change_21d_pct_pctile_5y_explain": null,
       "holdings_change_21d_pctile_basis": "5y",
-      "holdings_change_21d_pctile_n": 1233,
-      "holdings_change_5d_pct": 0.011413618395412281,
-      "holdings_change_5d_pct_pctile_5y": 91,
+      "holdings_change_21d_pctile_n": 1234,
+      "holdings_change_5d_pct": 0.006363114313765445,
+      "holdings_change_5d_pct_pctile_5y": 81,
       "holdings_change_5d_pct_pctile_5y_explain": null,
       "holdings_change_5d_pctile_basis": "5y",
-      "holdings_change_5d_pctile_n": 1249,
-      "holdings_today_tonnes": 1089.96
+      "holdings_change_5d_pctile_n": 1250,
+      "holdings_today_tonnes": 1086.53
     },
-    "gld_price": 496.02,
+    "gld_price": 495.9,
     "horizons": {
       "1Y": {
         "available": true,
@@ -23,7 +23,7 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1004,
-        "ret": 0.943804373383494,
+        "ret": 0.9433341170938161,
         "ret_pctile_5y": 100,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -37,7 +37,7 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1193,
-        "ret": 0.36127120039519184,
+        "ret": 0.3609418738679401,
         "ret_pctile_5y": 100,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -51,7 +51,7 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 500,
-        "ret": 1.7513867317506102,
+        "ret": 1.7507211005103174,
         "ret_pctile_5y": 100,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
@@ -65,7 +65,7 @@
         "max_drawdown_pctile_5y_explain": "insufficient 5y history (used available history)",
         "max_drawdown_pctile_basis": "available",
         "max_drawdown_pctile_n": 4005,
-        "ret": 1.8523289246693502,
+        "ret": 1.8516388729154687,
         "ret_pctile_5y": 99,
         "ret_pctile_5y_explain": "insufficient 5y history (used available history)",
         "ret_pctile_basis": "available",
@@ -79,14 +79,14 @@
         "max_drawdown_pctile_5y_explain": null,
         "max_drawdown_pctile_basis": "5y",
         "max_drawdown_pctile_n": 1130,
-        "ret": 0.6481259968102073,
+        "ret": 0.6477272727272727,
         "ret_pctile_5y": 100,
         "ret_pctile_5y_explain": null,
         "ret_pctile_basis": "5y",
         "ret_pctile_n": 1129
       }
     },
-    "ma_200": 346.6816,
+    "ma_200": 346.681,
     "macro": {
       "real_yield_change_1m_bp": -1.0,
       "real_yield_change_1m_bp_pctile_5y": 46,
@@ -100,7 +100,7 @@
       "real_yield_change_3m_bp_pctile_n": 1248,
       "real_yield_today": 1.9
     },
-    "pct_above_200dma": 0.43076529011057985,
+    "pct_above_200dma": 0.4304216267981228,
     "pct_above_200dma_pctile_5y": 100,
     "pct_above_200dma_pctile_5y_explain": null,
     "pct_above_200dma_pctile_basis": "5y",
@@ -115,7 +115,7 @@
   "regime": {
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 4
+      "red_exit_streak": 5
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -131,5 +131,5 @@
     "gld_holdings": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d"
   },
-  "updated_at": "2026-01-29T17:25:22.321427-05:00"
+  "updated_at": "2026-01-30T08:01:54.264723-05:00"
 }
