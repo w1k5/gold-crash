@@ -475,6 +475,7 @@
 
   <script>
     const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
+    const formatNumber = (value, digits = 2) => `${value.toFixed(digits)}`;
     const formatBp = (value) => `${value.toFixed(0)} bp`;
     const formatTonnes = (value) => `${value.toFixed(1)} t`;
     const formatTimestamp = (isoString) => {
@@ -509,6 +510,27 @@
       BLUE: 'Extended rally; no confirmed deterioration.',
       ORANGE: 'Extended + early deterioration signals.',
       RED: 'Breakdown-style stress signals present.'
+    };
+    const CUT_LABELS = {
+      CREDIBILITY_CUT: 'Credibility cut',
+      STIMULUS_CUT: 'Stimulus cut',
+      MIXED_CUT: 'Mixed cut',
+      NO_CUTS_PRICED: 'No cuts priced',
+      UNKNOWN: 'Unknown'
+    };
+    const cutWhyText = (label) => {
+      switch (label) {
+        case 'CREDIBILITY_CUT':
+          return 'Cuts priced, but inflation expectations are falling faster than nominal yields → real yields tend to rise.';
+        case 'STIMULUS_CUT':
+          return 'Cuts priced with reflation impulse → breakevens rising and/or real yields falling.';
+        case 'MIXED_CUT':
+          return 'Cuts priced, but nominal and breakeven moves disagree (or are too small).';
+        case 'NO_CUTS_PRICED':
+          return 'Front-end rates are not falling enough to indicate meaningful cuts priced.';
+        default:
+          return 'Not enough data to classify.';
+      }
     };
     const REASON_LABELS = {
       extension_ret_pctile_90: '3M return is extreme (≥90th percentile)',
@@ -770,6 +792,13 @@
         if (flows.holdings_change_21d_pctile_basis) basisValues.push(flows.holdings_change_21d_pctile_basis);
 
         const macro = metrics.macro || {};
+        const cut = macro.cut_style_classifier || {};
+        const cutInputs = cut.inputs || {};
+        const cutLabel = CUT_LABELS[cut.label] || cut.label || 'Unknown';
+        const cutExplain = cutWhyText(cut.label || 'UNKNOWN');
+        const cutDetails = (cut.explain && cut.explain.length)
+          ? `<details><summary>Classifier details</summary>${cut.explain.map((item) => `<div class="context">${item}</div>`).join('')}</details>`
+          : '';
         macroRows.innerHTML = `
           <tr>
             <td>Real yield today (DFII10)</td>
@@ -795,6 +824,35 @@
               macro.real_yield_change_3m_bp_pctile_basis,
               macro.real_yield_change_3m_bp_pctile_n
             )}</td>
+          </tr>
+
+          <tr>
+            <td colspan="3"><div class="divider"></div></td>
+          </tr>
+          <tr>
+            <td>Cut style classifier</td>
+            <td class="num">${cutLabel}${contextTag(cutExplain)}${cutDetails}</td>
+            <td class="num">N/A</td>
+          </tr>
+          <tr>
+            <td>Nominal 2Y change (1M)</td>
+            <td class="num">${valueOrNA(cutInputs.nominal_2y_change_1m_bp, formatBp)}</td>
+            <td class="num">N/A</td>
+          </tr>
+          <tr>
+            <td>Nominal 10Y change (1M)</td>
+            <td class="num">${valueOrNA(cutInputs.nominal_10y_change_1m_bp, formatBp)}</td>
+            <td class="num">N/A</td>
+          </tr>
+          <tr>
+            <td>Breakeven 10Y change (1M)</td>
+            <td class="num">${valueOrNA(cutInputs.breakeven_10y_change_1m_bp, formatBp)}</td>
+            <td class="num">N/A</td>
+          </tr>
+          <tr>
+            <td>Disinflation ratio (|ΔBE|/|ΔNom10|)</td>
+            <td class="num">${cutInputs.disinflation_ratio == null ? 'N/A' : formatNumber(cutInputs.disinflation_ratio, 2)}</td>
+            <td class="num">N/A</td>
           </tr>
         `;
         if (macro.real_yield_change_1m_bp_pctile_basis) basisValues.push(macro.real_yield_change_1m_bp_pctile_basis);
@@ -828,7 +886,20 @@
             macro.real_yield_change_1m_bp_pctile_5y,
             '1M change',
             'Macro pressure proxy'
-          )
+          ),
+          (() => {
+            const label = cut.label || 'UNKNOWN';
+            const pretty = CUT_LABELS[label] || label;
+            const ratio = cutInputs.disinflation_ratio;
+            const ratioText = ratio == null ? 'N/A' : `${ratio.toFixed(2)}×`;
+            return buildCard(
+              'Cut style',
+              pretty,
+              null,
+              ratio == null ? 'classifier' : `BE/Nom ${ratioText}`,
+              cutWhyText(label)
+            );
+          })()
         ];
         glanceCardsEl.innerHTML = glanceCards.join('');
 
