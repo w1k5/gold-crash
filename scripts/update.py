@@ -15,7 +15,12 @@ from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 
-FRED_SERIES_ID = "DFII10"
+FRED_SERIES = {
+    "real10": "DFII10",
+    "nom10": "DGS10",
+    "nom2": "DGS2",
+    "be10": "T10YIE",
+}
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
 GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
 TRADING_DAYS_1M = 21
@@ -136,11 +141,11 @@ def fetch_gld_holdings() -> List[Tuple[datetime, Decimal]]:
     return parse_holdings_csv(csv_text)
 
 
-def fetch_fred_dfii10(api_key: str, reference_date: datetime) -> List[Tuple[datetime, Decimal]]:
+def fetch_fred_series(series_id: str, api_key: str, reference_date: datetime) -> List[Tuple[datetime, Decimal]]:
     observation_start = (reference_date - timedelta(days=HISTORY_YEARS * 365 + 3 * 365)).date()
     url = (
         "https://api.stlouisfed.org/fred/series/observations"
-        f"?series_id={FRED_SERIES_ID}"
+        f"?series_id={series_id}"
         f"&api_key={api_key}"
         "&file_type=json"
         "&sort_order=asc"
@@ -157,6 +162,12 @@ def fetch_fred_dfii10(api_key: str, reference_date: datetime) -> List[Tuple[date
             continue
         rows.append((datetime.fromisoformat(date_str), Decimal(value)))
     return rows
+
+
+def compute_bp_change(values: List[Decimal], days_ago: int) -> Decimal | None:
+    if len(values) < days_ago + 1:
+        return None
+    return (values[-1] - values[-(days_ago + 1)]) * Decimal("100")
 
 
 def compute_return(prices: List[Decimal], days_ago: int) -> Decimal | None:
@@ -682,6 +693,86 @@ def build_issue_body(metrics: dict, regime: dict, transition: str) -> str:
     return "\n".join(lines)
 
 
+def classify_cut_style(
+    *,
+    dgs2_1m_bp: Decimal | None,
+    dgs2_3m_bp: Decimal | None,
+    dgs10_1m_bp: Decimal | None,
+    be10_1m_bp: Decimal | None,
+    real10_1m_bp: Decimal | None,
+) -> dict:
+    if (
+        dgs2_1m_bp is None
+        or dgs10_1m_bp is None
+        or be10_1m_bp is None
+        or real10_1m_bp is None
+    ):
+        return {"label": "UNKNOWN", "score": None, "explain": ["insufficient_data"], "inputs": {}}
+
+    cuts_priced = dgs2_1m_bp <= Decimal("-15") or (
+        dgs2_3m_bp is not None and dgs2_3m_bp <= Decimal("-25")
+    )
+
+    denom = max(abs(dgs10_1m_bp), Decimal("1"))
+    disinflation_ratio = abs(be10_1m_bp) / denom
+
+    be_falling = be10_1m_bp <= Decimal("-10")
+    real_rising = real10_1m_bp >= Decimal("10")
+    ratio_cred = disinflation_ratio >= Decimal("1.2")
+
+    be_rising = be10_1m_bp >= Decimal("5")
+    real_falling = real10_1m_bp <= Decimal("-10")
+    ratio_stim = disinflation_ratio <= Decimal("0.8")
+
+    explain = [
+        f"cuts_priced={cuts_priced}",
+        f"dgs2_1m_bp={dgs2_1m_bp}",
+        f"dgs10_1m_bp={dgs10_1m_bp}",
+        f"be10_1m_bp={be10_1m_bp}",
+        f"real10_1m_bp={real10_1m_bp}",
+        f"disinflation_ratio={float(disinflation_ratio):.2f}",
+    ]
+
+    if cuts_priced and ((be_falling and real_rising) or ratio_cred):
+        score = 2
+        if be_falling:
+            score += 1
+        if real_rising:
+            score += 1
+        if ratio_cred:
+            score += 1
+        label = "CREDIBILITY_CUT"
+    elif cuts_priced and (be_rising or (real_falling and ratio_stim)):
+        score = -2
+        if be_rising:
+            score -= 1
+        if real_falling:
+            score -= 1
+        if ratio_stim:
+            score -= 1
+        label = "STIMULUS_CUT"
+    elif cuts_priced:
+        score = 0
+        label = "MIXED_CUT"
+    else:
+        score = 0
+        label = "NO_CUTS_PRICED"
+
+    return {
+        "label": label,
+        "score": score,
+        "explain": explain,
+        "inputs": {
+            "nominal_2y_change_1m_bp": float(dgs2_1m_bp),
+            "nominal_2y_change_3m_bp": float(dgs2_3m_bp) if dgs2_3m_bp is not None else None,
+            "nominal_10y_change_1m_bp": float(dgs10_1m_bp),
+            "breakeven_10y_change_1m_bp": float(be10_1m_bp),
+            "real_10y_change_1m_bp": float(real10_1m_bp),
+            "disinflation_ratio": float(disinflation_ratio),
+        },
+    }
+
+
 def build_horizon_metrics(
     label: str,
     days: int,
@@ -782,7 +873,10 @@ def main() -> int:
         now_utc_naive = now_utc.replace(tzinfo=None)
 
         gld_rows = fetch_gld_prices()
-        fred_rows = fetch_fred_dfii10(api_key, now_utc_naive)
+        fred_rows = fetch_fred_series(FRED_SERIES["real10"], api_key, now_utc_naive)
+        fred_nom10_rows = fetch_fred_series(FRED_SERIES["nom10"], api_key, now_utc_naive)
+        fred_nom2_rows = fetch_fred_series(FRED_SERIES["nom2"], api_key, now_utc_naive)
+        fred_be10_rows = fetch_fred_series(FRED_SERIES["be10"], api_key, now_utc_naive)
         holdings_rows = fetch_gld_holdings()
 
         gld_dates = [row[0] for row in gld_rows]
@@ -798,15 +892,32 @@ def main() -> int:
         fred_dates = [row[0] for row in fred_rows]
         fred_values = [row[1] for row in fred_rows]
         real_yield_today = fred_values[-1] if fred_values else None
-        real_yield_change_1m_bp = (
-            (real_yield_today - fred_values[-(TRADING_DAYS_1M + 1)]) * Decimal("100")
-            if real_yield_today is not None and len(fred_values) >= TRADING_DAYS_1M + 1
-            else None
+        real_yield_change_1m_bp = compute_bp_change(fred_values, TRADING_DAYS_1M)
+        real_yield_change_3m_bp = compute_bp_change(fred_values, TRADING_DAYS_3M)
+
+        nom10_values = [row[1] for row in fred_nom10_rows]
+        nom2_values = [row[1] for row in fred_nom2_rows]
+        be10_values = [row[1] for row in fred_be10_rows]
+
+        nom10_1m_bp = compute_bp_change(nom10_values, TRADING_DAYS_1M)
+        nom2_1m_bp = compute_bp_change(nom2_values, TRADING_DAYS_1M)
+        nom2_3m_bp = compute_bp_change(nom2_values, TRADING_DAYS_3M)
+        be10_1m_bp = compute_bp_change(be10_values, TRADING_DAYS_1M)
+
+        cut_classifier = classify_cut_style(
+            dgs2_1m_bp=nom2_1m_bp,
+            dgs2_3m_bp=nom2_3m_bp,
+            dgs10_1m_bp=nom10_1m_bp,
+            be10_1m_bp=be10_1m_bp,
+            real10_1m_bp=real_yield_change_1m_bp,
         )
-        real_yield_change_3m_bp = (
-            (real_yield_today - fred_values[-(TRADING_DAYS_3M + 1)]) * Decimal("100")
-            if real_yield_today is not None and len(fred_values) >= TRADING_DAYS_3M + 1
-            else None
+        cut_inputs = cut_classifier.get("inputs", {})
+        cut_inputs.update(
+            {
+                "nominal_2y_today": float(nom2_values[-1]) if nom2_values else None,
+                "nominal_10y_today": float(nom10_values[-1]) if nom10_values else None,
+                "breakeven_10y_today": float(be10_values[-1]) if be10_values else None,
+            }
         )
 
         holdings_dates = [row[0] for row in holdings_rows]
@@ -1044,6 +1155,19 @@ def main() -> int:
                 "real_yield_change_3m_bp_pctile_5y_explain": real_yield_change_3m_pctile_explain,
                 "real_yield_change_3m_bp_pctile_basis": real_yield_change_3m_pctile_basis,
                 "real_yield_change_3m_bp_pctile_n": real_yield_change_3m_pctile_n,
+                "nominal_10y_today": float(nom10_values[-1]) if nom10_values else None,
+                "nominal_2y_today": float(nom2_values[-1]) if nom2_values else None,
+                "breakeven_10y_today": float(be10_values[-1]) if be10_values else None,
+                "nominal_10y_change_1m_bp": float(nom10_1m_bp) if nom10_1m_bp is not None else None,
+                "nominal_2y_change_1m_bp": float(nom2_1m_bp) if nom2_1m_bp is not None else None,
+                "nominal_2y_change_3m_bp": float(nom2_3m_bp) if nom2_3m_bp is not None else None,
+                "breakeven_10y_change_1m_bp": float(be10_1m_bp) if be10_1m_bp is not None else None,
+                "cut_style_classifier": {
+                    "label": cut_classifier.get("label"),
+                    "score": cut_classifier.get("score"),
+                    "explain": cut_classifier.get("explain"),
+                    "inputs": cut_inputs,
+                },
             },
             "horizons": horizons,
         }
@@ -1054,6 +1178,9 @@ def main() -> int:
                 "gld_prices": GLD_STOOQ_URL,
                 "gld_holdings": GLD_HOLDINGS_URL,
                 "dfii10": "https://fred.stlouisfed.org/series/DFII10",
+                "dgs10": "https://fred.stlouisfed.org/series/DGS10",
+                "dgs2": "https://fred.stlouisfed.org/series/DGS2",
+                "t10yie": "https://fred.stlouisfed.org/series/T10YIE",
             },
             "repository": repository,
             "regime": {
