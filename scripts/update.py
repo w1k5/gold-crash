@@ -314,6 +314,8 @@ def classify_regime(
     holdings_change_21d_pct_pctile: int | None,
     real_yield_change_1m_bp: Decimal | None,
     real_yield_change_1m_bp_pctile: int | None,
+    cut_label: str | None,
+    cuts_priced: bool | None,
     previous_state: str | None,
     red_enter_streak: int,
     red_exit_streak: int,
@@ -357,14 +359,28 @@ def classify_regime(
     )
     if flow_divergence:
         deterioration_triggers.append("deterioration_flow_divergence")
-    macro_turn = real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= Decimal("25")
+    if cut_label == "CREDIBILITY_CUT":
+        macro_threshold = Decimal("15")
+    elif cut_label == "STIMULUS_CUT":
+        macro_threshold = Decimal("35")
+    else:
+        macro_threshold = Decimal("25")
+    macro_turn = real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= macro_threshold
     if macro_turn:
         deterioration_triggers.append("deterioration_macro_turn")
+    policy_conflict = (
+        cuts_priced is True
+        and cut_label == "CREDIBILITY_CUT"
+        and real_yield_change_1m_bp is not None
+        and real_yield_change_1m_bp >= Decimal("10")
+    )
+    if policy_conflict:
+        deterioration_triggers.append("deterioration_policy_conflict")
     price_crack = ret_1m_nonpositive or primary_drawdown <= Decimal("-0.08")
     if price_crack:
         deterioration_triggers.append("deterioration_price_crack")
 
-    deterioration_present = any([flow_divergence, macro_turn, price_crack])
+    deterioration_present = any([flow_divergence, macro_turn, price_crack, policy_conflict])
 
     red_primary_triggers: List[str] = []
     red_primary = False
@@ -480,9 +496,15 @@ def build_regime_transitions(
     holdings_change_21d_pct_pctile: int | None,
     real_yield_change_1m_bp: Decimal | None,
     real_yield_change_1m_bp_pctile: int | None,
+    cut_label: str | None = None,
 ) -> dict:
     flow_threshold = Decimal("-0.015")
-    macro_threshold = Decimal("25")
+    if cut_label == "CREDIBILITY_CUT":
+        macro_threshold = Decimal("15")
+    elif cut_label == "STIMULUS_CUT":
+        macro_threshold = Decimal("35")
+    else:
+        macro_threshold = Decimal("25")
     price_crack_return_threshold = Decimal("0")
     price_crack_drawdown_threshold = Decimal("-0.08")
     red_primary_return_threshold = Decimal("-0.15")
@@ -535,7 +557,7 @@ def build_regime_transitions(
         ),
         build_transition_row(
             name="Macro turn clears",
-            threshold_label="Real yield 1M change < +25 bp",
+            threshold_label=f"Real yield 1M change < +{macro_threshold} bp",
             current=real_yield_change_1m_bp,
             threshold_value=macro_threshold,
             fired=real_yield_change_1m_bp is not None and real_yield_change_1m_bp < macro_threshold,
@@ -707,7 +729,13 @@ def classify_cut_style(
         or be10_1m_bp is None
         or real10_1m_bp is None
     ):
-        return {"label": "UNKNOWN", "score": None, "explain": ["insufficient_data"], "inputs": {}}
+        return {
+            "label": "UNKNOWN",
+            "score": None,
+            "cuts_priced": None,
+            "explain": ["insufficient_data"],
+            "inputs": {},
+        }
 
     cuts_priced = dgs2_1m_bp <= Decimal("-15") or (
         dgs2_3m_bp is not None and dgs2_3m_bp <= Decimal("-25")
@@ -761,6 +789,7 @@ def classify_cut_style(
     return {
         "label": label,
         "score": score,
+        "cuts_priced": bool(cuts_priced),
         "explain": explain,
         "inputs": {
             "nominal_2y_change_1m_bp": float(dgs2_1m_bp),
@@ -1092,6 +1121,8 @@ def main() -> int:
             holdings_change_21d_pctile_5y,
             real_yield_change_1m_bp,
             real_yield_change_1m_pctile_5y,
+            cut_classifier.get("label"),
+            cut_classifier.get("cuts_priced"),
             previous_regime_state,
             red_enter_streak,
             red_exit_streak,
@@ -1107,6 +1138,7 @@ def main() -> int:
             holdings_change_21d_pct_pctile=holdings_change_21d_pctile_5y,
             real_yield_change_1m_bp=real_yield_change_1m_bp,
             real_yield_change_1m_bp_pctile=real_yield_change_1m_pctile_5y,
+            cut_label=cut_classifier.get("label"),
         )
 
         repository = None
