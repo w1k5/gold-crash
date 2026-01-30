@@ -354,7 +354,7 @@
 
     <section class="section">
       <h2>What would change the color</h2>
-      <p class="section-explainer">This section documents the definitions behind regime transitions. It shows the conditions that would cause the status to move from one regime to another, making the framework explicit and repeatable rather than subjective.</p>
+      <p class="section-explainer">This section breaks out what would de-escalate, escalate, or normalize the regime from here. It makes the thresholds explicit and shows how far current conditions are from each trigger.</p>
       <div id="escalation">
         <p>Loading escalation conditions...</p>
       </div>
@@ -564,6 +564,67 @@
       return `${formatter(value)}${contextTag(explain)}`;
     };
     const basisTag = (basis) => (basis === 'available' ? '<span class="pill">available</span>' : '');
+    const signedValue = (value, formatter) => {
+      if (value == null) return 'N/A';
+      const sign = value > 0 ? '+' : '';
+      return `${sign}${formatter(value)}`;
+    };
+    const formatDistance = (value, unit) => {
+      if (value == null) return '—';
+      if (unit === 'percent') return signedValue(value, (val) => `${(val * 100).toFixed(2)}%`);
+      if (unit === 'bp') return signedValue(value, (val) => `${val.toFixed(0)} bp`);
+      if (unit === 'pctile') return signedValue(value, (val) => `${Math.round(val)} pctile`);
+      return signedValue(value, (val) => `${val}`);
+    };
+    const formatCurrent = (value, unit) => {
+      if (value == null) return 'N/A';
+      if (unit === 'percent') return formatPercent(value);
+      if (unit === 'bp') return formatBp(value);
+      if (unit === 'pctile') return `${formatOrdinal(value)} percentile`;
+      return `${value}`;
+    };
+    const buildTransitionTable = (title, rows, note) => {
+      if (!rows || rows.length === 0) {
+        return `
+          <div class="section-card">
+            <h3>${title}</h3>
+            <div class="meta">No transition data available.</div>
+          </div>
+        `;
+      }
+      const noteHtml = note ? `<div class="meta">${note}</div>` : '';
+      const bodyRows = rows.map((row) => `
+        <tr>
+          <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
+          <td class="num">${row.threshold}</td>
+          <td class="num">${formatCurrent(row.current, row.unit)}</td>
+          <td class="num">${row.fired == null ? 'N/A' : (row.fired ? 'Met' : 'Not met')}</td>
+          <td class="num">${formatDistance(row.distance, row.unit)}</td>
+        </tr>
+      `).join('');
+      return `
+        <div class="section-card" style="margin-bottom: 16px;">
+          <h3>${title}</h3>
+          ${noteHtml}
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Trigger</th>
+                  <th class="num">Threshold</th>
+                  <th class="num">Current</th>
+                  <th class="num">Status</th>
+                  <th class="num">Distance</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bodyRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    };
     const buildCard = (title, value, percentile, label, why) => `
       <div class="metric-card">
         <h3>${title}</h3>
@@ -771,43 +832,33 @@
         ];
         glanceCardsEl.innerHTML = glanceCards.join('');
 
-        const flowThreshold = -0.015;
-        const macroThreshold = 25;
-        const priceCrackThresholdReturn = 0;
-        const priceCrackThresholdDrawdown = -0.08;
-        const flowNow = flows.holdings_change_21d_pct;
-        const macroNow = macro.real_yield_change_1m_bp;
-        const priceNow = horizons['3M']?.ret;
-        const drawdownNow = horizons['3M']?.max_drawdown;
+        const transitions = regime.transitions || {};
+        const deescalateRows = transitions.deescalate_to_blue || [];
+        const redPrimaryRows = transitions.escalate_to_red_primary || [];
+        const redCompositeRows = transitions.escalate_to_red_composite || [];
+        const normalizeRows = transitions.normalize_to_green || [];
+
         escalationEl.innerHTML = `
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Trigger</th>
-                  <th class="num">Threshold</th>
-                  <th class="num">Current</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Flow divergence (ORANGE)</td>
-                  <td class="num">Holdings 21D ≤ ${formatPercent(flowThreshold)}</td>
-                  <td class="num">${flowNow == null ? 'N/A' : formatPercent(flowNow)}</td>
-                </tr>
-                <tr>
-                  <td>Macro turn (ORANGE)</td>
-                  <td class="num">Real yield 1M ≥ ${formatBp(macroThreshold)}</td>
-                  <td class="num">${macroNow == null ? 'N/A' : formatBp(macroNow)}</td>
-                </tr>
-                <tr>
-                  <td>Price crack (ORANGE)</td>
-                  <td class="num">3M return ≤ ${formatPercent(priceCrackThresholdReturn)} or drawdown ≤ ${formatPercent(priceCrackThresholdDrawdown)}</td>
-                  <td class="num">${priceNow == null ? 'N/A' : formatPercent(priceNow)} / ${drawdownNow == null ? 'N/A' : formatPercent(drawdownNow)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          ${buildTransitionTable(
+            'De-escalate to BLUE (no deterioration triggers)',
+            deescalateRows,
+            'All deterioration signals must clear for the regime to return to BLUE.'
+          )}
+          ${buildTransitionTable(
+            'Escalate to RED (primary triggers)',
+            redPrimaryRows,
+            'Any single primary trigger can move the regime to RED.'
+          )}
+          ${buildTransitionTable(
+            'Escalate to RED (composite: 2 of 4)',
+            redCompositeRows,
+            'Two or more composite signals would also trigger RED.'
+          )}
+          ${buildTransitionTable(
+            'Normalize to GREEN',
+            normalizeRows,
+            'Normalization requires percentile conditions to reset across price, flows, and macro.'
+          )}
         `;
 
         const shortTermContext = percentileContext(horizons['3M']?.ret_pctile_5y);

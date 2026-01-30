@@ -421,6 +421,227 @@ def classify_regime(
     return "GREEN", ["green_conditions_met"] if green_conditions else [], red_enter_streak, red_exit_streak
 
 
+def build_transition_row(
+    *,
+    name: str,
+    threshold_label: str,
+    current: Decimal | int | None,
+    threshold_value: Decimal | int | None,
+    fired: bool,
+    unit: str,
+    note: str | None = None,
+) -> dict:
+    if current is None:
+        current_value = None
+        fired_value = None
+    else:
+        current_value = float(current)
+        fired_value = fired
+
+    if threshold_value is None or current is None:
+        distance = None
+    else:
+        if fired:
+            distance = Decimal("0")
+        else:
+            distance = Decimal(str(threshold_value)) - Decimal(str(current))
+
+    return {
+        "trigger": name,
+        "threshold": threshold_label,
+        "current": current_value,
+        "fired": fired_value,
+        "distance": float(distance) if distance is not None else None,
+        "unit": unit,
+        "note": note,
+    }
+
+
+def build_regime_transitions(
+    *,
+    primary_ret: Decimal | None,
+    primary_drawdown: Decimal | None,
+    ret_1m: Decimal | None,
+    primary_ret_pctile: int | None,
+    pct_above_200dma_pctile: int | None,
+    holdings_change_21d_pct: Decimal | None,
+    holdings_change_5d_pct: Decimal | None,
+    holdings_change_21d_pct_pctile: int | None,
+    real_yield_change_1m_bp: Decimal | None,
+    real_yield_change_1m_bp_pctile: int | None,
+) -> dict:
+    flow_threshold = Decimal("-0.015")
+    macro_threshold = Decimal("25")
+    price_crack_return_threshold = Decimal("0")
+    price_crack_drawdown_threshold = Decimal("-0.08")
+    red_primary_return_threshold = Decimal("-0.15")
+    red_primary_drawdown_threshold = Decimal("-0.18")
+    red_primary_real_yield_threshold = Decimal("50")
+    composite_return_threshold = Decimal("-0.08")
+    composite_holdings_21d_threshold = Decimal("-0.02")
+    composite_holdings_5d_threshold = Decimal("-0.01")
+    composite_real_yield_threshold = Decimal("25")
+
+    ret_1m_positive = True if ret_1m is None else ret_1m > Decimal("0")
+    ret_1m_nonpositive = False if ret_1m is None else ret_1m <= Decimal("0")
+    flow_divergence = (
+        holdings_change_21d_pct is not None
+        and holdings_change_21d_pct <= flow_threshold
+        and primary_ret is not None
+        and primary_ret > Decimal("0")
+        and ret_1m_positive
+    )
+    macro_turn = real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= macro_threshold
+    price_crack = ret_1m_nonpositive or (
+        primary_drawdown is not None and primary_drawdown <= price_crack_drawdown_threshold
+    )
+
+    deescalate_to_blue = [
+        build_transition_row(
+            name="Price crack clears (1M return)",
+            threshold_label="1M return > 0%",
+            current=ret_1m,
+            threshold_value=price_crack_return_threshold,
+            fired=True if ret_1m is None else ret_1m > price_crack_return_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="Price crack clears (3M drawdown)",
+            threshold_label="3M drawdown > -8%",
+            current=primary_drawdown,
+            threshold_value=price_crack_drawdown_threshold,
+            fired=primary_drawdown is not None and primary_drawdown > price_crack_drawdown_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="Flow divergence clears",
+            threshold_label="Holdings 21D > -1.5%",
+            current=holdings_change_21d_pct,
+            threshold_value=flow_threshold,
+            fired=not flow_divergence,
+            unit="percent",
+            note="Flow divergence only evaluated when 3M return > 0 and 1M return > 0.",
+        ),
+        build_transition_row(
+            name="Macro turn clears",
+            threshold_label="Real yield 1M change < +25 bp",
+            current=real_yield_change_1m_bp,
+            threshold_value=macro_threshold,
+            fired=real_yield_change_1m_bp is not None and real_yield_change_1m_bp < macro_threshold,
+            unit="bp",
+        ),
+    ]
+
+    escalate_to_red_primary = [
+        build_transition_row(
+            name="RED primary: 3M return",
+            threshold_label="≤ -15%",
+            current=primary_ret,
+            threshold_value=red_primary_return_threshold,
+            fired=primary_ret is not None and primary_ret <= red_primary_return_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="RED primary: 3M drawdown",
+            threshold_label="≤ -18%",
+            current=primary_drawdown,
+            threshold_value=red_primary_drawdown_threshold,
+            fired=primary_drawdown is not None and primary_drawdown <= red_primary_drawdown_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="RED primary: real yield 1M",
+            threshold_label="≥ +50 bp",
+            current=real_yield_change_1m_bp,
+            threshold_value=red_primary_real_yield_threshold,
+            fired=real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= red_primary_real_yield_threshold,
+            unit="bp",
+        ),
+    ]
+
+    escalate_to_red_composite = [
+        build_transition_row(
+            name="RED composite: 3M return",
+            threshold_label="≤ -8%",
+            current=primary_ret,
+            threshold_value=composite_return_threshold,
+            fired=primary_ret is not None and primary_ret <= composite_return_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="RED composite: holdings 21D",
+            threshold_label="≤ -2%",
+            current=holdings_change_21d_pct,
+            threshold_value=composite_holdings_21d_threshold,
+            fired=holdings_change_21d_pct is not None and holdings_change_21d_pct <= composite_holdings_21d_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="RED composite: holdings 5D",
+            threshold_label="≤ -1%",
+            current=holdings_change_5d_pct,
+            threshold_value=composite_holdings_5d_threshold,
+            fired=holdings_change_5d_pct is not None and holdings_change_5d_pct <= composite_holdings_5d_threshold,
+            unit="percent",
+        ),
+        build_transition_row(
+            name="RED composite: real yield 1M",
+            threshold_label="≥ +25 bp",
+            current=real_yield_change_1m_bp,
+            threshold_value=composite_real_yield_threshold,
+            fired=real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= composite_real_yield_threshold,
+            unit="bp",
+        ),
+    ]
+
+    normalize_to_green = [
+        build_transition_row(
+            name="Return percentile normalizes",
+            threshold_label="3M return percentile < 80",
+            current=primary_ret_pctile,
+            threshold_value=80,
+            fired=primary_ret_pctile is not None and primary_ret_pctile < 80,
+            unit="pctile",
+        ),
+        build_transition_row(
+            name="% above 200DMA normalizes",
+            threshold_label="% above 200DMA percentile < 80",
+            current=pct_above_200dma_pctile,
+            threshold_value=80,
+            fired=pct_above_200dma_pctile is not None and pct_above_200dma_pctile < 80,
+            unit="pctile",
+        ),
+        build_transition_row(
+            name="Flows percentile supportive",
+            threshold_label="Holdings 21D flow percentile > 20",
+            current=holdings_change_21d_pct_pctile,
+            threshold_value=20,
+            fired=holdings_change_21d_pct_pctile is not None and holdings_change_21d_pct_pctile > 20,
+            unit="pctile",
+        ),
+        build_transition_row(
+            name="Real yield percentile benign",
+            threshold_label="Real yield change percentile < 80",
+            current=real_yield_change_1m_bp_pctile,
+            threshold_value=80,
+            fired=real_yield_change_1m_bp_pctile is not None and real_yield_change_1m_bp_pctile < 80,
+            unit="pctile",
+        ),
+    ]
+
+    return {
+        "deescalate_to_blue": deescalate_to_blue,
+        "escalate_to_red_primary": escalate_to_red_primary,
+        "escalate_to_red_composite": escalate_to_red_composite,
+        "normalize_to_green": normalize_to_green,
+        "flags": {
+            "flow_divergence": flow_divergence,
+            "macro_turn": macro_turn,
+            "price_crack": price_crack,
+        },
+    }
+
+
 def build_issue_body(metrics: dict, regime: dict, transition: str) -> str:
     reasons = regime.get("reasons") or []
     reasons_text = "\n".join(f"- {reason}" for reason in reasons) if reasons else "- None"
@@ -740,12 +961,18 @@ def main() -> int:
         )
 
         primary_horizon = horizons.get("3M", {})
-        regime_state, regime_reasons, red_enter_streak, red_exit_streak = classify_regime(
-            Decimal(str(primary_horizon.get("ret"))) if primary_horizon.get("ret") is not None else None,
-            primary_horizon.get("ret_pctile_5y"),
+        primary_ret_value = (
+            Decimal(str(primary_horizon.get("ret"))) if primary_horizon.get("ret") is not None else None
+        )
+        primary_drawdown_value = (
             Decimal(str(primary_horizon.get("max_drawdown")))
             if primary_horizon.get("max_drawdown") is not None
-            else None,
+            else None
+        )
+        regime_state, regime_reasons, red_enter_streak, red_exit_streak = classify_regime(
+            primary_ret_value,
+            primary_horizon.get("ret_pctile_5y"),
+            primary_drawdown_value,
             primary_horizon.get("max_drawdown_pctile_5y"),
             gld_ret_1m,
             gld_pct_above_200dma_pctile_5y,
@@ -757,6 +984,18 @@ def main() -> int:
             previous_regime_state,
             red_enter_streak,
             red_exit_streak,
+        )
+        transitions = build_regime_transitions(
+            primary_ret=primary_ret_value,
+            primary_drawdown=primary_drawdown_value,
+            ret_1m=gld_ret_1m,
+            primary_ret_pctile=primary_horizon.get("ret_pctile_5y"),
+            pct_above_200dma_pctile=gld_pct_above_200dma_pctile_5y,
+            holdings_change_21d_pct=gld_holdings_change_21d_pct,
+            holdings_change_5d_pct=gld_holdings_change_5d_pct,
+            holdings_change_21d_pct_pctile=holdings_change_21d_pctile_5y,
+            real_yield_change_1m_bp=real_yield_change_1m_bp,
+            real_yield_change_1m_bp_pctile=real_yield_change_1m_pctile_5y,
         )
 
         repository = None
@@ -825,6 +1064,7 @@ def main() -> int:
                     "red_enter_streak": red_enter_streak,
                     "red_exit_streak": red_exit_streak,
                 },
+                "transitions": transitions,
             },
             "metrics": metrics,
             "notes": {

@@ -123,7 +123,157 @@
       "extension_200dma_pctile_90",
       "deterioration_price_crack"
     ],
-    "state": "ORANGE"
+    "state": "ORANGE",
+    "transitions": {
+      "deescalate_to_blue": [
+        {
+          "current": null,
+          "distance": null,
+          "fired": null,
+          "note": null,
+          "threshold": "1M return > 0%",
+          "trigger": "Price crack clears (1M return)",
+          "unit": "percent"
+        },
+        {
+          "current": -0.08586408550110909,
+          "distance": 0.00586408550110909,
+          "fired": false,
+          "note": null,
+          "threshold": "3M drawdown > -8%",
+          "trigger": "Price crack clears (3M drawdown)",
+          "unit": "percent"
+        },
+        {
+          "current": 0.013563559361561209,
+          "distance": 0.0,
+          "fired": true,
+          "note": "Flow divergence only evaluated when 3M return > 0 and 1M return > 0.",
+          "threshold": "Holdings 21D > -1.5%",
+          "trigger": "Flow divergence clears",
+          "unit": "percent"
+        },
+        {
+          "current": -1.0,
+          "distance": 0.0,
+          "fired": true,
+          "note": null,
+          "threshold": "Real yield 1M change < +25 bp",
+          "trigger": "Macro turn clears",
+          "unit": "bp"
+        }
+      ],
+      "escalate_to_red_composite": [
+        {
+          "current": 0.24881542699724518,
+          "distance": -0.3288154269972452,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2264 -8%",
+          "trigger": "RED composite: 3M return",
+          "unit": "percent"
+        },
+        {
+          "current": 0.013563559361561209,
+          "distance": -0.03356355936156121,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2264 -2%",
+          "trigger": "RED composite: holdings 21D",
+          "unit": "percent"
+        },
+        {
+          "current": 0.006363114313765445,
+          "distance": -0.016363114313765446,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2264 -1%",
+          "trigger": "RED composite: holdings 5D",
+          "unit": "percent"
+        },
+        {
+          "current": -1.0,
+          "distance": 26.0,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2265 +25 bp",
+          "trigger": "RED composite: real yield 1M",
+          "unit": "bp"
+        }
+      ],
+      "escalate_to_red_primary": [
+        {
+          "current": 0.24881542699724518,
+          "distance": -0.3988154269972452,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2264 -15%",
+          "trigger": "RED primary: 3M return",
+          "unit": "percent"
+        },
+        {
+          "current": -0.08586408550110909,
+          "distance": -0.09413591449889092,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2264 -18%",
+          "trigger": "RED primary: 3M drawdown",
+          "unit": "percent"
+        },
+        {
+          "current": -1.0,
+          "distance": 51.0,
+          "fired": false,
+          "note": null,
+          "threshold": "\u2265 +50 bp",
+          "trigger": "RED primary: real yield 1M",
+          "unit": "bp"
+        }
+      ],
+      "flags": {
+        "flow_divergence": false,
+        "macro_turn": false,
+        "price_crack": true
+      },
+      "normalize_to_green": [
+        {
+          "current": 99.0,
+          "distance": -19.0,
+          "fired": false,
+          "note": null,
+          "threshold": "3M return percentile < 80",
+          "trigger": "Return percentile normalizes",
+          "unit": "pctile"
+        },
+        {
+          "current": 99.0,
+          "distance": -19.0,
+          "fired": false,
+          "note": null,
+          "threshold": "% above 200DMA percentile < 80",
+          "trigger": "% above 200DMA normalizes",
+          "unit": "pctile"
+        },
+        {
+          "current": 72.0,
+          "distance": 0.0,
+          "fired": true,
+          "note": null,
+          "threshold": "Holdings 21D flow percentile > 20",
+          "trigger": "Flows percentile supportive",
+          "unit": "pctile"
+        },
+        {
+          "current": 46.0,
+          "distance": 0.0,
+          "fired": true,
+          "note": null,
+          "threshold": "Real yield change percentile < 80",
+          "trigger": "Real yield percentile benign",
+          "unit": "pctile"
+        }
+      ]
+    }
   },
   "repository": "https://github.com/w1k5/gold-crash",
   "sources": {
