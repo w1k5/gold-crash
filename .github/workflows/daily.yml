@@ -6,6 +6,10 @@ on:
     # and 11:05 UTC during daylight time (07:05 EDT). Adjust if desired.
     - cron: "5 12 * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - "scripts/update.py"
+      - ".github/workflows/gold-risk-monitor-daily.yml"
 
 jobs:
   update:
