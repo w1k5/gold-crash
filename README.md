@@ -5,8 +5,6 @@ It runs daily on GitHub Actions, publishes a static dashboard via GitHub Pages, 
 
 This project is designed to **describe regimes and transitions**, not to forecast prices or provide trade signals.
 
----
-
 ## What it does
 
 * Fetches:
@@ -43,8 +41,6 @@ This project is designed to **describe regimes and transitions**, not to forecas
   * Updates the same issue when RED conditions clear
   * Opens or updates **“⚠️ Gold Risk Monitor: data fetch failed”** when inputs fail, without overwriting the last valid dashboard
 
----
-
 ## Conceptual model
 
 The monitor treats gold as moving through **market regimes**, not discrete buy/sell states:
@@ -56,8 +52,6 @@ The monitor treats gold as moving through **market regimes**, not discrete buy/s
 
 The **3-month horizon is primary** for regime classification. Longer horizons are shown for context only.
 
----
-
 ## Time horizons
 
 | Label | Trading days | Purpose                   |
@@ -67,8 +61,6 @@ The **3-month horizon is primary** for regime classification. Longer horizons ar
 | 1Y    | 252          | Trend context             |
 | 3Y    | 756          | Cycle context             |
 | 5Y    | 1260         | Structural context        |
-
----
 
 ## Metrics (definitions)
 
@@ -92,8 +84,6 @@ The **3-month horizon is primary** for regime classification. Longer horizons ar
 
 All percentile metrics are evaluated relative to a **rolling 5-year window when possible**.
 
----
-
 ## Percentiles & data quality
 
 * Percentiles are contextual, not judgments.
@@ -102,8 +92,6 @@ All percentile metrics are evaluated relative to a **rolling 5-year window when 
   * The calculation uses available history
   * The dashboard flags this with an explanatory note
 * Missing or insufficient data is surfaced explicitly (never silently filled).
-
----
 
 ## Regime logic (high-level)
 
@@ -138,8 +126,6 @@ The dashboard shows **exact thresholds and distances** for:
 * Escalation
 * Normalization
 
----
-
 ## Persistence rules
 
 * **RED entry**:
@@ -151,8 +137,6 @@ The dashboard shows **exact thresholds and distances** for:
 
 This avoids single-day noise flipping regimes.
 
----
-
 ## Cut-style classifier (macro context)
 
 The dashboard includes a **cut-style classifier** to explain *why* real yields are moving:
@@ -162,8 +146,6 @@ The dashboard includes a **cut-style classifier** to explain *why* real yields a
 * **Mixed / No cuts priced** → ambiguous or neutral macro signal
 
 This is explanatory context only; it does not directly set the regime.
-
----
 
 ## Automation
 
@@ -177,8 +159,6 @@ This is explanatory context only; it does not directly set the regime.
   * Updates the dashboard
   * Evaluates regime transitions
   * Conditionally updates GitHub Issues
-
----
 
 ## Setup
 
@@ -217,8 +197,6 @@ export FRED_API_KEY=your_key
 python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
 ```
 
----
-
 ## Data sources
 
 * GLD prices (Stooq):
@@ -228,16 +206,12 @@ python scripts/update.py --output data.json --status-file /tmp/monitor_status.js
 * Real yields (FRED DFII10):
   [https://fred.stlouisfed.org/series/DFII10](https://fred.stlouisfed.org/series/DFII10)
 
----
-
 ## What you must do manually
 
 * Create the GitHub repository
 * Add the `FRED_API_KEY` secret
 * Enable GitHub Pages
 * Rotate exposed API keys if needed
-
----
 
 ## License
 
