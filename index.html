@@ -36,12 +36,61 @@
     header {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 18px;
     }
     h1 {
       margin: 0;
       font-size: 32px;
       letter-spacing: -0.02em;
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .hero-notes {
+      display: grid;
+      gap: 10px;
+    }
+    .hero-note {
+      background: var(--row-alt);
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    .hero-note-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .status-panel {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(249, 115, 22, 0.08));
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .status-panel-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .status-panel-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 600;
     }
     .status-row {
       display: flex;
@@ -86,6 +135,12 @@
       font-size: 14px;
       color: var(--muted);
       margin: 0;
+    }
+    .meta-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
     }
     .section-explainer {
       margin: 6px 0 0;
@@ -152,15 +207,6 @@
       margin-top: 6px;
       font-size: 12px;
       color: var(--muted);
-    }
-    .pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: #e2e8f0;
-      color: #334155;
-      margin-left: 6px;
     }
     table {
       width: 100%;
@@ -312,6 +358,9 @@
         align-items: flex-start;
         gap: 8px;
       }
+      .hero {
+        padding: 18px;
+      }
       .card-grid {
         grid-template-columns: 1fr;
       }
@@ -321,17 +370,31 @@
 <body>
   <main>
     <header>
-      <h1>Gold Risk Monitor</h1>
-      <p class="header-note">This monitor is designed to describe market regimes and transitions, not to forecast specific price levels or timing.</p>
-      <div class="status-row">
-        <div id="status" class="badge">Loading...</div>
-        <div id="statusSummary" class="status-summary">Loading status summary...</div>
+      <div class="hero">
+        <h1>Gold Risk Monitor</h1>
+        <p class="header-note">This monitor is designed to describe market regimes and transitions, not to forecast specific price levels or timing.</p>
+        <div class="status-panel">
+          <div class="status-panel-header">
+            <span class="status-panel-title">Current regime</span>
+            <div class="meta" id="timestamps">Waiting for data...</div>
+          </div>
+          <div class="status-row">
+            <div id="status" class="badge">Loading...</div>
+            <div id="statusSummary" class="status-summary">Loading status summary...</div>
+          </div>
+          <div class="status-explainer" id="macroFollowThrough">Loading macro follow-through...</div>
+        </div>
+        <div class="hero-notes">
+          <div class="hero-note">
+            <span class="hero-note-title">Percentile context</span>
+            <span class="meta-note">Percentiles compare current values with historical distributions to provide context rather than absolute judgments.</span>
+          </div>
+          <div class="hero-note">
+            <span class="hero-note-title">Interpretation</span>
+            <span class="meta-note">Status describes market regime only; it does not imply actions.</span>
+          </div>
+        </div>
       </div>
-      <div class="status-explainer" id="macroFollowThrough">Loading macro follow-through...</div>
-      <div class="meta" id="timestamps">Waiting for data...</div>
-      <div class="meta" id="confidence">Data coverage: checking...</div>
-      <div class="meta">Percentiles compare current values with historical distributions to provide context rather than absolute judgments. Coverage notes indicate whether comparisons are based on a full five-year window or a shorter available history, helping calibrate confidence in the percentile labels.</div>
-      <div class="meta">Status describes market regime only; it does not imply actions.</div>
     </header>
 
     <section class="section">
@@ -493,7 +556,6 @@
     const statusSummaryEl = document.getElementById('statusSummary');
     const macroFollowThroughEl = document.getElementById('macroFollowThrough');
     const timestampsEl = document.getElementById('timestamps');
-    const confidenceEl = document.getElementById('confidence');
     const reasonLeadEl = document.getElementById('reasonLead');
     const reasonsEl = document.getElementById('reasons');
     const glanceCardsEl = document.getElementById('glanceCards');
@@ -571,19 +633,12 @@
       if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
       return `${rounded}th`;
     };
-    const percentileLabel = (basis, count) => {
-      if (!basis || basis === 'none') return 'N/A';
-      const label = basis === 'available' ? 'available history' : '5y window';
-      const suffix = typeof count === 'number' ? ` (n=${count})` : '';
-      return `${label}${suffix}`;
-    };
-    const percentileText = (value, explain, basis, count) => {
+    const percentileText = (value, explain) => {
       if (value == null) {
         return `N/A${contextTag(explain || 'insufficient history')}`;
       }
-      const basisLabel = percentileLabel(basis, count);
       const cleaned = dedupeNote(explain);
-      return `${percentileWord(value)} (${formatOrdinal(value)})${contextTag(cleaned ? `Note: ${cleaned}` : basisLabel)}`;
+      return `${percentileWord(value)} (${formatOrdinal(value)})${contextTag(cleaned ? `Note: ${cleaned}` : '')}`;
     };
     const valueOrNA = (value, formatter, explain) => {
       if (value == null) {
@@ -591,7 +646,6 @@
       }
       return `${formatter(value)}${contextTag(explain)}`;
     };
-    const basisTag = (basis) => (basis === 'available' ? '<span class="pill">available</span>' : '');
     const signedValue = (value, formatter) => {
       if (value == null) return 'N/A';
       const sign = value > 0 ? '+' : '';
@@ -661,16 +715,6 @@
         <div class="why">${why}</div>
       </div>
     `;
-    const coverageSummary = (basisValues, missingCount) => {
-      if (missingCount > 0) {
-        return 'Data coverage: limited (some percentiles are unavailable).';
-      }
-      if (basisValues.includes('available')) {
-        return 'Data coverage: mixed (some percentiles use available history).';
-      }
-      return 'Data coverage: strong (most percentiles use a 5y window).';
-    };
-
     fetch('data.json', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
@@ -702,8 +746,6 @@
         const metrics = data.metrics || {};
         const horizons = metrics.horizons || {};
         const horizonOrder = ['3M', '6M', '1Y', '3Y', '5Y'];
-        const basisValues = [];
-        let missingCount = 0;
         horizonRows.innerHTML = horizonOrder.map((label) => {
           const horizon = horizons[label] || {};
           const available = horizon.available !== false && horizon.ret != null;
@@ -713,9 +755,7 @@
           const returnPctCell = available
             ? percentileText(
               horizon.ret_pctile_5y,
-              horizon.ret_pctile_5y_explain,
-              horizon.ret_pctile_basis,
-              horizon.ret_pctile_n
+              horizon.ret_pctile_5y_explain
             )
             : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
           const drawdownCell = available
@@ -724,19 +764,13 @@
           const drawdownPctCell = available
             ? percentileText(
               horizon.max_drawdown_pctile_5y,
-              horizon.max_drawdown_pctile_5y_explain,
-              horizon.max_drawdown_pctile_basis,
-              horizon.max_drawdown_pctile_n
+              horizon.max_drawdown_pctile_5y_explain
             )
             : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
-          if (horizon.ret_pctile_basis) basisValues.push(horizon.ret_pctile_basis);
-          if (horizon.max_drawdown_pctile_basis) basisValues.push(horizon.max_drawdown_pctile_basis);
-          if (!available) missingCount += 1;
-          const labelNote = basisTag(horizon.ret_pctile_basis || horizon.max_drawdown_pctile_basis);
           const contextValue = percentileContext(horizon.ret_pctile_5y ?? horizon.max_drawdown_pctile_5y);
           return `
             <tr>
-              <td>${label}${labelNote}</td>
+              <td>${label}</td>
               <td class="num">${returnCell}</td>
               <td class="num">${returnPctCell}</td>
               <td class="num">${drawdownCell}</td>
@@ -762,13 +796,10 @@
             <td class="num">${valueOrNA(metrics.pct_above_200dma, formatPercent)}</td>
             <td class="num">${percentileText(
               metrics.pct_above_200dma_pctile_5y,
-              metrics.pct_above_200dma_pctile_5y_explain,
-              metrics.pct_above_200dma_pctile_basis,
-              metrics.pct_above_200dma_pctile_n
+              metrics.pct_above_200dma_pctile_5y_explain
             )}</td>
           </tr>
         `;
-        if (metrics.pct_above_200dma_pctile_basis) basisValues.push(metrics.pct_above_200dma_pctile_basis);
 
         const flows = metrics.flows || {};
         flowRows.innerHTML = `
@@ -782,9 +813,7 @@
             <td class="num">${valueOrNA(flows.holdings_change_5d_pct, formatPercent)}</td>
             <td class="num">${percentileText(
               flows.holdings_change_5d_pct_pctile_5y,
-              flows.holdings_change_5d_pct_pctile_5y_explain,
-              flows.holdings_change_5d_pctile_basis,
-              flows.holdings_change_5d_pctile_n
+              flows.holdings_change_5d_pct_pctile_5y_explain
             )}</td>
           </tr>
           <tr>
@@ -792,14 +821,10 @@
             <td class="num">${valueOrNA(flows.holdings_change_21d_pct, formatPercent)}</td>
             <td class="num">${percentileText(
               flows.holdings_change_21d_pct_pctile_5y,
-              flows.holdings_change_21d_pct_pctile_5y_explain,
-              flows.holdings_change_21d_pctile_basis,
-              flows.holdings_change_21d_pctile_n
+              flows.holdings_change_21d_pct_pctile_5y_explain
             )}</td>
           </tr>
         `;
-        if (flows.holdings_change_5d_pctile_basis) basisValues.push(flows.holdings_change_5d_pctile_basis);
-        if (flows.holdings_change_21d_pctile_basis) basisValues.push(flows.holdings_change_21d_pctile_basis);
 
         const macro = metrics.macro || {};
         const cut = macro.cut_style_classifier || {};
@@ -820,9 +845,7 @@
             <td class="num">${valueOrNA(macro.real_yield_change_1m_bp, formatBp)}</td>
             <td class="num">${percentileText(
               macro.real_yield_change_1m_bp_pctile_5y,
-              macro.real_yield_change_1m_bp_pctile_5y_explain,
-              macro.real_yield_change_1m_bp_pctile_basis,
-              macro.real_yield_change_1m_bp_pctile_n
+              macro.real_yield_change_1m_bp_pctile_5y_explain
             )}</td>
           </tr>
           <tr>
@@ -830,9 +853,7 @@
             <td class="num">${valueOrNA(macro.real_yield_change_3m_bp, formatBp)}</td>
             <td class="num">${percentileText(
               macro.real_yield_change_3m_bp_pctile_5y,
-              macro.real_yield_change_3m_bp_pctile_5y_explain,
-              macro.real_yield_change_3m_bp_pctile_basis,
-              macro.real_yield_change_3m_bp_pctile_n
+              macro.real_yield_change_3m_bp_pctile_5y_explain
             )}</td>
           </tr>
           <tr>
@@ -840,9 +861,7 @@
             <td class="num">${valueOrNA(macro.corr_gld_ret_vs_real_yield_chg_20d, formatCorr)}</td>
             <td class="num">${percentileText(
               macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y,
-              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain,
-              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis,
-              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_n
+              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain
             )}</td>
           </tr>
 
@@ -875,12 +894,6 @@
             <td class="num">N/A</td>
           </tr>
         `;
-        if (macro.real_yield_change_1m_bp_pctile_basis) basisValues.push(macro.real_yield_change_1m_bp_pctile_basis);
-        if (macro.real_yield_change_3m_bp_pctile_basis) basisValues.push(macro.real_yield_change_3m_bp_pctile_basis);
-        if (macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis) {
-          basisValues.push(macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis);
-        }
-
         const glanceCards = [
           buildCard(
             'Extension',
@@ -965,9 +978,6 @@
         const shortTermContext = percentileContext(horizons['3M']?.ret_pctile_5y);
         const longTermContext = percentileContext(horizons['1Y']?.ret_pctile_5y);
         horizonSummaryEl.textContent = `Horizon snapshot: short-term ${shortTermContext}; long-term ${longTermContext}.`;
-
-        const basisSummary = coverageSummary(basisValues, missingCount);
-        confidenceEl.textContent = basisSummary;
 
         const repo = data.repository || 'https://github.com/';
         repoLink.href = repo;

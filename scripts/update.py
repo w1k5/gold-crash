@@ -373,20 +373,14 @@ def percentile_with_fallback(
     value: Decimal | None,
     history: List[Decimal],
     fallback_history: List[Decimal],
-) -> tuple[int | None, str | None, str | None, int, str]:
+) -> tuple[int | None, str | None]:
     if value is None:
-        return None, "insufficient history", None, 0, "none"
+        return None, "insufficient history"
     if history:
-        return compute_percentile(value, history), None, None, len(history), "5y"
+        return compute_percentile(value, history), None
     if fallback_history:
-        return (
-            compute_percentile(value, fallback_history),
-            "insufficient 5y history (used available history)",
-            "used available history",
-            len(fallback_history),
-            "available",
-        )
-    return None, "insufficient history", None, 0, "none"
+        return compute_percentile(value, fallback_history), None
+    return None, "insufficient history"
 
 
 def classify_regime(
@@ -924,7 +918,6 @@ def build_horizon_metrics(
     dates: List[datetime],
     prices: List[Decimal],
     cutoff: datetime,
-    percentile_notes: dict,
 ) -> dict:
     available = len(prices) >= days + 1
     if not available:
@@ -934,13 +927,9 @@ def build_horizon_metrics(
             "ret": None,
             "ret_pctile_5y": None,
             "ret_pctile_5y_explain": "insufficient history",
-            "ret_pctile_basis": "none",
-            "ret_pctile_n": 0,
             "max_drawdown": None,
             "max_drawdown_pctile_5y": None,
             "max_drawdown_pctile_5y_explain": "insufficient history",
-            "max_drawdown_pctile_basis": "none",
-            "max_drawdown_pctile_n": 0,
         }
 
     ret = compute_return(prices, days)
@@ -949,26 +938,19 @@ def build_horizon_metrics(
 
     ret_history = compute_return_series(dates, prices, days, cutoff)
     ret_history_full = compute_return_series(dates, prices, days, None)
-    ret_pctile, ret_explain, ret_note, ret_n, ret_basis = percentile_with_fallback(
+    ret_pctile, ret_explain = percentile_with_fallback(
         ret,
         ret_history,
         ret_history_full,
     )
-    if ret_note:
-        percentile_notes[label] = ret_note
 
     drawdown_history = compute_drawdown_series(dates, prices, days, cutoff)
     drawdown_history_full = compute_drawdown_series(dates, prices, days, None)
-    draw_pctile, draw_explain, draw_note, draw_n, draw_basis = percentile_with_fallback(
+    draw_pctile, draw_explain = percentile_with_fallback(
         max_drawdown,
         drawdown_history,
         drawdown_history_full,
     )
-    if draw_note:
-        if label in percentile_notes:
-            percentile_notes[label] = f"{percentile_notes[label]} {draw_note}"
-        else:
-            percentile_notes[label] = draw_note
 
     return {
         "days": days,
@@ -976,13 +958,9 @@ def build_horizon_metrics(
         "ret": float(ret) if ret is not None else None,
         "ret_pctile_5y": ret_pctile,
         "ret_pctile_5y_explain": ret_explain,
-        "ret_pctile_basis": ret_basis,
-        "ret_pctile_n": ret_n,
         "max_drawdown": float(max_drawdown) if max_drawdown is not None else None,
         "max_drawdown_pctile_5y": draw_pctile,
         "max_drawdown_pctile_5y_explain": draw_explain,
-        "max_drawdown_pctile_basis": draw_basis,
-        "max_drawdown_pctile_n": draw_n,
     }
 
 
@@ -1149,9 +1127,6 @@ def main() -> int:
         (
             gld_pct_above_200dma_pctile_5y,
             gld_pct_above_200dma_pctile_explain,
-            gld_pct_above_200dma_pctile_note,
-            gld_pct_above_200dma_pctile_n,
-            gld_pct_above_200dma_pctile_basis,
         ) = percentile_with_fallback(
             gld_pct_above_200dma,
             gld_pct_above_200dma_history,
@@ -1160,9 +1135,6 @@ def main() -> int:
         (
             real_yield_change_1m_pctile_5y,
             real_yield_change_1m_pctile_explain,
-            real_yield_change_1m_pctile_note,
-            real_yield_change_1m_pctile_n,
-            real_yield_change_1m_pctile_basis,
         ) = percentile_with_fallback(
             real_yield_change_1m_bp,
             real_yield_change_1m_history,
@@ -1171,9 +1143,6 @@ def main() -> int:
         (
             real_yield_change_3m_pctile_5y,
             real_yield_change_3m_pctile_explain,
-            real_yield_change_3m_pctile_note,
-            real_yield_change_3m_pctile_n,
-            real_yield_change_3m_pctile_basis,
         ) = percentile_with_fallback(
             real_yield_change_3m_bp,
             real_yield_change_3m_history,
@@ -1182,9 +1151,6 @@ def main() -> int:
         (
             holdings_change_5d_pctile_5y,
             holdings_change_5d_pctile_explain,
-            holdings_change_5d_pctile_note,
-            holdings_change_5d_pctile_n,
-            holdings_change_5d_pctile_basis,
         ) = percentile_with_fallback(
             gld_holdings_change_5d_pct,
             holdings_change_5d_history,
@@ -1193,9 +1159,6 @@ def main() -> int:
         (
             holdings_change_21d_pctile_5y,
             holdings_change_21d_pctile_explain,
-            holdings_change_21d_pctile_note,
-            holdings_change_21d_pctile_n,
-            holdings_change_21d_pctile_basis,
         ) = percentile_with_fallback(
             gld_holdings_change_21d_pct,
             holdings_change_21d_history,
@@ -1204,28 +1167,13 @@ def main() -> int:
         (
             corr20_pctile_5y,
             corr20_pctile_explain,
-            corr20_pctile_note,
-            corr20_pctile_n,
-            corr20_pctile_basis,
         ) = percentile_with_fallback(
             Decimal(str(corr20_today)) if corr20_today is not None else None,
             corr20_history_5y,
             corr20_history_full,
         )
-
-        percentile_notes: dict[str, str] = {}
-        for note in (
-            gld_pct_above_200dma_pctile_note,
-            real_yield_change_1m_pctile_note,
-            real_yield_change_3m_pctile_note,
-            holdings_change_5d_pctile_note,
-            holdings_change_21d_pctile_note,
-            corr20_pctile_note,
-        ):
-            if note:
-                percentile_notes["short_term"] = note
         horizons = {
-            label: build_horizon_metrics(label, days, gld_dates, gld_prices, cutoff_date, percentile_notes)
+            label: build_horizon_metrics(label, days, gld_dates, gld_prices, cutoff_date)
             for label, days in HORIZON_WINDOWS.items()
         }
 
@@ -1291,8 +1239,6 @@ def main() -> int:
             "pct_above_200dma": float(gld_pct_above_200dma) if gld_pct_above_200dma is not None else None,
             "pct_above_200dma_pctile_5y": gld_pct_above_200dma_pctile_5y,
             "pct_above_200dma_pctile_5y_explain": gld_pct_above_200dma_pctile_explain,
-            "pct_above_200dma_pctile_basis": gld_pct_above_200dma_pctile_basis,
-            "pct_above_200dma_pctile_n": gld_pct_above_200dma_pctile_n,
             "flows": {
                 "holdings_today_tonnes": float(gld_holdings_today) if gld_holdings_today is not None else None,
                 "holdings_change_5d_pct": float(gld_holdings_change_5d_pct)
@@ -1303,12 +1249,8 @@ def main() -> int:
                 else None,
                 "holdings_change_5d_pct_pctile_5y": holdings_change_5d_pctile_5y,
                 "holdings_change_5d_pct_pctile_5y_explain": holdings_change_5d_pctile_explain,
-                "holdings_change_5d_pctile_basis": holdings_change_5d_pctile_basis,
-                "holdings_change_5d_pctile_n": holdings_change_5d_pctile_n,
                 "holdings_change_21d_pct_pctile_5y": holdings_change_21d_pctile_5y,
                 "holdings_change_21d_pct_pctile_5y_explain": holdings_change_21d_pctile_explain,
-                "holdings_change_21d_pctile_basis": holdings_change_21d_pctile_basis,
-                "holdings_change_21d_pctile_n": holdings_change_21d_pctile_n,
             },
             "macro": {
                 "real_yield_today": float(real_yield_today) if real_yield_today is not None else None,
@@ -1321,16 +1263,10 @@ def main() -> int:
                 "corr_gld_ret_vs_real_yield_chg_20d": corr20_today,
                 "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": corr20_pctile_5y,
                 "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": corr20_pctile_explain,
-                "corr_gld_ret_vs_real_yield_chg_20d_pctile_basis": corr20_pctile_basis,
-                "corr_gld_ret_vs_real_yield_chg_20d_pctile_n": corr20_pctile_n,
                 "real_yield_change_1m_bp_pctile_5y": real_yield_change_1m_pctile_5y,
                 "real_yield_change_1m_bp_pctile_5y_explain": real_yield_change_1m_pctile_explain,
-                "real_yield_change_1m_bp_pctile_basis": real_yield_change_1m_pctile_basis,
-                "real_yield_change_1m_bp_pctile_n": real_yield_change_1m_pctile_n,
                 "real_yield_change_3m_bp_pctile_5y": real_yield_change_3m_pctile_5y,
                 "real_yield_change_3m_bp_pctile_5y_explain": real_yield_change_3m_pctile_explain,
-                "real_yield_change_3m_bp_pctile_basis": real_yield_change_3m_pctile_basis,
-                "real_yield_change_3m_bp_pctile_n": real_yield_change_3m_pctile_n,
                 "nominal_10y_today": float(nom10_values[-1]) if nom10_values else None,
                 "nominal_2y_today": float(nom2_values[-1]) if nom2_values else None,
                 "breakeven_10y_today": float(be10_values[-1]) if be10_values else None,
@@ -1371,10 +1307,7 @@ def main() -> int:
                 "transitions": transitions,
             },
             "metrics": metrics,
-            "notes": {
-                "percentile_notes": percentile_notes,
-                "methodology": "Descriptive market regime; no implied actions.",
-            },
+            "notes": {"methodology": "Descriptive market regime; no implied actions."},
         }
 
         output_dir = os.path.dirname(args.output)
