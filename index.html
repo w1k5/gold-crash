@@ -327,6 +327,7 @@
         <div id="status" class="badge">Loading...</div>
         <div id="statusSummary" class="status-summary">Loading status summary...</div>
       </div>
+      <div class="status-explainer" id="macroFollowThrough">Loading macro follow-through...</div>
       <div class="meta" id="timestamps">Waiting for data...</div>
       <div class="meta" id="confidence">Data coverage: checking...</div>
       <div class="meta">Percentiles compare current values with historical distributions to provide context rather than absolute judgments. Coverage notes indicate whether comparisons are based on a full five-year window or a shorter available history, helping calibrate confidence in the percentile labels.</div>
@@ -478,6 +479,7 @@
     const formatNumber = (value, digits = 2) => `${value.toFixed(digits)}`;
     const formatBp = (value) => `${value.toFixed(0)} bp`;
     const formatTonnes = (value) => `${value.toFixed(1)} t`;
+    const formatCorr = (value) => `${value.toFixed(2)}`;
     const formatTimestamp = (isoString) => {
       const date = new Date(isoString);
       const month = date.toLocaleString('en-US', { month: 'short' });
@@ -489,6 +491,7 @@
 
     const statusEl = document.getElementById('status');
     const statusSummaryEl = document.getElementById('statusSummary');
+    const macroFollowThroughEl = document.getElementById('macroFollowThrough');
     const timestampsEl = document.getElementById('timestamps');
     const confidenceEl = document.getElementById('confidence');
     const reasonLeadEl = document.getElementById('reasonLead');
@@ -539,7 +542,9 @@
       deterioration_flow_divergence: 'Holdings falling while price rising (flow divergence)',
       deterioration_macro_turn: 'Real yields rising quickly (macro headwind)',
       deterioration_policy_conflict: 'Cuts priced + real yields rising (credibility headwind)',
-      deterioration_price_crack: 'Short-term weakness / drawdown worsening (price crack)'
+      deterioration_price_crack: 'Short-term weakness / drawdown worsening (price crack)',
+      deterioration_followthrough: 'Macro follow-through (rates driving price)',
+      composite_followthrough: 'Macro follow-through (rates driving price)'
     };
     const percentileContext = (value) => {
       if (value == null) return 'N/A';
@@ -675,6 +680,10 @@
         statusEl.classList.remove('green', 'blue', 'orange', 'red');
         statusEl.classList.add(state.toLowerCase());
         statusSummaryEl.textContent = badgeDescriptions[state] || 'Status summary unavailable.';
+        const macroFollowThrough = regime.flags?.macro_followthrough;
+        macroFollowThroughEl.textContent = macroFollowThrough
+          ? 'Macro shock is sticking (rates are driving price).'
+          : 'Macro shock not confirmed (moves look more liquidation/positioning).';
 
         if (data.updated_at) {
           const etFormatted = formatTimestamp(data.updated_at);
@@ -826,6 +835,16 @@
               macro.real_yield_change_3m_bp_pctile_n
             )}</td>
           </tr>
+          <tr>
+            <td>20D corr (GLD ret vs real-yield Δ)</td>
+            <td class="num">${valueOrNA(macro.corr_gld_ret_vs_real_yield_chg_20d, formatCorr)}</td>
+            <td class="num">${percentileText(
+              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y,
+              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain,
+              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis,
+              macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_n
+            )}</td>
+          </tr>
 
           <tr>
             <td colspan="3"><div class="divider"></div></td>
@@ -858,6 +877,9 @@
         `;
         if (macro.real_yield_change_1m_bp_pctile_basis) basisValues.push(macro.real_yield_change_1m_bp_pctile_basis);
         if (macro.real_yield_change_3m_bp_pctile_basis) basisValues.push(macro.real_yield_change_3m_bp_pctile_basis);
+        if (macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis) {
+          basisValues.push(macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_basis);
+        }
 
         const glanceCards = [
           buildCard(
@@ -887,6 +909,13 @@
             macro.real_yield_change_1m_bp_pctile_5y,
             '1M change',
             'Macro pressure proxy'
+          ),
+          buildCard(
+            'Macro link',
+            valueOrNA(macro.corr_gld_ret_vs_real_yield_chg_20d, formatCorr),
+            macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y,
+            '20D corr',
+            'Is selling macro-driven? (more negative = more rate-linked)'
           ),
           (() => {
             const label = cut.label || 'UNKNOWN';
@@ -922,7 +951,7 @@
             'Any single primary trigger can move the regime to RED.'
           )}
           ${buildTransitionTable(
-            'Escalate to RED (composite: 2 of 4)',
+            'Escalate to RED (composite: 2 of 5)',
             redCompositeRows,
             'Two or more composite signals would also trigger RED.'
           )}

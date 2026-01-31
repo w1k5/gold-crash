@@ -5,11 +5,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
@@ -282,6 +283,92 @@ def compute_pct_above_ma_series(
     return history
 
 
+def align_series_by_date(
+    series_a: List[Tuple[datetime, Decimal]],
+    series_b: List[Tuple[datetime, Decimal]],
+) -> Tuple[List[datetime], List[Decimal], List[Decimal]]:
+    a_map: Dict[datetime, Decimal] = {d.date(): v for d, v in series_a}
+    b_map: Dict[datetime, Decimal] = {d.date(): v for d, v in series_b}
+    common = sorted(set(a_map.keys()) & set(b_map.keys()))
+    dates = [datetime.combine(d, datetime.min.time()) for d in common]
+    a_vals = [a_map[d] for d in common]
+    b_vals = [b_map[d] for d in common]
+    return dates, a_vals, b_vals
+
+
+def compute_daily_return_series(values: List[Decimal]) -> List[Decimal]:
+    out: List[Decimal] = []
+    for idx in range(1, len(values)):
+        prev = values[idx - 1]
+        cur = values[idx]
+        if prev == 0:
+            out.append(Decimal("0"))
+        else:
+            out.append((cur / prev) - Decimal("1"))
+    return out
+
+
+def compute_daily_change_bp_series(values: List[Decimal]) -> List[Decimal]:
+    out: List[Decimal] = []
+    for idx in range(1, len(values)):
+        out.append((values[idx] - values[idx - 1]) * Decimal("100"))
+    return out
+
+
+def pearson_corr(x: List[float], y: List[float]) -> Optional[float]:
+    n = len(x)
+    if n < 2:
+        return None
+    mx = sum(x) / n
+    my = sum(y) / n
+    sx = 0.0
+    sy = 0.0
+    sxy = 0.0
+    for idx in range(n):
+        dx = x[idx] - mx
+        dy = y[idx] - my
+        sx += dx * dx
+        sy += dy * dy
+        sxy += dx * dy
+    if sx <= 0.0 or sy <= 0.0:
+        return None
+    return sxy / math.sqrt(sx * sy)
+
+
+def rolling_corr(
+    dates: List[datetime],
+    x: List[Decimal],
+    y: List[Decimal],
+    window: int,
+) -> List[Tuple[datetime, Optional[float]]]:
+    out: List[Tuple[datetime, Optional[float]]] = []
+    if len(x) != len(y) or len(x) != len(dates):
+        return out
+    if len(x) < window:
+        return out
+    xf = [float(v) for v in x]
+    yf = [float(v) for v in y]
+    for idx in range(window - 1, len(x)):
+        xs = xf[idx - window + 1 : idx + 1]
+        ys = yf[idx - window + 1 : idx + 1]
+        out.append((dates[idx], pearson_corr(xs, ys)))
+    return out
+
+
+def compute_corr_history(
+    corr_series: List[Tuple[datetime, Optional[float]]],
+    cutoff: datetime | None,
+) -> List[Decimal]:
+    history: List[Decimal] = []
+    for date_value, corr_value in corr_series:
+        if corr_value is None:
+            continue
+        if cutoff and date_value < cutoff:
+            continue
+        history.append(Decimal(str(corr_value)))
+    return history
+
+
 def percentile_with_fallback(
     value: Decimal | None,
     history: List[Decimal],
@@ -314,6 +401,7 @@ def classify_regime(
     holdings_change_21d_pct_pctile: int | None,
     real_yield_change_1m_bp: Decimal | None,
     real_yield_change_1m_bp_pctile: int | None,
+    corr20: float | None,
     cut_label: str | None,
     cuts_priced: bool | None,
     previous_state: str | None,
@@ -379,8 +467,16 @@ def classify_regime(
     price_crack = ret_1m_nonpositive or primary_drawdown <= Decimal("-0.08")
     if price_crack:
         deterioration_triggers.append("deterioration_price_crack")
+    follow_through = (
+        corr20 is not None
+        and corr20 <= -0.40
+        and real_yield_change_1m_bp is not None
+        and real_yield_change_1m_bp >= Decimal("10")
+    )
+    if follow_through:
+        deterioration_triggers.append("deterioration_followthrough")
 
-    deterioration_present = any([flow_divergence, macro_turn, price_crack, policy_conflict])
+    deterioration_present = any([flow_divergence, macro_turn, price_crack, policy_conflict, follow_through])
 
     red_primary_triggers: List[str] = []
     red_primary = False
@@ -408,6 +504,7 @@ def classify_regime(
             "composite_real_yield_1m",
             real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= Decimal("25"),
         ),
+        ("composite_followthrough", follow_through),
     ]
     composite_hits = [label for label, hit in composite_conditions if hit]
     red_composite = len(composite_hits) >= 2
@@ -496,6 +593,7 @@ def build_regime_transitions(
     holdings_change_21d_pct_pctile: int | None,
     real_yield_change_1m_bp: Decimal | None,
     real_yield_change_1m_bp_pctile: int | None,
+    corr20: float | None,
     cut_label: str | None = None,
 ) -> dict:
     flow_threshold = Decimal("-0.015")
@@ -514,6 +612,8 @@ def build_regime_transitions(
     composite_holdings_21d_threshold = Decimal("-0.02")
     composite_holdings_5d_threshold = Decimal("-0.01")
     composite_real_yield_threshold = Decimal("25")
+    follow_through_corr_threshold = -0.40
+    follow_through_real_yield_threshold = Decimal("10")
 
     ret_1m_positive = True if ret_1m is None else ret_1m > Decimal("0")
     ret_1m_nonpositive = False if ret_1m is None else ret_1m <= Decimal("0")
@@ -527,6 +627,12 @@ def build_regime_transitions(
     macro_turn = real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= macro_threshold
     price_crack = ret_1m_nonpositive or (
         primary_drawdown is not None and primary_drawdown <= price_crack_drawdown_threshold
+    )
+    follow_through = (
+        corr20 is not None
+        and corr20 <= follow_through_corr_threshold
+        and real_yield_change_1m_bp is not None
+        and real_yield_change_1m_bp >= follow_through_real_yield_threshold
     )
 
     deescalate_to_blue = [
@@ -625,6 +731,15 @@ def build_regime_transitions(
             fired=real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= composite_real_yield_threshold,
             unit="bp",
         ),
+        build_transition_row(
+            name="RED composite: macro follow-through",
+            threshold_label="Corr ≤ -0.40 & 1M real yield ≥ +10 bp",
+            current=real_yield_change_1m_bp,
+            threshold_value=follow_through_real_yield_threshold,
+            fired=follow_through,
+            unit="bp",
+            note=f"20D corr: {corr20:.2f}" if corr20 is not None else "20D corr unavailable.",
+        ),
     ]
 
     normalize_to_green = [
@@ -671,6 +786,7 @@ def build_regime_transitions(
             "flow_divergence": flow_divergence,
             "macro_turn": macro_turn,
             "price_crack": price_crack,
+            "macro_followthrough": follow_through,
         },
     }
 
@@ -924,6 +1040,13 @@ def main() -> int:
         real_yield_change_1m_bp = compute_bp_change(fred_values, TRADING_DAYS_1M)
         real_yield_change_3m_bp = compute_bp_change(fred_values, TRADING_DAYS_3M)
 
+        aligned_dates, aligned_prices, aligned_real_yields = align_series_by_date(gld_rows, fred_rows)
+        corr_dates = aligned_dates[1:]
+        gld_daily_ret = compute_daily_return_series(aligned_prices)
+        real_daily_chg_bp = compute_daily_change_bp_series(aligned_real_yields)
+        corr20_series = rolling_corr(corr_dates, gld_daily_ret, real_daily_chg_bp, window=20)
+        corr20_today = corr20_series[-1][1] if corr20_series else None
+
         nom10_values = [row[1] for row in fred_nom10_rows]
         nom2_values = [row[1] for row in fred_nom2_rows]
         be10_values = [row[1] for row in fred_be10_rows]
@@ -996,6 +1119,8 @@ def main() -> int:
             None,
             Decimal("100"),
         )
+        corr20_history_5y = compute_corr_history(corr20_series, cutoff_date)
+        corr20_history_full = compute_corr_history(corr20_series, None)
         holdings_change_5d_history = compute_return_series(
             holdings_dates,
             holdings_values,
@@ -1076,6 +1201,17 @@ def main() -> int:
             holdings_change_21d_history,
             holdings_change_21d_history_full,
         )
+        (
+            corr20_pctile_5y,
+            corr20_pctile_explain,
+            corr20_pctile_note,
+            corr20_pctile_n,
+            corr20_pctile_basis,
+        ) = percentile_with_fallback(
+            Decimal(str(corr20_today)) if corr20_today is not None else None,
+            corr20_history_5y,
+            corr20_history_full,
+        )
 
         percentile_notes: dict[str, str] = {}
         for note in (
@@ -1084,6 +1220,7 @@ def main() -> int:
             real_yield_change_3m_pctile_note,
             holdings_change_5d_pctile_note,
             holdings_change_21d_pctile_note,
+            corr20_pctile_note,
         ):
             if note:
                 percentile_notes["short_term"] = note
@@ -1121,6 +1258,7 @@ def main() -> int:
             holdings_change_21d_pctile_5y,
             real_yield_change_1m_bp,
             real_yield_change_1m_pctile_5y,
+            corr20_today,
             cut_classifier.get("label"),
             cut_classifier.get("cuts_priced"),
             previous_regime_state,
@@ -1138,6 +1276,7 @@ def main() -> int:
             holdings_change_21d_pct_pctile=holdings_change_21d_pctile_5y,
             real_yield_change_1m_bp=real_yield_change_1m_bp,
             real_yield_change_1m_bp_pctile=real_yield_change_1m_pctile_5y,
+            corr20=corr20_today,
             cut_label=cut_classifier.get("label"),
         )
 
@@ -1179,6 +1318,11 @@ def main() -> int:
                 "real_yield_change_3m_bp": float(real_yield_change_3m_bp)
                 if real_yield_change_3m_bp is not None
                 else None,
+                "corr_gld_ret_vs_real_yield_chg_20d": corr20_today,
+                "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": corr20_pctile_5y,
+                "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": corr20_pctile_explain,
+                "corr_gld_ret_vs_real_yield_chg_20d_pctile_basis": corr20_pctile_basis,
+                "corr_gld_ret_vs_real_yield_chg_20d_pctile_n": corr20_pctile_n,
                 "real_yield_change_1m_bp_pctile_5y": real_yield_change_1m_pctile_5y,
                 "real_yield_change_1m_bp_pctile_5y_explain": real_yield_change_1m_pctile_explain,
                 "real_yield_change_1m_bp_pctile_basis": real_yield_change_1m_pctile_basis,
@@ -1223,6 +1367,7 @@ def main() -> int:
                     "red_enter_streak": red_enter_streak,
                     "red_exit_streak": red_exit_streak,
                 },
+                "flags": transitions.get("flags", {}),
                 "transitions": transitions,
             },
             "metrics": metrics,
