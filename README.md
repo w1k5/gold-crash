@@ -1,69 +1,184 @@
 # Gold Risk Monitor
 
-A fully automated, $0-hosted dashboard that monitors gold risk signals for GLD/IAU/SLV/SIVR/PICK holders. It runs daily on GitHub Actions, publishes a static dashboard via GitHub Pages, and raises a GitHub Issue when a RED flag is triggered.
+A fully automated, $0-hosted dashboard that **classifies gold market regimes** for GLD (with contextual relevance for IAU / SLV / SIVR / PICK holders).
+It runs daily on GitHub Actions, publishes a static dashboard via GitHub Pages, and conditionally raises GitHub Issues when **risk regimes or data integrity change**.
+
+This project is designed to **describe regimes and transitions**, not to forecast prices or provide trade signals.
+
+---
 
 ## What it does
 
-- Fetches GLD daily prices (no API key), GLD holdings (SPDR CSV), and DFII10 real yield data from FRED (API key required).
-- Computes multi-horizon GLD returns/drawdowns (3M/6M/1Y/3Y/5Y), a 200DMA extension metric, and short-term flow + macro changes.
-- Assigns a single GREEN/BLUE/ORANGE/RED regime based on the **primary 3M horizon** plus extension, flow, and macro signals.
-- Publishes `data.json` and a static dashboard (`index.html`) with a Horizon Snapshot table for context.
-- Opens or updates a GitHub Issue titled **“🚨 Gold Risk Monitor: RED regime”** only when the regime transitions into RED, and updates the same issue when it exits RED.
-- Opens or updates a GitHub Issue titled **“⚠️ Gold Risk Monitor: data fetch failed”** when data fetch fails, without overwriting the last known good dashboard.
+* Fetches:
 
-## Regime logic (exact)
+  * GLD daily prices (Stooq CSV; no API key)
+  * GLD holdings (SPDR CSV)
+  * US real yields and rates data from FRED (API key required)
+* Computes:
 
-### Time horizons
+  * Multi-horizon GLD returns and drawdowns (3M / 6M / 1Y / 3Y / 5Y)
+  * Price extension vs 200-day moving average
+  * Short-term flow changes from GLD holdings
+  * Short-term macro pressure from **real-yield changes**
+  * Rolling correlations between GLD returns and real-yield changes
+* Classifies a **single regime color** (GREEN / BLUE / ORANGE / RED) based on:
 
-- 3M = 63 trading days (primary)
-- 6M = 126 trading days
-- 1Y = 252 trading days
-- 3Y = 756 trading days
-- 5Y = 1260 trading days
+  * Short-term price extension
+  * Momentum and drawdown behavior
+  * Flow confirmation or divergence
+  * Macro pressure and follow-through
+* Publishes:
 
-### Metrics
+  * `data.json` (machine-readable state)
+  * A static dashboard (`index.html`) with:
 
-- `ret_H = (price_today / price_H_days_ago) - 1`
-- `max_drawdown_H = max peak-to-trough decline within last H days`
-- `ma_200 = 200-day simple moving average of GLD`
-- `pct_above_200dma = (price_today / ma_200) - 1`
-- `real_yield_today = DFII10 latest value (percent)`
-- `real_yield_change_1m_bp = (today - 21d_ago) * 100`
-- `real_yield_change_3m_bp = (today - 63d_ago) * 100`
-- `holdings_today_tonnes = latest GLD holdings in tonnes`
-- `holdings_change_5d_pct = (holdings_today / holdings_5d_ago) - 1`
-- `holdings_change_21d_pct = (holdings_today / holdings_21d_ago) - 1`
-- `*_pctile_5y = percentile for the corresponding metric over the last 5 years`
+    * “At a glance” cards
+    * Regime drivers
+    * Explicit transition thresholds (“what would change the color”)
+    * Horizon Snapshot tables
+    * Extension, Flow, and Macro detail sections
+* GitHub Issues:
 
-### Percentiles
+  * Opens or updates **“🚨 Gold Risk Monitor: RED regime”** only when the regime **enters or remains in RED**
+  * Updates the same issue when RED conditions clear
+  * Opens or updates **“⚠️ Gold Risk Monitor: data fetch failed”** when inputs fail, without overwriting the last valid dashboard
 
-- Percentiles use a rolling 5-year context window when possible.
-- If a 5-year window is insufficient (e.g., for 5Y horizon metrics), the percentile is computed on available history and flagged with a note, or set to `null` with an explanation.
-- Each percentile includes its basis (`5y` or `available`) and the sample count (`n`) to show how much history backed the calculation.
+---
 
-### Regime rules (one state; primary horizon = 3M)
+## Conceptual model
 
-- **GREEN (normal)** if all are true:
-  - 3M return percentile < 80
-  - % above 200DMA percentile < 80
-  - Holdings 21D change percentile > 20
-  - Real yield 1M change percentile < 80
-- **BLUE (overheated)** if not GREEN and extension score >= 2, where extension score counts:
-  - 3M return percentile >= 90
-  - % above 200DMA percentile >= 90
-  - 3M drawdown percentile >= 70
-- **ORANGE (topping risk)** if BLUE and deterioration is present:
-  - Flow divergence: holdings 21D <= -1.5% AND 3M return > 0 AND 1M return > 0 (if 1M exists)
-  - Macro turn: real yield 1M change >= +25 bp
-  - Price crack: 1M return <= 0 OR 3M drawdown <= -8%
-- **RED (breakdown risk)** if any primary trigger OR composite stress:
-  - Primary triggers: 3M return <= -15%, 3M drawdown <= -18%, real yield 1M change >= +50 bp
-  - Composite stress (2 of 4): 3M return <= -8%, holdings 21D <= -2%, holdings 5D <= -1%, real yield 1M change >= +25 bp
+The monitor treats gold as moving through **market regimes**, not discrete buy/sell states:
 
-### Persistence
+* **GREEN** → Typical conditions
+* **BLUE** → Extended rally without deterioration
+* **ORANGE** → Extension plus early deterioration signals
+* **RED** → Breakdown-style stress (price, flow, or macro)
 
-- Entering RED requires 2 consecutive runs meeting RED unless a primary trigger is true.
-- Exiting RED requires 5 consecutive runs not meeting RED.
+The **3-month horizon is primary** for regime classification. Longer horizons are shown for context only.
+
+---
+
+## Time horizons
+
+| Label | Trading days | Purpose                   |
+| ----- | ------------ | ------------------------- |
+| 3M    | 63           | **Primary regime driver** |
+| 6M    | 126          | Medium-term context       |
+| 1Y    | 252          | Trend context             |
+| 3Y    | 756          | Cycle context             |
+| 5Y    | 1260         | Structural context        |
+
+---
+
+## Metrics (definitions)
+
+* `ret_H = (price_today / price_H_days_ago) - 1`
+* `max_drawdown_H = worst peak-to-trough decline in last H days`
+* `ma_200 = 200-day simple moving average`
+* `pct_above_200dma = (price_today / ma_200) - 1`
+
+**Flows**
+
+* `holdings_today_tonnes`
+* `holdings_change_5d_pct`
+* `holdings_change_21d_pct`
+
+**Macro**
+
+* `real_yield_today = DFII10`
+* `real_yield_change_1m_bp`
+* `real_yield_change_3m_bp`
+* `corr_gld_ret_vs_real_yield_chg_20d`
+
+All percentile metrics are evaluated relative to a **rolling 5-year window when possible**.
+
+---
+
+## Percentiles & data quality
+
+* Percentiles are contextual, not judgments.
+* If a full 5-year window is unavailable:
+
+  * The calculation uses available history
+  * The dashboard flags this with an explanatory note
+* Missing or insufficient data is surfaced explicitly (never silently filled).
+
+---
+
+## Regime logic (high-level)
+
+### GREEN (typical)
+
+* No meaningful extension
+* No deterioration in flows
+* No macro pressure
+
+### BLUE (extended)
+
+Triggered when **price extension conditions** are present (e.g. extreme 3M returns, distance above 200DMA, shallow drawdowns), **without** deterioration signals.
+
+### ORANGE (early stress)
+
+BLUE **plus at least one deterioration signal**, such as:
+
+* Flow divergence (price rising while holdings fall)
+* Rapid rise in real yields
+* Short-term price weakness (“price crack”)
+
+### RED (breakdown risk)
+
+Triggered by either:
+
+* **Primary stress** (large drawdowns or sharp real-yield spikes), or
+* **Composite stress** (multiple moderate signals across price, flows, and macro)
+
+The dashboard shows **exact thresholds and distances** for:
+
+* De-escalation
+* Escalation
+* Normalization
+
+---
+
+## Persistence rules
+
+* **RED entry**:
+
+  * Requires confirmation across runs unless a primary trigger fires
+* **RED exit**:
+
+  * Requires multiple consecutive runs without RED conditions
+
+This avoids single-day noise flipping regimes.
+
+---
+
+## Cut-style classifier (macro context)
+
+The dashboard includes a **cut-style classifier** to explain *why* real yields are moving:
+
+* **Credibility cut** → inflation expectations falling faster than nominal yields
+* **Stimulus cut** → reflation impulse (breakevens rising)
+* **Mixed / No cuts priced** → ambiguous or neutral macro signal
+
+This is explanatory context only; it does not directly set the regime.
+
+---
+
+## Automation
+
+* Runs daily via GitHub Actions
+* Scheduled for **07:05 America/New_York**
+
+  * Cron uses 12:05 UTC (07:05 EST; 08:05 EDT)
+* On each run:
+
+  * Updates `data.json`
+  * Updates the dashboard
+  * Evaluates regime transitions
+  * Conditionally updates GitHub Issues
+
+---
 
 ## Setup
 
@@ -80,44 +195,49 @@ git push -u origin main
 
 ### 2) Add the FRED API key (required)
 
-1. Create or rotate a FRED API key at: https://fred.stlouisfed.org/docs/api/api_key.html
-2. In GitHub, open **Settings → Secrets and variables → Actions**.
-3. Add **New repository secret**:
-   - Name: `FRED_API_KEY`
-   - Value: your API key
+1. Create or rotate a key at
+   [https://fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html)
+2. GitHub → **Settings → Secrets and variables → Actions**
+3. Add a repository secret:
 
-If you believe a key has been exposed, revoke it in FRED and replace it in GitHub Secrets.
+   * **Name:** `FRED_API_KEY`
+   * **Value:** your key
 
 ### 3) Enable GitHub Pages
 
-1. Go to **Settings → Pages**.
-2. Under **Build and deployment**, select **Deploy from a branch**.
-3. Set **Branch** to `main` and **/(root)** as the folder.
-4. Save; your dashboard will be available at `https://<OWNER>.github.io/<REPO>/`.
+1. **Settings → Pages**
+2. Deploy from `main` → `/(root)`
+3. Dashboard will be live at:
+   `https://<OWNER>.github.io/<REPO>/`
 
-### 4) (Optional) Local test
+### 4) (Optional) Local run
 
 ```bash
 export FRED_API_KEY=your_key
 python scripts/update.py --output data.json --status-file /tmp/monitor_status.json
 ```
 
-## Automation
-
-The scheduled workflow runs daily at **07:05 America/New_York**. GitHub Actions cron is set to 12:05 UTC, which matches 07:05 EST; during daylight time the run occurs at 08:05 EDT. Adjust the cron time if you need a strict 07:05 EDT/EST schedule.
+---
 
 ## Data sources
 
-- GLD prices: Stooq CSV (no key required): https://stooq.com/q/d/l/?s=gld.us&i=d
-- GLD holdings: SPDR Gold Shares CSV: https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv
-- Real yields: FRED DFII10: https://fred.stlouisfed.org/series/DFII10
+* GLD prices (Stooq):
+  [https://stooq.com/q/d/l/?s=gld.us&i=d](https://stooq.com/q/d/l/?s=gld.us&i=d)
+* GLD holdings (SPDR):
+  [https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv](https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv)
+* Real yields (FRED DFII10):
+  [https://fred.stlouisfed.org/series/DFII10](https://fred.stlouisfed.org/series/DFII10)
 
-## What you must do by hand
+---
 
-- Create the GitHub repository and push the code.
-- Add the `FRED_API_KEY` secret.
-- Enable GitHub Pages from `/(root)`.
-- Rotate any compromised API keys.
+## What you must do manually
+
+* Create the GitHub repository
+* Add the `FRED_API_KEY` secret
+* Enable GitHub Pages
+* Rotate exposed API keys if needed
+
+---
 
 ## License
 
