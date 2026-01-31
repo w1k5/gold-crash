@@ -90,6 +90,11 @@
     "macro": {
       "breakeven_10y_change_1m_bp": 12.0,
       "breakeven_10y_today": 2.36,
+      "corr_gld_ret_vs_real_yield_chg_20d": 0.061691262065923895,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 91,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": null,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_basis": "5y",
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_n": 1245,
       "cut_style_classifier": {
         "explain": [
           "cuts_priced=False",
@@ -143,9 +148,15 @@
     }
   },
   "regime": {
+    "flags": {
+      "flow_divergence": false,
+      "macro_followthrough": false,
+      "macro_turn": false,
+      "price_crack": true
+    },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 13
+      "red_exit_streak": 14
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -229,6 +240,15 @@
           "threshold": "\u2265 +25 bp",
           "trigger": "RED composite: real yield 1M",
           "unit": "bp"
+        },
+        {
+          "current": -1.0,
+          "distance": 11.0,
+          "fired": false,
+          "note": "20D corr: 0.06",
+          "threshold": "Corr \u2264 -0.40 & 1M real yield \u2265 +10 bp",
+          "trigger": "RED composite: macro follow-through",
+          "unit": "bp"
         }
       ],
       "escalate_to_red_primary": [
@@ -262,6 +282,7 @@
       ],
       "flags": {
         "flow_divergence": false,
+        "macro_followthrough": false,
         "macro_turn": false,
         "price_crack": true
       },
@@ -314,5 +335,5 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-01-31T07:53:53.566470-05:00"
+  "updated_at": "2026-01-31T11:05:43.280658-05:00"
 }
