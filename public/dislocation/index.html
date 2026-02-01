@@ -144,6 +144,20 @@
     </header>
 
     <section class="section">
+      <h2>Current status</h2>
+      <p class="section-explainer">Pulled from the latest <code>dislocation.json</code> run in the daily workflow.</p>
+      <div class="section-card">
+        <p id="dislocationStatus"><strong>Status:</strong> Loading...</p>
+        <p class="meta-note" id="dislocationTimestamp">As of: Loading...</p>
+        <p class="meta-note" id="dislocationRule">Rule: Loading...</p>
+        <p class="meta-note"><strong>Signals triggered:</strong></p>
+        <ul id="dislocationSignals">
+          <li>Loading signal details...</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
       <h2>Overview</h2>
       <p class="section-explainer">Yes. You can turn that checklist into a <strong>stable, low-churn “dislocation detector”</strong> that runs daily, pulls <strong>free public market data</strong>, and only triggers when <strong>multiple, smoothed signals</strong> agree.</p>
       <div class="section-card">
@@ -538,5 +552,50 @@ if __name__ == "__main__":
       </div>
     </section>
   </main>
+  <script>
+    const statusEl = document.getElementById('dislocationStatus');
+    const timestampEl = document.getElementById('dislocationTimestamp');
+    const ruleEl = document.getElementById('dislocationRule');
+    const signalsEl = document.getElementById('dislocationSignals');
+
+    const formatStatus = (data) => data.dislocation ? 'Dislocation: TRUE' : 'Dislocation: false';
+    const formatRule = (data) => {
+      if (!data.rule) {
+        return 'Rule: unavailable';
+      }
+      return `Rule: ${data.rule.k_required} signals required. ${data.rule.notes || ''}`.trim();
+    };
+
+    fetch('/dislocation.json')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load dislocation.json');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        statusEl.innerHTML = `<strong>Status:</strong> ${formatStatus(data)} (${data.signals_triggered_count} signals)`;
+        timestampEl.textContent = `As of: ${data.asof_utc || 'unknown'}`;
+        ruleEl.textContent = formatRule(data);
+        signalsEl.innerHTML = '';
+        if (Array.isArray(data.signals)) {
+          data.signals.forEach((signal) => {
+            const li = document.createElement('li');
+            li.textContent = `${signal.name}: ${signal.triggered ? 'triggered' : 'not triggered'}`;
+            signalsEl.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.textContent = 'Signal details unavailable.';
+          signalsEl.appendChild(li);
+        }
+      })
+      .catch(() => {
+        statusEl.innerHTML = '<strong>Status:</strong> Unable to load dislocation.json';
+        timestampEl.textContent = 'As of: unavailable';
+        ruleEl.textContent = 'Rule: unavailable';
+        signalsEl.innerHTML = '<li>Signal details unavailable.</li>';
+      });
+  </script>
 </body>
 </html>

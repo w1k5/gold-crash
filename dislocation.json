@@ -1,0 +1,11 @@
+{
+  "asof_utc": "",
+  "dislocation": false,
+  "signals_triggered_count": 0,
+  "signals_triggered": [],
+  "signals": [],
+  "rule": {
+    "k_required": 3,
+    "notes": "Designed to be low-churn: multiple independent stress signals must agree."
+  }
+}
