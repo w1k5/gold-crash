@@ -203,6 +203,7 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from io import StringIO
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -233,9 +234,18 @@ DEFAULT_TICKERS = {
 
 def fetch_stooq_daily(symbol: str) -&gt; pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
-    r = requests.get(url, timeout=20)
-    r.raise_for_status()
-    df = pd.read_csv(pd.compat.StringIO(r.text)) if hasattr(pd.compat, "StringIO") else pd.read_csv(pd.io.common.StringIO(r.text))
+    response = requests.get(url, timeout=20)
+    response.raise_for_status()
+    if "&lt;html" in response.text.lower():
+        raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
+    try:
+        df = pd.read_csv(StringIO(response.text))
+    except pd.errors.ParserError as exc:
+        raise ValueError(f"Unable to parse Stooq CSV for symbol: {symbol}") from exc
+    normalized = {column.lower(): column for column in df.columns}
+    if "date" not in normalized:
+        raise ValueError(f"Stooq CSV missing Date column for symbol: {symbol}")
+    df = df.rename(columns={normalized["date"]: "Date"})
     # Expected columns: Date, Open, High, Low, Close, Volume
     df["Date"] = pd.to_datetime(df["Date"], utc=True)
     df = df.sort_values("Date").set_index("Date")
@@ -243,6 +253,10 @@ def fetch_stooq_daily(symbol: str) -&gt; pd.DataFrame:
     for c in ["Open", "High", "Low", "Close", "Volume"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
+    required = {"Open", "High", "Low", "Close", "Volume"}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
     df = df.dropna(subset=["Close"])
     return df
 
@@ -502,13 +516,19 @@ def main() -&gt; None:
     hyg = fetch_stooq_daily(args.hyg_symbol)
 
     # VIX symbol sometimes differs; try a fallback automatically
-    try:
-        vix = fetch_stooq_daily(args.vix_symbol)
-    except Exception:
-        if args.vix_symbol != "^vix":
-            vix = fetch_stooq_daily("^vix")
-        else:
-            raise
+    vix = None
+    tried = []
+    for candidate in [args.vix_symbol, "^vix", "vix"]:
+        if candidate in tried:
+            continue
+        tried.append(candidate)
+        try:
+            vix = fetch_stooq_daily(candidate)
+            break
+        except ValueError:
+            continue
+    if vix is None:
+        raise ValueError(f"Unable to fetch VIX data from Stooq. Tried: {tried}")
 
     fred_df = None
     if args.fred_series:

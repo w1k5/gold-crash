@@ -28,12 +28,25 @@ def fetch_stooq_daily(symbol: str) -> pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
     response = requests.get(url, timeout=20)
     response.raise_for_status()
-    df = pd.read_csv(StringIO(response.text))
+    if "<html" in response.text.lower():
+        raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
+    try:
+        df = pd.read_csv(StringIO(response.text))
+    except pd.errors.ParserError as exc:
+        raise ValueError(f"Unable to parse Stooq CSV for symbol: {symbol}") from exc
+    normalized = {column.lower(): column for column in df.columns}
+    if "date" not in normalized:
+        raise ValueError(f"Stooq CSV missing Date column for symbol: {symbol}")
+    df = df.rename(columns={normalized["date"]: "Date"})
     df["Date"] = pd.to_datetime(df["Date"], utc=True)
     df = df.sort_values("Date").set_index("Date")
     for column in ["Open", "High", "Low", "Close", "Volume"]:
         if column in df.columns:
             df[column] = pd.to_numeric(df[column], errors="coerce")
+    required = {"Open", "High", "Low", "Close", "Volume"}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
     return df.dropna(subset=["Close"])
 
 
@@ -257,13 +270,19 @@ def main() -> None:
     gld = fetch_stooq_daily(args.gld_symbol)
     hyg = fetch_stooq_daily(args.hyg_symbol)
 
-    try:
-        vix = fetch_stooq_daily(args.vix_symbol)
-    except Exception:
-        if args.vix_symbol != "^vix":
-            vix = fetch_stooq_daily("^vix")
-        else:
-            raise
+    vix = None
+    tried = []
+    for candidate in [args.vix_symbol, "^vix", "vix"]:
+        if candidate in tried:
+            continue
+        tried.append(candidate)
+        try:
+            vix = fetch_stooq_daily(candidate)
+            break
+        except ValueError:
+            continue
+    if vix is None:
+        raise ValueError(f"Unable to fetch VIX data from Stooq. Tried: {tried}")
 
     fred_df = None
     if args.fred_series:
