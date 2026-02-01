@@ -331,25 +331,27 @@ def any_recent_true(flag_series: pd.Series, lookback_days: int) -&gt; bool:
 class SignalResult:
     name: str
     triggered: bool
-    details: Dict[str, float]
+    details: Dict[str, object]
 
 
 def compute_signals(
     spy: pd.DataFrame,
     gld: pd.DataFrame,
     hyg: pd.DataFrame,
-    vix: pd.DataFrame,
+    vix: Optional[pd.DataFrame] = None,
     fred_hy_spread: Optional[pd.DataFrame] = None,
     lookback: int = 252,
 ) -&gt; List[SignalResult]:
     # Align on dates
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
     # VIX may have different date stamps; align by intersection too
-    idx = idx.intersection(vix.index)
+    if vix is not None:
+        idx = idx.intersection(vix.index)
     spy = spy.loc[idx]
     gld = gld.loc[idx]
     hyg = hyg.loc[idx]
-    vix = vix.loc[idx]
+    if vix is not None:
+        vix = vix.loc[idx]
 
     # Basic series
     spy_ret = pct_change(spy["Close"], 1)
@@ -362,10 +364,15 @@ def compute_signals(
     spy_vol = spy["Volume"].replace(0, pd.NA)
     spy_vol_z = rolling_z(spy_vol, lookback)
 
-    vix_level = vix["Close"]
-    vix_ret = pct_change(vix_level, 1)
-    vix_level_z = rolling_z(vix_level, lookback)
-    vix_ret_z = rolling_z(vix_ret, lookback)
+    vix_level = None
+    vix_ret = None
+    vix_level_z = None
+    vix_ret_z = None
+    if vix is not None:
+        vix_level = vix["Close"]
+        vix_ret = pct_change(vix_level, 1)
+        vix_level_z = rolling_z(vix_level, lookback)
+        vix_ret_z = rolling_z(vix_ret, lookback)
 
     # 1) Major indexes down big + whipsaw huge (stable: use both absolute and relative thresholds)
     big_down = spy_ret &lt;= -2.5
@@ -378,7 +385,10 @@ def compute_signals(
 
     # 3) Volatility spike sharply (not just high):
     # Trigger if VIX is high *and* jumps unusually.
-    vol_spike = ((vix_level &gt;= 30) | (vix_level_z &gt;= 1.5)) &amp; ((vix_ret &gt;= 20) | (vix_ret_z &gt;= 2.0))
+    if vix is None:
+        vol_spike = pd.Series(False, index=idx)
+    else:
+        vol_spike = ((vix_level &gt;= 30) | (vix_level_z &gt;= 1.5)) &amp; ((vix_ret &gt;= 20) | (vix_ret_z &gt;= 2.0))
 
     # 4) Credit stress: HY underperforms equities a lot (flow stress)
     # Trigger when HYG drops meaningfully more than SPY in a day.
@@ -429,11 +439,18 @@ def compute_signals(
         details={"spy_volume_z": safe_last(spy_vol_z), "spy_range_z": safe_last(spy_rng_z)},
     ))
 
-    results.append(SignalResult(
-        name="volatility_spike",
-        triggered=latest_bool(vol_spike),
-        details={"vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret), "vix_level_z": safe_last(vix_level_z), "vix_change_z": safe_last(vix_ret_z)},
-    ))
+    if vix is None:
+        results.append(SignalResult(
+            name="volatility_spike",
+            triggered=False,
+            details={"note": "VIX data unavailable from Stooq."},
+        ))
+    else:
+        results.append(SignalResult(
+            name="volatility_spike",
+            triggered=latest_bool(vol_spike),
+            details={"vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret), "vix_level_z": safe_last(vix_level_z), "vix_change_z": safe_last(vix_ret_z)},
+        ))
 
     results.append(SignalResult(
         name="credit_stress_proxy",
@@ -454,11 +471,18 @@ def compute_signals(
         details={"spy_1d_return_pct": safe_last(spy_ret), "gld_1d_return_pct": safe_last(gld_ret)},
     ))
 
-    results.append(SignalResult(
-        name="forced_flow_proxy_combo",
-        triggered=latest_bool(forced_flow_proxy),
-        details={"spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret), "vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret)},
-    ))
+    if vix is None:
+        results.append(SignalResult(
+            name="forced_flow_proxy_combo",
+            triggered=False,
+            details={"spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret), "note": "VIX data unavailable from Stooq."},
+        ))
+    else:
+        results.append(SignalResult(
+            name="forced_flow_proxy_combo",
+            triggered=latest_bool(forced_flow_proxy),
+            details={"spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret), "vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret)},
+        ))
 
     return results
 
@@ -528,7 +552,7 @@ def main() -&gt; None:
         except ValueError:
             continue
     if vix is None:
-        raise ValueError(f"Unable to fetch VIX data from Stooq. Tried: {tried}")
+        print(f"Warning: Unable to fetch VIX data from Stooq. Tried: {tried}")
 
     fred_df = None
     if args.fred_series:
