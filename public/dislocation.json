@@ -1,0 +1,62 @@
+{
+  "asof_utc": "2026-02-01T03:25:37.851706+00:00",
+  "dislocation": false,
+  "signals_triggered_count": 0,
+  "signals_triggered": [],
+  "signals": [
+    {
+      "name": "big_down_and_whipsaw",
+      "triggered": false,
+      "details": {
+        "spy_1d_return_pct": -0.2982537029565968,
+        "spy_intraday_range_pct": 1.0246108935358516,
+        "spy_range_z": -0.1305811542001737
+      }
+    },
+    {
+      "name": "liquidity_degraded_proxy",
+      "triggered": false,
+      "details": {
+        "spy_volume_z": 0.9476633819081097,
+        "spy_range_z": -0.1305811542001737
+      }
+    },
+    {
+      "name": "volatility_spike",
+      "triggered": false,
+      "details": {
+        "note": "VIX data unavailable from Stooq."
+      }
+    },
+    {
+      "name": "credit_stress_proxy",
+      "triggered": false,
+      "details": {
+        "hyg_1d_return_pct": 0.11106997408367736,
+        "spy_1d_return_pct": -0.2982537029565968,
+        "hyg_minus_spy_pct": 0.40932367704027417
+      }
+    },
+    {
+      "name": "everything_sells_together",
+      "triggered": false,
+      "details": {
+        "spy_1d_return_pct": -0.2982537029565968,
+        "gld_1d_return_pct": -10.274248840492028
+      }
+    },
+    {
+      "name": "forced_flow_proxy_combo",
+      "triggered": false,
+      "details": {
+        "spy_1d_return_pct": -0.2982537029565968,
+        "hyg_minus_spy_pct": 0.40932367704027417,
+        "note": "VIX data unavailable from Stooq."
+      }
+    }
+  ],
+  "rule": {
+    "k_required": 3,
+    "notes": "Designed to be low-churn: multiple independent stress signals must agree."
+  }
+}
