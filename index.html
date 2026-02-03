@@ -952,11 +952,73 @@
         const redCompositeRows = transitions.escalate_to_red_composite || [];
         const normalizeRows = transitions.normalize_to_green || [];
 
+        const buildLocalRow = ({ trigger, thresholdLabel, current, thresholdValue, fired, unit, note }) => {
+          let distance = null;
+          if (current != null && thresholdValue != null) {
+            distance = fired ? 0 : thresholdValue - current;
+          }
+          return {
+            trigger,
+            threshold: thresholdLabel,
+            current,
+            fired,
+            distance,
+            unit,
+            note,
+          };
+        };
+
+        const primaryRetPctile = horizons['3M']?.ret_pctile_5y;
+        const drawdownPctile = horizons['3M']?.max_drawdown_pctile_5y;
+        const extensionRows = [
+          buildLocalRow({
+            trigger: 'Extension: 3M return percentile',
+            thresholdLabel: '≥ 90th percentile',
+            current: primaryRetPctile,
+            thresholdValue: 90,
+            fired: primaryRetPctile != null && primaryRetPctile >= 90,
+            unit: 'pctile',
+          }),
+          buildLocalRow({
+            trigger: 'Extension: % above 200DMA percentile',
+            thresholdLabel: '≥ 90th percentile',
+            current: metrics.pct_above_200dma_pctile_5y,
+            thresholdValue: 90,
+            fired: metrics.pct_above_200dma_pctile_5y != null && metrics.pct_above_200dma_pctile_5y >= 90,
+            unit: 'pctile',
+          }),
+          buildLocalRow({
+            trigger: 'Extension: 3M drawdown percentile',
+            thresholdLabel: '≥ 70th percentile',
+            current: drawdownPctile,
+            thresholdValue: 70,
+            fired: drawdownPctile != null && drawdownPctile >= 70,
+            unit: 'pctile',
+          }),
+        ];
+
+        const deteriorationTitle = state === 'GREEN'
+          ? 'Deterioration signals (required for ORANGE once BLUE is active)'
+          : 'De-escalate to BLUE (no deterioration triggers)';
+        const deteriorationNote = state === 'GREEN'
+          ? 'ORANGE requires BLUE plus at least one deterioration signal. If extension signals are not met, these do not change the color.'
+          : 'All deterioration signals must clear for the regime to return to BLUE.';
+
+        const extensionTitle = state === 'GREEN'
+          ? 'Escalate to BLUE (extension signals)'
+          : 'Extension signals (still required for BLUE)';
+        const extensionNote = 'BLUE requires at least 2 of the 3 extension signals.';
+
         escalationEl.innerHTML = `
           ${buildTransitionTable(
-            'De-escalate to BLUE (no deterioration triggers)',
+            extensionTitle,
+            extensionRows,
+            extensionNote
+          )}
+          ${buildTransitionTable(
+            deteriorationTitle,
             deescalateRows,
-            'All deterioration signals must clear for the regime to return to BLUE.'
+            deteriorationNote
           )}
           ${buildTransitionTable(
             'Escalate to RED (primary triggers)',
