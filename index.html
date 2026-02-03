@@ -970,7 +970,7 @@
 
         const primaryRetPctile = horizons['3M']?.ret_pctile_5y;
         const drawdownPctile = horizons['3M']?.max_drawdown_pctile_5y;
-        const extensionRows = [
+        const extensionSignalRows = [
           buildLocalRow({
             trigger: 'Extension: 3M return percentile',
             thresholdLabel: '≥ 90th percentile',
@@ -1012,7 +1012,7 @@
         escalationEl.innerHTML = `
           ${buildTransitionTable(
             extensionTitle,
-            extensionRows,
+            extensionSignalRows,
             extensionNote
           )}
           ${buildTransitionTable(
