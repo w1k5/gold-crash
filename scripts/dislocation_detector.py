@@ -21,6 +21,7 @@ DEFAULT_TICKERS = {
     "gold": "gld.us",
     "credit_hy": "hyg.us",
     "vix": "vi.c",
+    "vix_proxy": "vixy.us",
 }
 
 
@@ -52,6 +53,57 @@ def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
     if "Volume" not in df.columns:
         df["Volume"] = 0.0
     return df.dropna(subset=["Close"])
+
+
+def fetch_yahoo_chart_daily(symbol: str) -> pd.DataFrame:
+    """Fetch daily OHLC (and volume if available) from Yahoo Finance chart endpoint."""
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+    params = {"interval": "1d", "range": "5y"}
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json,text/plain,*/*",
+    }
+    response = requests.get(url, params=params, headers=headers, timeout=20)
+    response.raise_for_status()
+    payload = response.json()
+    result = payload.get("chart", {}).get("result", [])
+    if not result:
+        raise ValueError(f"Yahoo chart missing result for {symbol}")
+    data = result[0]
+    timestamps = data.get("timestamp", [])
+    indicators = data.get("indicators", {}).get("quote", [])
+    if not timestamps or not indicators:
+        raise ValueError(f"Yahoo chart missing data for {symbol}")
+    quote = indicators[0]
+    df = pd.DataFrame({
+        "Date": pd.to_datetime(timestamps, unit="s", utc=True),
+        "Open": quote.get("open"),
+        "High": quote.get("high"),
+        "Low": quote.get("low"),
+        "Close": quote.get("close"),
+        "Volume": quote.get("volume"),
+    })
+    df = df.dropna(subset=["Close"]).sort_values("Date").set_index("Date")
+    return df
+
+
+def fetch_vix_spot() -> tuple[Optional[pd.DataFrame], str]:
+    try:
+        return fetch_yahoo_chart_daily("%5EVIX"), "yahoo:^VIX"
+    except Exception:
+        pass
+
+    tried = []
+    for candidate in ["vi.c", "^vix", "vix"]:
+        if candidate in tried:
+            continue
+        tried.append(candidate)
+        try:
+            return fetch_stooq_daily(candidate, require_volume=False), f"stooq:{candidate}"
+        except Exception:
+            continue
+
+    return None, "unavailable"
 
 
 def fetch_fred_series(series_id: str, api_key: str) -> pd.DataFrame:
@@ -99,6 +151,10 @@ def safe_last(series: pd.Series) -> float:
     return float(series.dropna().iloc[-1])
 
 
+def latest_date(df: pd.DataFrame) -> pd.Timestamp:
+    return df.index.dropna().max()
+
+
 @dataclass
 class SignalResult:
     name: str
@@ -111,6 +167,7 @@ def compute_signals(
     gld: pd.DataFrame,
     hyg: pd.DataFrame,
     vix: Optional[pd.DataFrame] = None,
+    is_vix_proxy: bool = False,
     fred_hy_spread: Optional[pd.DataFrame] = None,
     lookback: int = 252,
 ) -> List[SignalResult]:
@@ -152,7 +209,10 @@ def compute_signals(
     if vix is None:
         vol_spike = pd.Series(False, index=idx)
     else:
-        vol_spike = ((vix_level >= 30) | (vix_level_z >= 1.5)) & ((vix_ret >= 20) | (vix_ret_z >= 2.0))
+        if is_vix_proxy:
+            vol_spike = (vix_ret >= 8.0) | (vix_ret_z >= 2.0)
+        else:
+            vol_spike = ((vix_level >= 30) | (vix_level_z >= 1.5)) & ((vix_ret >= 20) | (vix_ret_z >= 2.0))
 
     credit_stress = (hyg_ret - spy_ret) <= -1.5
 
@@ -198,15 +258,16 @@ def compute_signals(
         },
     ))
 
+    vol_name = "volatility_spike_proxy" if is_vix_proxy else "volatility_spike"
     if vix is None:
         results.append(SignalResult(
-            name="volatility_spike",
+            name=vol_name,
             triggered=False,
-            details={"note": "VIX data unavailable from Stooq."},
+            details={"note": "VIX data unavailable."},
         ))
     else:
         results.append(SignalResult(
-            name="volatility_spike",
+            name=vol_name,
             triggered=latest_bool(vol_spike),
             details={
                 "vix_level": safe_last(vix_level),
@@ -249,7 +310,7 @@ def compute_signals(
             details={
                 "spy_1d_return_pct": safe_last(spy_ret),
                 "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret),
-                "note": "VIX data unavailable from Stooq.",
+                "note": "VIX data unavailable.",
             },
         ))
     else:
@@ -360,19 +421,36 @@ def main() -> None:
     gld = fetch_stooq_daily(args.gld_symbol)
     hyg = fetch_stooq_daily(args.hyg_symbol)
 
-    vix = None
-    tried = []
-    for candidate in [args.vix_symbol, "vi.c", "^vix", "vix"]:
-        if candidate in tried:
-            continue
-        tried.append(candidate)
-        try:
-            vix = fetch_stooq_daily(candidate, require_volume=False)
-            break
-        except ValueError:
-            continue
-    if vix is None:
-        print(f"Warning: Unable to fetch VIX data from Stooq. Tried: {tried}")
+    spot_vix, spot_source = fetch_vix_spot()
+    if spot_vix is None:
+        print("Warning: VIX spot unavailable from all sources.")
+
+    equity_date = latest_date(spy)
+    spot_date = latest_date(spot_vix) if spot_vix is not None and not spot_vix.empty else None
+    vix_is_fresh = (spot_date is not None) and (spot_date >= equity_date)
+
+    vix_proxy = None
+    if not vix_is_fresh:
+        vix_proxy = fetch_stooq_daily(DEFAULT_TICKERS["vix_proxy"])
+    proxy_date = latest_date(vix_proxy) if vix_proxy is not None and not vix_proxy.empty else None
+    proxy_is_fresh = (proxy_date is not None) and (proxy_date >= equity_date)
+
+    if not vix_is_fresh and not proxy_is_fresh:
+        print("Warning: Neither spot VIX nor proxy is fresh for the latest equity date.")
+
+    vix_used = "none"
+    vix_source = "unavailable"
+    vix_for_signal = None
+    is_vix_proxy = False
+    if vix_is_fresh and spot_vix is not None:
+        vix_used = "spot"
+        vix_source = spot_source
+        vix_for_signal = spot_vix
+    elif proxy_is_fresh and vix_proxy is not None:
+        vix_used = "proxy"
+        vix_source = f"stooq:{DEFAULT_TICKERS['vix_proxy']}"
+        vix_for_signal = vix_proxy
+        is_vix_proxy = True
 
     fred_df = None
     if args.fred_series:
@@ -385,11 +463,21 @@ def main() -> None:
         spy=spy,
         gld=gld,
         hyg=hyg,
-        vix=vix,
+        vix=vix_for_signal,
+        is_vix_proxy=is_vix_proxy,
         fred_hy_spread=fred_df,
         lookback=args.lookback,
     )
     summary = summarize_dislocation(signals, k_required=args.k, previous_summary=previous_summary)
+    summary["data_date_equities"] = equity_date.isoformat()
+    if vix_used == "spot":
+        summary["data_date_vix"] = spot_date.isoformat() if spot_date is not None else None
+    elif vix_used == "proxy":
+        summary["data_date_vix"] = proxy_date.isoformat() if proxy_date is not None else None
+    else:
+        summary["data_date_vix"] = None
+    summary["vix_source"] = vix_source
+    summary["vix_used"] = vix_used
 
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
