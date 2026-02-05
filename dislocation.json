@@ -1,7 +1,10 @@
 {
   "asof_utc": "2026-02-05T20:34:04.183419+00:00",
   "dislocation": false,
+  "watch": false,
+  "status": "normal",
   "signals_triggered_count": 0,
+  "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
   "signals": [
     {
@@ -55,8 +58,15 @@
       }
     }
   ],
+  "transitions": [],
   "rule": {
     "k_required": 3,
-    "notes": "Designed to be low-churn: multiple independent stress signals must agree."
+    "notes": "Designed to be low-churn: multiple independent stress signals must agree.",
+    "persistence": {
+      "enabled": true,
+      "today_minimum": 2,
+      "yesterday_minimum": 1,
+      "description": "Dislocation holds if today is k-1 and yesterday had >=1 signal."
+    }
   }
 }
