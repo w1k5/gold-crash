@@ -20,11 +20,11 @@ DEFAULT_TICKERS = {
     "equity_broad": "vti.us",
     "gold": "gld.us",
     "credit_hy": "hyg.us",
-    "vix": "vix",
+    "vix": "vi.c",
 }
 
 
-def fetch_stooq_daily(symbol: str) -> pd.DataFrame:
+def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
     response = requests.get(url, timeout=20)
     response.raise_for_status()
@@ -43,10 +43,14 @@ def fetch_stooq_daily(symbol: str) -> pd.DataFrame:
     for column in ["Open", "High", "Low", "Close", "Volume"]:
         if column in df.columns:
             df[column] = pd.to_numeric(df[column], errors="coerce")
-    required = {"Open", "High", "Low", "Close", "Volume"}
+    required = {"Open", "High", "Low", "Close"}
+    if require_volume:
+        required.add("Volume")
     missing = required.difference(df.columns)
     if missing:
         raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
+    if "Volume" not in df.columns:
+        df["Volume"] = 0.0
     return df.dropna(subset=["Close"])
 
 
@@ -345,7 +349,7 @@ def main() -> None:
     parser.add_argument("--output", default="dislocation.json", help="Output JSON path")
     parser.add_argument("--k", type=int, default=3, help="Signals required to flag dislocation")
     parser.add_argument("--lookback", type=int, default=252, help="Lookback window for z-scores")
-    parser.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vix or ^vix)")
+    parser.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vi.c, vix, or ^vix)")
     parser.add_argument("--spy-symbol", default=DEFAULT_TICKERS["equity_core"], help="Stooq symbol for SPY proxy")
     parser.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Stooq symbol for GLD")
     parser.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Stooq symbol for HYG")
@@ -358,12 +362,12 @@ def main() -> None:
 
     vix = None
     tried = []
-    for candidate in [args.vix_symbol, "^vix", "vix"]:
+    for candidate in [args.vix_symbol, "vi.c", "^vix", "vix"]:
         if candidate in tried:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate)
+            vix = fetch_stooq_daily(candidate, require_volume=False)
             break
         except ValueError:
             continue

@@ -226,18 +226,17 @@ STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&i=d"
 # - Total market proxy: "vti.us"
 # - Gold: "gld.us"
 # - High yield credit ETF proxy: "hyg.us"
-# - VIX index: "^vix" often works on Stooq as "vix" or "^vix"
-#   Stooq uses "vix" for the VIX index in many cases.
+# - VIX index: "vi.c" is the Stooq symbol for VIX.
 DEFAULT_TICKERS = {
     "equity_core": "spy.us",
     "equity_broad": "vti.us",
     "gold": "gld.us",
     "credit_hy": "hyg.us",
-    "vix": "vix",  # if this fails, try "^vix" manually
+    "vix": "vi.c",  # if this fails, try "^vix" or "vix" manually
 }
 
 
-def fetch_stooq_daily(symbol: str) -&gt; pd.DataFrame:
+def fetch_stooq_daily(symbol: str, require_volume: bool = True) -&gt; pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
     response = requests.get(url, timeout=20)
     response.raise_for_status()
@@ -258,10 +257,14 @@ def fetch_stooq_daily(symbol: str) -&gt; pd.DataFrame:
     for c in ["Open", "High", "Low", "Close", "Volume"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
-    required = {"Open", "High", "Low", "Close", "Volume"}
+    required = {"Open", "High", "Low", "Close"}
+    if require_volume:
+        required.add("Volume")
     missing = required.difference(df.columns)
     if missing:
         raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
+    if "Volume" not in df.columns:
+        df["Volume"] = 0.0
     df = df.dropna(subset=["Close"])
     return df
 
@@ -578,7 +581,7 @@ def main() -&gt; None:
     ap.add_argument("--output", default="dislocation.json", help="Output JSON path")
     ap.add_argument("--k", type=int, default=3, help="Signals required to flag dislocation")
     ap.add_argument("--lookback", type=int, default=252, help="Lookback window for z-scores")
-    ap.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vix or ^vix)")
+    ap.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vi.c, vix, or ^vix)")
     ap.add_argument("--spy-symbol", default=DEFAULT_TICKERS["equity_core"], help="Stooq symbol for SPY proxy")
     ap.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Stooq symbol for GLD")
     ap.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Stooq symbol for HYG")
@@ -592,12 +595,12 @@ def main() -&gt; None:
     # VIX symbol sometimes differs; try a fallback automatically
     vix = None
     tried = []
-    for candidate in [args.vix_symbol, "^vix", "vix"]:
+    for candidate in [args.vix_symbol, "vi.c", "^vix", "vix"]:
         if candidate in tried:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate)
+            vix = fetch_stooq_daily(candidate, require_volume=False)
             break
         except ValueError:
             continue
