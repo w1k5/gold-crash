@@ -1,24 +1,27 @@
 {
-  "asof_utc": "2026-02-05T20:34:04.183419+00:00",
+  "asof_utc": "2026-02-05T21:06:40.663766+00:00",
   "dislocation": false,
+  "watch": false,
+  "status": "normal",
   "signals_triggered_count": 0,
+  "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
   "signals": [
     {
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.0507293898191494,
-        "spy_intraday_range_pct": 1.163509970838624,
-        "spy_range_z": -0.062321924983062923
+        "spy_1d_return_pct": -1.410688001865379,
+        "spy_intraday_range_pct": 1.167758052356963,
+        "spy_range_z": -0.061579893594237066
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_volume_z": -0.270434204683227,
-        "spy_range_z": -0.062321924983062923
+        "spy_volume_z": 0.015266900386522057,
+        "spy_range_z": -0.061579893594237066
       }
     },
     {
@@ -32,31 +35,38 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": -0.09302902505582411,
-        "spy_1d_return_pct": -1.0507293898191494,
-        "hyg_minus_spy_pct": 0.9577003647633253
+        "hyg_1d_return_pct": -0.16125031009676105,
+        "spy_1d_return_pct": -1.410688001865379,
+        "hyg_minus_spy_pct": 1.2494376917686179
       }
     },
     {
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.0507293898191494,
-        "gld_1d_return_pct": -2.279886336101511
+        "spy_1d_return_pct": -1.410688001865379,
+        "gld_1d_return_pct": -2.75789149062714
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.0507293898191494,
-        "hyg_minus_spy_pct": 0.9577003647633253,
+        "spy_1d_return_pct": -1.410688001865379,
+        "hyg_minus_spy_pct": 1.2494376917686179,
         "note": "VIX data unavailable from Stooq."
       }
     }
   ],
+  "transitions": [],
   "rule": {
     "k_required": 3,
-    "notes": "Designed to be low-churn: multiple independent stress signals must agree."
+    "notes": "Designed to be low-churn: multiple independent stress signals must agree.",
+    "persistence": {
+      "enabled": true,
+      "today_minimum": 2,
+      "yesterday_minimum": 1,
+      "description": "Dislocation holds if today is k-1 and yesterday had >=1 signal."
+    }
   }
 }

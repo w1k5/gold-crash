@@ -263,24 +263,81 @@ def compute_signals(
     return results
 
 
-def summarize_dislocation(signals: List[SignalResult], k_required: int = 3) -> Dict[str, object]:
+def derive_status(count: int, dislocation: bool) -> str:
+    if dislocation:
+        return "dislocation"
+    if count >= 1:
+        return "stress_building"
+    return "normal"
+
+
+def summarize_dislocation(
+    signals: List[SignalResult],
+    k_required: int = 3,
+    previous_summary: Optional[Dict[str, object]] = None,
+) -> Dict[str, object]:
     triggered = [signal for signal in signals if signal.triggered]
     count = len(triggered)
+    yesterday_count = 0
+    previous_status = None
+    if previous_summary:
+        try:
+            yesterday_count = int(previous_summary.get("signals_triggered_count", 0) or 0)
+        except (TypeError, ValueError):
+            yesterday_count = 0
+        previous_status = previous_summary.get("status")
+        if not previous_status:
+            previous_dislocation = bool(previous_summary.get("dislocation", False))
+            previous_status = derive_status(yesterday_count, previous_dislocation)
+
+    carry_forward = count == (k_required - 1) and yesterday_count >= 1
+    dislocation = bool(count >= k_required or carry_forward)
+    watch = bool((not dislocation) and count >= 1)
+    status = derive_status(count, dislocation)
+    transitions = []
+    if previous_summary and isinstance(previous_summary.get("transitions"), list):
+        transitions = list(previous_summary["transitions"])
+    if previous_status and previous_status != status:
+        transitions.append({
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "from": previous_status,
+            "to": status,
+        })
 
     return {
         "asof_utc": datetime.now(timezone.utc).isoformat(),
-        "dislocation": bool(count >= k_required),
+        "dislocation": dislocation,
+        "watch": watch,
+        "status": status,
         "signals_triggered_count": count,
+        "signals_triggered_count_yesterday": yesterday_count,
         "signals_triggered": [signal.name for signal in triggered],
         "signals": [
             {"name": signal.name, "triggered": signal.triggered, "details": signal.details}
             for signal in signals
         ],
+        "transitions": transitions,
         "rule": {
             "k_required": k_required,
             "notes": "Designed to be low-churn: multiple independent stress signals must agree.",
+            "persistence": {
+                "enabled": True,
+                "today_minimum": max(k_required - 1, 1),
+                "yesterday_minimum": 1,
+                "description": "Dislocation holds if today is k-1 and yesterday had >=1 signal.",
+            },
         },
     }
+
+
+def load_previous_summary(path: str) -> Optional[Dict[str, object]]:
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def main() -> None:
@@ -319,6 +376,7 @@ def main() -> None:
         if api_key:
             fred_df = fetch_fred_series(args.fred_series, api_key)
 
+    previous_summary = load_previous_summary(args.output)
     signals = compute_signals(
         spy=spy,
         gld=gld,
@@ -327,7 +385,7 @@ def main() -> None:
         fred_hy_spread=fred_df,
         lookback=args.lookback,
     )
-    summary = summarize_dislocation(signals, k_required=args.k)
+    summary = summarize_dislocation(signals, k_required=args.k, previous_summary=previous_summary)
 
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
@@ -336,6 +394,7 @@ def main() -> None:
         "wrote": args.output,
         "dislocation": summary["dislocation"],
         "count": summary["signals_triggered_count"],
+        "status": summary["status"],
     }, indent=2))
 
 
