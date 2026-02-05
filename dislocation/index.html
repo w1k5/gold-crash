@@ -172,6 +172,7 @@
       big_down_and_whipsaw: "Big down + whipsaw",
       liquidity_degraded_proxy: "Liquidity degraded (proxy)",
       volatility_spike: "Volatility spike",
+      volatility_spike_proxy: "Volatility spike (proxy)",
       credit_stress_proxy: "Credit stress (proxy)",
       everything_sells_together: "Everything sells together",
       forced_flow_proxy_combo: "Forced-flow combo (proxy)"
@@ -189,6 +190,9 @@
       case "volatility_spike":
         if (d.note) return d.note;
         return `VIX ${fmtNum(d.vix_level)} • 1D ${fmtPct(d.vix_1d_change_pct)}`;
+      case "volatility_spike_proxy":
+        if (d.note) return d.note;
+        return `VIXY ${fmtNum(d.vix_level)} • 1D ${fmtPct(d.vix_1d_change_pct)}`;
       case "credit_stress_proxy":
         return `HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • HYG ${fmtPct(d.hyg_1d_return_pct)}`;
       case "everything_sells_together":
