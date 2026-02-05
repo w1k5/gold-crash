@@ -202,6 +202,21 @@
     }
   };
 
+  const formatLocalDateTime = (value) => {
+    if (!value) {
+      return 'unknown';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZoneName: 'short',
+    });
+  };
+
   const setStatus = (data) => {
     const badge = document.getElementById('statusBadge');
     const headline = document.getElementById('statusHeadline');
@@ -294,7 +309,7 @@
     }
     transitions.slice(-6).reverse().forEach(t => {
       const li = document.createElement('li');
-      li.textContent = `${t.timestamp_utc}: ${t.from} → ${t.to}`;
+      li.textContent = `${formatLocalDateTime(t.timestamp_utc)}: ${t.from} → ${t.to}`;
       ul.appendChild(li);
     });
   };
@@ -323,13 +338,13 @@
       data = await r2.json();
     }
 
-    document.getElementById('asofVal').textContent = data.asof_utc || 'unknown';
+    document.getElementById('asofVal').textContent = formatLocalDateTime(data.asof_utc);
     document.getElementById('ruleVal').textContent = `${data.rule?.k_required ?? 3} signals`;
     document.getElementById('countVal').textContent = `${data.signals_triggered_count ?? 0}`;
     document.getElementById('yCountVal').textContent = `${data.signals_triggered_count_yesterday ?? 0}`;
     const dataDates = data.data_dates || {};
-    const equitiesDate = dataDates.equities_close_utc || 'unknown';
-    const vixDate = dataDates.vix_close_utc || 'unknown';
+    const equitiesDate = formatLocalDateTime(dataDates.equities_close_utc);
+    const vixDate = formatLocalDateTime(dataDates.vix_close_utc);
     const vixStale = dataDates.vix_stale_days;
     let staleNote = 'staleness unknown';
     if (typeof vixStale === 'number' && isFinite(vixStale)) {
