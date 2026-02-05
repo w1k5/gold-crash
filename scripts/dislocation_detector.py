@@ -24,7 +24,7 @@ DEFAULT_TICKERS = {
 }
 
 
-def fetch_stooq_daily(symbol: str) -> pd.DataFrame:
+def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
     response = requests.get(url, timeout=20)
     response.raise_for_status()
@@ -37,13 +37,20 @@ def fetch_stooq_daily(symbol: str) -> pd.DataFrame:
     normalized = {column.lower(): column for column in df.columns}
     if "date" not in normalized:
         raise ValueError(f"Stooq CSV missing Date column for symbol: {symbol}")
-    df = df.rename(columns={normalized["date"]: "Date"})
+    rename_map = {normalized["date"]: "Date"}
+    for field in ["Open", "High", "Low", "Close", "Volume"]:
+        key = field.lower()
+        if key in normalized:
+            rename_map[normalized[key]] = field
+    df = df.rename(columns=rename_map)
     df["Date"] = pd.to_datetime(df["Date"], utc=True)
     df = df.sort_values("Date").set_index("Date")
     for column in ["Open", "High", "Low", "Close", "Volume"]:
         if column in df.columns:
             df[column] = pd.to_numeric(df[column], errors="coerce")
-    required = {"Open", "High", "Low", "Close", "Volume"}
+    required = {"Open", "High", "Low", "Close"}
+    if require_volume:
+        required.add("Volume")
     missing = required.difference(df.columns)
     if missing:
         raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
@@ -363,7 +370,7 @@ def main() -> None:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate)
+            vix = fetch_stooq_daily(candidate, require_volume=False)
             break
         except ValueError:
             continue
