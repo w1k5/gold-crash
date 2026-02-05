@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-05T21:45:57.090068+00:00",
+  "asof_utc": "2026-02-05T22:38:12.673265+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -11,54 +11,54 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.48438791640681433,
-        "spy_intraday_range_pct": 1.412145324181357,
-        "spy_range_z": -0.018488423862780715
+        "spy_1d_return_pct": NaN,
+        "spy_intraday_range_pct": NaN,
+        "spy_range_z": NaN
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_volume_z": 1.0472173324078005,
-        "spy_range_z": -0.018488423862780715
+        "spy_volume_z": NaN,
+        "spy_range_z": NaN
       }
     },
     {
       "name": "volatility_spike",
       "triggered": false,
       "details": {
-        "vix_level": 18.64,
-        "vix_1d_change_pct": 3.5555555555555562,
-        "vix_level_z": -0.0472987217155824,
-        "vix_change_z": 0.36645334918058414
+        "vix_level": NaN,
+        "vix_1d_change_pct": NaN,
+        "vix_level_z": NaN,
+        "vix_change_z": NaN
       }
     },
     {
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": -0.12388503468779843,
-        "spy_1d_return_pct": -0.48438791640681433,
-        "hyg_minus_spy_pct": 0.3605028817190159
+        "hyg_1d_return_pct": NaN,
+        "spy_1d_return_pct": NaN,
+        "hyg_minus_spy_pct": NaN
       }
     },
     {
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.48438791640681433,
-        "gld_1d_return_pct": -0.0704395870479213
+        "spy_1d_return_pct": NaN,
+        "gld_1d_return_pct": NaN
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.48438791640681433,
-        "hyg_minus_spy_pct": 0.3605028817190159,
-        "vix_level": 18.64,
-        "vix_1d_change_pct": 3.5555555555555562
+        "spy_1d_return_pct": NaN,
+        "hyg_minus_spy_pct": NaN,
+        "vix_level": NaN,
+        "vix_1d_change_pct": NaN
       }
     }
   ],
@@ -72,5 +72,9 @@
       "yesterday_minimum": 1,
       "description": "Dislocation holds if today is k-1 and yesterday had >=1 signal."
     }
-  }
+  },
+  "data_date_equities": "2026-02-05T00:00:00+00:00",
+  "data_date_vix": "2026-02-05T21:15:01+00:00",
+  "vix_source": "yahoo:^VIX",
+  "vix_used": "spot"
 }
