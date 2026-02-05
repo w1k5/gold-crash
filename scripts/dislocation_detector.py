@@ -115,13 +115,21 @@ def compute_signals(
     lookback: int = 252,
 ) -> List[SignalResult]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
-    if vix is not None:
-        idx = idx.intersection(vix.index)
     spy = spy.loc[idx]
     gld = gld.loc[idx]
     hyg = hyg.loc[idx]
-    if vix is not None:
-        vix = vix.loc[idx]
+
+    vix_aligned = None
+    vix_stale_days = None
+    if vix is not None and not vix.empty:
+        vix_aligned = vix.reindex(idx, method="ffill")
+        last_vix_dt = vix.index.max()
+        last_equity_dt = idx.max()
+        vix_stale_days = (last_equity_dt - last_vix_dt).days
+
+    vix_max_stale_days = 1
+    if vix_aligned is None or vix_stale_days is None or vix_stale_days > vix_max_stale_days:
+        vix_aligned = None
 
     spy_ret = pct_change(spy["Close"], 1)
     gld_ret = pct_change(gld["Close"], 1)
@@ -137,8 +145,8 @@ def compute_signals(
     vix_ret = None
     vix_level_z = None
     vix_ret_z = None
-    if vix is not None:
-        vix_level = vix["Close"]
+    if vix_aligned is not None:
+        vix_level = vix_aligned["Close"]
         vix_ret = pct_change(vix_level, 1)
         vix_level_z = rolling_z(vix_level, lookback)
         vix_ret_z = rolling_z(vix_ret, lookback)
@@ -149,7 +157,7 @@ def compute_signals(
 
     liq_proxy = (spy_rng_z >= 2.0) & (spy_vol_z >= 2.0)
 
-    if vix is None:
+    if vix_aligned is None:
         vol_spike = pd.Series(False, index=idx)
     else:
         vol_spike = ((vix_level >= 30) | (vix_level_z >= 1.5)) & ((vix_ret >= 20) | (vix_ret_z >= 2.0))
@@ -198,7 +206,7 @@ def compute_signals(
         },
     ))
 
-    if vix is None:
+    if vix_aligned is None:
         results.append(SignalResult(
             name="volatility_spike",
             triggered=False,
@@ -242,7 +250,7 @@ def compute_signals(
         },
     ))
 
-    if vix is None:
+    if vix_aligned is None:
         results.append(SignalResult(
             name="forced_flow_proxy_combo",
             triggered=False,
