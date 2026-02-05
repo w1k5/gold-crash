@@ -139,7 +139,7 @@
       <div class="hero">
         <h1>Dislocation Detector</h1>
         <p class="header-note">A low-churn checklist turned into a daily dislocation signal using free market data.</p>
-        <p class="meta-note"><a href="/gold-crash/">← Back to Gold Risk Monitor</a></p>
+        <p class="meta-note"><a href="https://w1k5.github.io/gold-crash/">← Back to Gold Risk Monitor</a></p>
       </div>
     </header>
 
@@ -610,7 +610,8 @@ if __name__ == "__main__":
       return `Rule: ${data.rule.k_required} signals required. ${data.rule.notes || ''}`.trim();
     };
 
-    fetch('../dislocation.json')
+    const siteRoot = `${window.location.origin}/gold-crash/`;
+    fetch(`${siteRoot}dislocation.json`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to load dislocation.json');
