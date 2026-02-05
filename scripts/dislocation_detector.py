@@ -148,7 +148,10 @@ def intraday_range_pct(df: pd.DataFrame) -> pd.Series:
 
 
 def safe_last(series: pd.Series) -> float:
-    return float(series.dropna().iloc[-1])
+    cleaned = series.dropna()
+    if cleaned.empty:
+        return float("nan")
+    return float(cleaned.iloc[-1])
 
 
 def latest_date(df: pd.DataFrame) -> pd.Timestamp:
