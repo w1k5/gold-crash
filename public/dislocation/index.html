@@ -149,6 +149,7 @@
       <div class="section-card">
         <p id="dislocationStatus"><strong>Status:</strong> Loading...</p>
         <p class="meta-note" id="dislocationTimestamp">As of: Loading...</p>
+        <p class="meta-note" id="dislocationDataDates">Data dates: Loading...</p>
         <p class="meta-note" id="dislocationRule">Rule: Loading...</p>
         <p class="meta-note" id="dislocationYesterday">Yesterday signals: Loading...</p>
         <p class="meta-note"><strong>Signals triggered:</strong></p>
@@ -658,6 +659,7 @@ if __name__ == "__main__":
   <script>
     const statusEl = document.getElementById('dislocationStatus');
     const timestampEl = document.getElementById('dislocationTimestamp');
+    const dataDatesEl = document.getElementById('dislocationDataDates');
     const ruleEl = document.getElementById('dislocationRule');
     const yesterdayEl = document.getElementById('dislocationYesterday');
     const signalsEl = document.getElementById('dislocationSignals');
@@ -689,6 +691,15 @@ if __name__ == "__main__":
       .then((data) => {
         statusEl.innerHTML = `<strong>Status:</strong> ${formatStatus(data)} (${data.signals_triggered_count} signals today)`;
         timestampEl.textContent = `As of: ${data.asof_utc || 'unknown'}`;
+        const dataDates = data.data_dates || {};
+        const equitiesDate = dataDates.equities_close_utc || 'unknown';
+        const vixDate = dataDates.vix_close_utc || 'unknown';
+        const vixStale = dataDates.vix_stale_days;
+        let staleNote = 'staleness unknown';
+        if (typeof vixStale === 'number' && isFinite(vixStale)) {
+          staleNote = vixStale === 0 ? 'same session' : `${vixStale} day${vixStale === 1 ? '' : 's'} stale`;
+        }
+        dataDatesEl.textContent = `Data dates: equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote}).`;
         ruleEl.textContent = formatRule(data);
         yesterdayEl.textContent = `Yesterday signals: ${data.signals_triggered_count_yesterday ?? 'unknown'}`;
         signalsEl.innerHTML = '';
@@ -719,6 +730,7 @@ if __name__ == "__main__":
       .catch(() => {
         statusEl.innerHTML = '<strong>Status:</strong> Unable to load dislocation.json';
         timestampEl.textContent = 'As of: unavailable';
+        dataDatesEl.textContent = 'Data dates: unavailable';
         ruleEl.textContent = 'Rule: unavailable';
         yesterdayEl.textContent = 'Yesterday signals: unavailable';
         signalsEl.innerHTML = '<li>Signal details unavailable.</li>';

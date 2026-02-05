@@ -106,6 +106,13 @@ class SignalResult:
     details: Dict[str, object]
 
 
+@dataclass
+class RunMeta:
+    equities_data_date_utc: Optional[str]
+    vix_data_date_utc: Optional[str]
+    vix_stale_days: Optional[int]
+
+
 def compute_signals(
     spy: pd.DataFrame,
     gld: pd.DataFrame,
@@ -113,7 +120,7 @@ def compute_signals(
     vix: Optional[pd.DataFrame] = None,
     fred_hy_spread: Optional[pd.DataFrame] = None,
     lookback: int = 252,
-) -> List[SignalResult]:
+) -> tuple[List[SignalResult], RunMeta]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
     if vix is not None:
         idx = idx.intersection(vix.index)
@@ -122,6 +129,14 @@ def compute_signals(
     hyg = hyg.loc[idx]
     if vix is not None:
         vix = vix.loc[idx]
+
+    equities_data_date = idx.max() if len(idx) else None
+    vix_data_date = None
+    vix_stale_days = None
+    if vix is not None and not vix.empty:
+        vix_data_date = vix.index.max()
+        if equities_data_date is not None:
+            vix_stale_days = (equities_data_date - vix_data_date).days
 
     spy_ret = pct_change(spy["Close"], 1)
     gld_ret = pct_change(gld["Close"], 1)
@@ -264,7 +279,12 @@ def compute_signals(
             },
         ))
 
-    return results
+    meta = RunMeta(
+        equities_data_date_utc=equities_data_date.isoformat() if equities_data_date is not None else None,
+        vix_data_date_utc=vix_data_date.isoformat() if vix_data_date is not None else None,
+        vix_stale_days=int(vix_stale_days) if vix_stale_days is not None else None,
+    )
+    return results, meta
 
 
 def derive_status(count: int, dislocation: bool) -> str:
@@ -277,6 +297,7 @@ def derive_status(count: int, dislocation: bool) -> str:
 
 def summarize_dislocation(
     signals: List[SignalResult],
+    meta: RunMeta,
     k_required: int = 3,
     previous_summary: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
@@ -320,6 +341,11 @@ def summarize_dislocation(
             {"name": signal.name, "triggered": signal.triggered, "details": signal.details}
             for signal in signals
         ],
+        "data_dates": {
+            "equities_close_utc": meta.equities_data_date_utc,
+            "vix_close_utc": meta.vix_data_date_utc,
+            "vix_stale_days": meta.vix_stale_days,
+        },
         "transitions": transitions,
         "rule": {
             "k_required": k_required,
@@ -381,7 +407,7 @@ def main() -> None:
             fred_df = fetch_fred_series(args.fred_series, api_key)
 
     previous_summary = load_previous_summary(args.output)
-    signals = compute_signals(
+    signals, meta = compute_signals(
         spy=spy,
         gld=gld,
         hyg=hyg,
@@ -389,7 +415,7 @@ def main() -> None:
         fred_hy_spread=fred_df,
         lookback=args.lookback,
     )
-    summary = summarize_dislocation(signals, k_required=args.k, previous_summary=previous_summary)
+    summary = summarize_dislocation(signals, meta, k_required=args.k, previous_summary=previous_summary)
 
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)

@@ -104,6 +104,7 @@
       <span class="pill"><strong id="asof">As of</strong> <span id="asofVal" class="skeleton">Loading…</span></span>
       <span class="pill"><strong>Rule</strong> <span id="ruleVal" class="skeleton">Loading…</span></span>
     </div>
+    <p class="tiny" id="dataDatesVal">Data dates: Loading…</p>
   </header>
 
   <div class="grid">
@@ -326,6 +327,16 @@
     document.getElementById('ruleVal').textContent = `${data.rule?.k_required ?? 3} signals`;
     document.getElementById('countVal').textContent = `${data.signals_triggered_count ?? 0}`;
     document.getElementById('yCountVal').textContent = `${data.signals_triggered_count_yesterday ?? 0}`;
+    const dataDates = data.data_dates || {};
+    const equitiesDate = dataDates.equities_close_utc || 'unknown';
+    const vixDate = dataDates.vix_close_utc || 'unknown';
+    const vixStale = dataDates.vix_stale_days;
+    let staleNote = 'staleness unknown';
+    if (typeof vixStale === 'number' && isFinite(vixStale)) {
+      staleNote = vixStale === 0 ? 'same session' : `${vixStale} day${vixStale === 1 ? '' : 's'} stale`;
+    }
+    document.getElementById('dataDatesVal').textContent =
+      `Data dates: equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote}).`;
 
     const p = data.rule?.persistence;
     const pEl = document.getElementById('persistenceNote');
@@ -347,6 +358,7 @@
     document.getElementById('statusExplain').textContent = "dislocation.json failed to load. Check path and GitHub Pages publishing.";
     document.getElementById('signals').innerHTML = '<p class="help">Signal details unavailable.</p>';
     document.getElementById('transitions').innerHTML = '<li>Transition details unavailable.</li>';
+    document.getElementById('dataDatesVal').textContent = 'Data dates: unavailable.';
   });
 </script>
 </body>
