@@ -695,7 +695,8 @@ if __name__ == "__main__":
       });
     };
 
-    fetch('/dislocation.json')
+    const dislocationUrl = new URL('../dislocation.json', window.location.href).toString();
+    fetch(dislocationUrl)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to load dislocation.json');

@@ -317,11 +317,11 @@
 
   const robustJsonUrl = () => {
     // Works whether you’re at /gold-crash/dislocation/ or elsewhere.
-    // Prefer same-folder dislocation.json if you ever place it there; otherwise go one level up.
+    // Prefer the parent (site root) dislocation.json to avoid 404s in /dislocation/.
     const here = new URL(window.location.href);
-    const trySameFolder = new URL('dislocation.json', here).toString();
     const tryParent = new URL('../dislocation.json', here).toString();
-    return { trySameFolder, tryParent };
+    const trySameFolder = new URL('dislocation.json', here).toString();
+    return { tryParent, trySameFolder };
   };
 
   async function load(){
@@ -329,12 +329,12 @@
 
     let data = null;
     try {
-      const r1 = await fetch(trySameFolder, { cache: "no-store" });
+      const r1 = await fetch(tryParent, { cache: "no-store" });
       if (r1.ok) data = await r1.json();
     } catch (e) {}
 
     if (!data){
-      const r2 = await fetch(tryParent, { cache: "no-store" });
+      const r2 = await fetch(trySameFolder, { cache: "no-store" });
       if (!r2.ok) throw new Error('Failed to load dislocation.json');
       data = await r2.json();
     }
