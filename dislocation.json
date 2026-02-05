@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-05T21:45:57.090068+00:00",
+  "asof_utc": "2026-02-05T22:53:01.546375+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -62,6 +62,11 @@
       }
     }
   ],
+  "data_dates": {
+    "equities_close_utc": "2026-02-04T00:00:00+00:00",
+    "vix_close_utc": "2026-02-04T00:00:00+00:00",
+    "vix_stale_days": 0
+  },
   "transitions": [],
   "rule": {
     "k_required": 3,
