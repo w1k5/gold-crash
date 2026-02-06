@@ -216,6 +216,7 @@ def compute_signals(
         details={
             "spy_dollar_volume_z": safe_last(spy_dollar_vol_z),
             "spy_range_z": safe_last(spy_rng_z),
+            "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         },
     ))
 
@@ -255,7 +256,7 @@ def compute_signals(
             oas_chg_5 = oas.diff(5)
             oas_chg_10 = oas.diff(10)
             oas_z = rolling_z(oas, 756)
-            trig = (oas >= 6.5) | (oas_chg_5 >= 0.50) | ((oas_z >= 2.0) & (oas_chg_10 >= 0.60))
+            trig = (oas >= 6.5) | (oas_chg_5 >= 0.50) | (oas_chg_10 >= 0.40) | ((oas_z >= 2.0) & (oas_chg_10 >= 0.60))
             results.append(SignalResult(
                 name="credit_spread_widening_fred",
                 triggered=safe_bool(trig),
@@ -390,7 +391,12 @@ def summarize_dislocation(
     k_required: int = 3,
     previous_summary: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
-    countable_signals = [s for s in signals if s.name != "forced_flow_proxy_combo"]
+    stale_vix = bool(meta.vix_stale_days is not None and meta.vix_stale_days > 0)
+    excluded_from_threshold = ["forced_flow_proxy_combo"]
+    if stale_vix:
+        excluded_from_threshold.append("volatility_spike")
+
+    countable_signals = [s for s in signals if s.name not in set(excluded_from_threshold)]
     triggered = [signal for signal in countable_signals if signal.triggered]
     count = len(triggered)
     yesterday_count = 0
@@ -427,6 +433,10 @@ def summarize_dislocation(
         "signals_triggered_count": count,
         "signals_triggered_count_yesterday": yesterday_count,
         "signals_triggered": [signal.name for signal in triggered],
+        "signal_counting": {
+            "excluded_from_threshold": excluded_from_threshold,
+            "notes": "Stale VIX data (>0 business day lag) is excluded from K-of-N counting.",
+        },
         "signals": [
             {"name": signal.name, "triggered": signal.triggered, "details": signal.details}
             for signal in signals

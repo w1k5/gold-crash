@@ -106,6 +106,7 @@
       <span class="pill"><strong>Rule</strong> <span id="ruleVal" class="skeleton">Loading…</span></span>
     </div>
     <p class="tiny" id="dataDatesVal">Data dates: Loading…</p>
+    <p class="tiny" id="countingVal">Signal counting: Loading…</p>
   </header>
 
   <div class="grid">
@@ -290,9 +291,19 @@
       left.appendChild(name);
       left.appendChild(small);
 
+      const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
+      ? data.signal_counting.excluded_from_threshold
+      : [];
+    const excludedSet = new Set(excluded.filter(Boolean));
+
       const b = document.createElement('span');
-      b.className = `badge ${s.triggered ? 'b-bad' : 'b-muted'}`;
-      b.textContent = s.triggered ? 'Triggered' : 'Not triggered';
+      if (excludedSet.has(s.name)) {
+        b.className = 'badge b-muted';
+        b.textContent = 'Excluded from K';
+      } else {
+        b.className = `badge ${s.triggered ? 'b-bad' : 'b-muted'}`;
+        b.textContent = s.triggered ? 'Triggered' : 'Not triggered';
+      }
 
       top.appendChild(left);
       top.appendChild(b);
@@ -380,6 +391,14 @@
     document.getElementById('dataDatesVal').textContent =
       `Data dates: equity session ${sessionDate}; equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote})${staleReasons}.`;
 
+    const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
+      ? data.signal_counting.excluded_from_threshold.filter(Boolean)
+      : [];
+    const countNote = data.signal_counting?.notes || '';
+    document.getElementById('countingVal').textContent = excluded.length
+      ? `Signal counting: excluded from threshold → ${excluded.join(', ')}. ${countNote}`
+      : 'Signal counting: all standard signals included in threshold counting.';
+
     const p = data.rule?.persistence;
     const pEl = document.getElementById('persistenceNote');
     if (p?.enabled){
@@ -401,6 +420,7 @@
     document.getElementById('signals').innerHTML = '<p class="help">Signal details unavailable.</p>';
     document.getElementById('transitions').innerHTML = '<li>Transition details unavailable.</li>';
     document.getElementById('dataDatesVal').textContent = 'Data dates: unavailable.';
+    document.getElementById('countingVal').textContent = 'Signal counting: unavailable.';
   });
 </script>
 </body>
