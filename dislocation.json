@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-06T14:45:13.094033+00:00",
+  "asof_utc": "2026-02-06T14:48:09.824657+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -11,17 +11,17 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.2489252247919747,
-        "spy_intraday_range_pct": 1.165845163956213,
-        "spy_range_z": -0.06191402641274896
+        "spy_1d_return_pct": 0.702458605117906,
+        "spy_intraday_range_pct": 0.23300800140684544,
+        "spy_range_z": -0.2249854205529252
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": 1.7588579460624307,
-        "spy_range_z": -0.06191402641274896
+        "spy_dollar_volume_z": -2.7006636142289095,
+        "spy_range_z": -0.2249854205529252
       }
     },
     {
@@ -39,9 +39,9 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": -0.11163483006698671,
-        "spy_1d_return_pct": -1.2489252247919747,
-        "hyg_minus_spy_pct": 1.137290394724988
+        "hyg_1d_return_pct": 0.16143052278654313,
+        "spy_1d_return_pct": 0.702458605117906,
+        "hyg_minus_spy_pct": -0.5410280823313629
       }
     },
     {
@@ -49,9 +49,9 @@
       "triggered": false,
       "details": {
         "hy_oas_level": 2.86,
-        "hy_oas_5d_change": 0.08999999999999986,
-        "hy_oas_10d_change": 0.21999999999999975,
-        "hy_oas_z": -0.9098277180344482
+        "hy_oas_5d_change": 0.06000000000000005,
+        "hy_oas_10d_change": 0.17999999999999972,
+        "hy_oas_z": -0.9074684084541375
       }
     },
     {
@@ -59,8 +59,8 @@
       "triggered": false,
       "details": {
         "sofr_iorb_spread_bp": 0.0,
-        "sofr_iorb_spread_5d_bp": 0.0,
-        "sofr_iorb_spread_z": 1.0528777212016716
+        "sofr_iorb_spread_5d_bp": -3.000000000000025,
+        "sofr_iorb_spread_z": 1.050203493105344
       }
     },
     {
@@ -68,36 +68,36 @@
       "triggered": false,
       "details": {
         "tgcr_rate": 3.63,
-        "tgcr_rate_5d_change_pct": 0.0,
-        "tgcr_rate_z": -2.154830044096545,
-        "tgcr_volume_z": 2.013418761887911,
-        "tgcr_volume_5d_change_pct": -0.3091190108191699
+        "tgcr_rate_5d_change_pct": -0.03000000000000025,
+        "tgcr_rate_z": -2.1478560558704327,
+        "tgcr_volume_z": 2.006113344344196,
+        "tgcr_volume_5d_change_pct": 1.0180109631949819
       }
     },
     {
       "name": "rates_volatility_shock",
       "triggered": false,
       "details": {
-        "dgs10_rv5_bp": 1.414213562373094,
-        "dgs10_rv5_z": -1.609607063126507,
-        "dgs10_rv5_5d_change_bp": -0.5453782318534408,
-        "dgs10_5d_change_bp": 4.999999999999982
+        "dgs10_rv5_bp": 1.3564659966250583,
+        "dgs10_rv5_z": -1.6303771452662308,
+        "dgs10_rv5_5d_change_bp": -0.6031257976014794,
+        "dgs10_5d_change_bp": 3.000000000000025
       }
     },
     {
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.2489252247919747,
-        "gld_1d_return_pct": -2.6631715752142293
+        "spy_1d_return_pct": 0.702458605117906,
+        "gld_1d_return_pct": 2.4214718928215806
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.2489252247919747,
-        "hyg_minus_spy_pct": 1.137290394724988,
+        "spy_1d_return_pct": 0.702458605117906,
+        "hyg_minus_spy_pct": -0.5410280823313629,
         "vix_level": 21.77,
         "vix_1d_change_pct": 16.791845493562228,
         "counted_toward_threshold": false
@@ -105,10 +105,10 @@
     }
   ],
   "data_dates": {
-    "equity_session_date": "2026-02-05",
-    "equities_close_utc": "2026-02-05T00:00:00+00:00",
+    "equity_session_date": "2026-02-06",
+    "equities_close_utc": "2026-02-06T00:00:00+00:00",
     "vix_close_utc": "2026-02-05T00:00:00+00:00",
-    "vix_stale_days": 0,
+    "vix_stale_days": 1,
     "data_stale": false,
     "stale_reasons": []
   },
