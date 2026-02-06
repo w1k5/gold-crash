@@ -294,9 +294,6 @@
       const card = document.createElement('div');
       card.className = 'sig';
       const tooltip = tooltipText(s.name);
-      if (tooltip) {
-        card.title = tooltip;
-      }
 
       const top = document.createElement('div');
       top.className = 'sigTop';
@@ -305,13 +302,10 @@
       const name = document.createElement('p');
       name.className = 'sigName';
       name.textContent = prettyName(s.name);
-      if (tooltip) {
-        name.title = tooltip;
-      }
+      left.appendChild(name);
       const small = document.createElement('p');
       small.className = 'sigHint';
       small.textContent = hint(s);
-      left.appendChild(name);
       left.appendChild(small);
 
       const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
@@ -338,11 +332,22 @@
       kv.className = 'kv';
       kv.textContent = JSON.stringify(s.details || {}, null, 2);
 
+      const explanationDetails = document.createElement('details');
+      const explanationSummary = document.createElement('summary');
+      explanationSummary.textContent = 'Explanation';
+      const explanation = document.createElement('p');
+      explanation.className = 'help';
+      explanation.style.margin = '8px 0 0';
+      explanation.textContent = tooltip || 'No explanation available.';
+
       details.appendChild(summary);
       details.appendChild(kv);
+      explanationDetails.appendChild(explanationSummary);
+      explanationDetails.appendChild(explanation);
 
       card.appendChild(top);
       card.appendChild(details);
+      card.appendChild(explanationDetails);
       root.appendChild(card);
     });
 
