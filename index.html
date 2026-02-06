@@ -150,6 +150,88 @@
     .section {
       margin-top: 28px;
     }
+    .status-layer {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .mechanics-layer {
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .context-layer {
+      margin-top: 28px;
+      padding-top: 8px;
+    }
+    .section-cut {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 22px 0 0;
+    }
+    .layer-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .toggle-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .expandable-card {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      overflow: hidden;
+    }
+    .expandable-card > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+      font-weight: 700;
+      padding: 10px 16px;
+      background: var(--card);
+    }
+    .expandable-card[open] > summary {
+      border-bottom: 1px solid var(--border);
+    }
+    .expandable-card > summary::-webkit-details-marker {
+      display: none;
+    }
+    .expandable-card > summary::after {
+      content: '▸';
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1;
+      margin-left: 10px;
+      transition: transform 0.14s ease;
+      transform-origin: center;
+    }
+    .expandable-card[open] > summary::after {
+      transform: rotate(90deg);
+    }
+    .expandable-body {
+      padding: 12px 16px 16px;
+    }
+    .expandable-body .section-explainer {
+      margin-top: 0;
+    }
+    .expandable-body .table-container table {
+      margin-top: 10px;
+    }
     .section-card {
       background: var(--card);
       border-radius: 14px;
@@ -451,36 +533,125 @@
       </div>
     </header>
 
-    <section class="section">
-      <h2>At a glance</h2>
-      <p class="section-explainer">This section highlights the small set of indicators that most often explain the current regime. Together, they show how stretched price is relative to trend, how recent momentum looks, whether investor demand is supportive, and whether macro conditions are acting as a headwind or tailwind.</p>
-      <div class="card-grid" id="glanceCards">
-        <div class="metric-card">Loading key metrics...</div>
-      </div>
-    </section>
+    <div class="status-layer">
+      <section class="section" style="margin-top: 0;">
+        <h2 id="glanceHeading">A. What regime are we in?</h2>
+        <p class="section-explainer">Start here. This summary is the primary interpretation of today's regime. Details and threshold mechanics are below.</p>
+        <div class="card-grid" id="glanceCards">
+          <div class="metric-card">Loading key metrics...</div>
+        </div>
+      </section>
 
-    <section class="section">
-      <h2>Regime drivers</h2>
-      <p class="section-explainer">Regime drivers list the specific signals responsible for the current status. These are the conditions that crossed defined thresholds and explain why the monitor classifies the market the way it does today. This is intended to make the classification transparent rather than opaque.</p>
-      <div class="section-card">
-        <div class="meta" id="reasonLead">Loading regime drivers...</div>
-        <ul id="reasons">
-          <li>Loading regime drivers...</li>
-        </ul>
-      </div>
-    </section>
+      <section class="section">
+        <h2>B. Why are we here today?</h2>
+        <p class="section-explainer">Regime drivers are shown as supporting mechanics rather than headline status.</p>
+        <div class="section-card">
+          <details>
+            <summary>Regime drivers (mechanics)</summary>
+            <div class="meta" id="reasonLead">Loading regime drivers...</div>
+            <ul id="reasons">
+              <li>Loading regime drivers...</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+    </div>
 
-    <section class="section">
-      <h2>What would change the color</h2>
-      <p class="section-explainer">This section breaks out what would de-escalate, escalate, or normalize the regime from here. It makes the thresholds explicit and shows how far current conditions are from each trigger.</p>
-      <div id="escalation">
-        <p>Loading escalation conditions...</p>
-      </div>
-    </section>
+    <div class="mechanics-layer">
+      <section class="section" style="margin-top: 0;">
+        <h2>C. What changes the regime next?</h2>
+        <p class="section-explainer"><strong>Regime ladder:</strong> GREEN → BLUE → ORANGE → RED. Each table shows what keeps the current level, what moves up, and what moves down.</p>
+        <div class="layer-controls" aria-label="Mechanics expand controls">
+          <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="expand">Expand mechanics</button>
+          <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="collapse">Collapse mechanics</button>
+        </div>
+        <div id="escalation">
+          <p>Loading escalation conditions...</p>
+        </div>
+      </section>
 
-    <section class="section">
-      <h2>Horizon Snapshot</h2>
-      <p class="section-explainer">The horizon snapshot shows returns and drawdowns across multiple time frames to provide context on how broad or narrow recent strength has been. Comparing short-term and longer-term horizons helps distinguish isolated momentum from more persistent trends, as well as whether drawdowns are shallow or deepening.</p>
+      <section class="section">
+        <h2>Mechanics detail: factor tables</h2>
+        <p class="section-explainer">These tables are diagnostic only. They do not override the regime by themselves.</p>
+      </section>
+
+      <section class="section">
+        <details class="expandable-card" data-expand-group="mechanics">
+          <summary>Extension</summary>
+          <div class="expandable-body">
+            <p class="section-explainer">Extension measures how far price has moved relative to its longer-term trend.</p>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th class="num">Value</th>
+                    <th class="num">Percentile</th>
+                  </tr>
+                </thead>
+                <tbody id="extensionRows">
+                  <tr><td colspan="3">Loading extension data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="section">
+        <details class="expandable-card" data-expand-group="mechanics">
+          <summary>Flow (short-term)</summary>
+          <div class="expandable-body">
+            <p class="section-explainer">Flow metrics track changes in GLD holdings as a proxy for investor demand.</p>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th class="num">Value</th>
+                    <th class="num">Percentile</th>
+                  </tr>
+                </thead>
+                <tbody id="flowRows">
+                  <tr><td colspan="3">Loading flow data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="section">
+        <details class="expandable-card" data-expand-group="mechanics">
+          <summary>Macro (short-term)</summary>
+          <div class="expandable-body">
+            <p class="section-explainer">Macro metrics focus on changes in real yields to contextualize price action.</p>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th class="num">Value</th>
+                    <th class="num">Percentile</th>
+                  </tr>
+                </thead>
+                <tbody id="macroRows">
+                  <tr><td colspan="3">Loading macro data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
+
+    <div class="context-layer">
+      <hr class="section-cut">
+      <section class="section">
+      <details class="expandable-card" data-expand-group="context">
+      <summary>D. Context only: horizon snapshot</summary>
+      <div class="expandable-body">
+      <p class="section-explainer">This does not affect the regime; it provides historical perspective.</p>
       <p class="section-explainer" id="horizonSummary">Horizon snapshot loading...</p>
       <div class="table-container">
         <table>
@@ -500,64 +671,10 @@
         </table>
       </div>
       <div class="note" id="percentileNotes"></div>
-    </section>
-
-    <section class="section">
-      <h2>Extension</h2>
-      <p class="section-explainer">Extension measures how far price has moved relative to its longer-term trend. It provides context on whether recent gains are close to historical norms or unusually stretched compared with prior periods.</p>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th class="num">Value</th>
-              <th class="num">Percentile</th>
-            </tr>
-          </thead>
-          <tbody id="extensionRows">
-            <tr><td colspan="3">Loading extension data...</td></tr>
-          </tbody>
-        </table>
       </div>
+      </details>
     </section>
-
-    <section class="section">
-      <h2>Flow (short-term)</h2>
-      <p class="section-explainer">Flow metrics track changes in GLD holdings as a proxy for investor demand. They help distinguish between price moves that are broadly supported by inflows and those that occur alongside weakening participation.</p>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th class="num">Value</th>
-              <th class="num">Percentile</th>
-            </tr>
-          </thead>
-          <tbody id="flowRows">
-            <tr><td colspan="3">Loading flow data...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Macro (short-term)</h2>
-      <p class="section-explainer">Macro metrics focus on changes in real yields, which historically influence gold pricing. Rapid shifts in real yields can coincide with repricing across gold and related assets, making them useful for contextualizing price action.</p>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th class="num">Value</th>
-              <th class="num">Percentile</th>
-            </tr>
-          </thead>
-          <tbody id="macroRows">
-            <tr><td colspan="3">Loading macro data...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </div>
 
     <section class="section">
       <h2>Status colors</h2>
@@ -622,6 +739,18 @@
     const macroRows = document.getElementById('macroRows');
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
+    const setExpandGroup = (group, expand) => {
+      document.querySelectorAll(`[data-expand-group="${group}"]`).forEach((el) => {
+        el.open = expand;
+      });
+    };
+    document.querySelectorAll('[data-toggle-scope]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const group = button.dataset.toggleScope;
+        const action = button.dataset.toggleAction;
+        setExpandGroup(group, action === 'expand');
+      });
+    });
 
     const contextTag = (text) => (text ? `<span class="context">${text}</span>` : '');
     const badgeDescriptions = {
@@ -728,43 +857,45 @@
     const buildTransitionTable = (title, rows, note) => {
       if (!rows || rows.length === 0) {
         return `
-          <div class="section-card">
-            <h3>${title}</h3>
-            <div class="meta">No transition data available.</div>
-          </div>
+          <details class="expandable-card" data-expand-group="mechanics">
+            <summary>${title}</summary>
+            <div class="expandable-body meta">No transition data available.</div>
+          </details>
         `;
       }
       const noteHtml = note ? `<div class="meta">${note}</div>` : '';
       const bodyRows = rows.map((row) => `
         <tr>
-          <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
-          <td class="num">${row.threshold}</td>
-          <td class="num">${formatCurrent(row.current, row.unit)}</td>
           <td class="num">${row.fired == null ? 'N/A' : (row.fired ? 'Met' : 'Not met')}</td>
           <td class="num">${formatDistance(row.distance, row.unit)}</td>
+          <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
+          <td class="num">${formatCurrent(row.current, row.unit)}</td>
+          <td class="num">${row.threshold}</td>
         </tr>
       `).join('');
       return `
-        <div class="section-card" style="margin-bottom: 16px;">
-          <h3>${title}</h3>
-          ${noteHtml}
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Trigger</th>
-                  <th class="num">Threshold</th>
-                  <th class="num">Current</th>
-                  <th class="num">Status</th>
-                  <th class="num">Distance</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${bodyRows}
-              </tbody>
-            </table>
+        <details class="expandable-card" data-expand-group="mechanics">
+          <summary>${title}</summary>
+          <div class="expandable-body">
+            ${noteHtml}
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="num">Status</th>
+                    <th class="num">Distance</th>
+                    <th>Trigger</th>
+                    <th class="num">Current</th>
+                    <th class="num">Threshold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bodyRows}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </details>
       `;
     };
     const buildCard = (title, value, percentile, label, why) => `
@@ -795,7 +926,7 @@
         }
 
         const reasons = regime.reasons || data.flag_triggers || [];
-        reasonLeadEl.innerHTML = `<strong>${state}</strong> because:`;
+        reasonLeadEl.innerHTML = `<strong>Why ${state} today</strong>`;
         reasonsEl.innerHTML = reasons.length
           ? reasons.map((item) => {
             const label = escapeHtml(REASON_LABELS[item] || item);
@@ -1068,15 +1199,15 @@
         ];
 
         const deteriorationTitle = state === 'GREEN'
-          ? 'Deterioration signals (required for ORANGE once BLUE is active)'
-          : 'De-escalate to BLUE (no deterioration triggers)';
+          ? 'Hold position: deterioration signals (required for ORANGE once BLUE is active)'
+          : 'Move down: de-escalate to BLUE (no deterioration triggers)';
         const deteriorationNote = state === 'GREEN'
           ? 'ORANGE requires BLUE plus at least one deterioration signal. If extension signals are not met, these do not change the color.'
           : 'All deterioration signals must clear for the regime to return to BLUE.';
 
         const extensionTitle = state === 'GREEN'
-          ? 'Escalate to BLUE (extension signals)'
-          : 'Extension signals (still required for BLUE)';
+          ? 'Move up: escalate to BLUE (extension signals)'
+          : 'Hold position: extension signals (still required for BLUE)';
         const extensionNote = 'BLUE requires at least 2 of the 3 extension signals.';
 
         escalationEl.innerHTML = `
@@ -1091,17 +1222,17 @@
             deteriorationNote
           )}
           ${buildTransitionTable(
-            'Escalate to RED (primary triggers)',
+            'Move up: escalate to RED (primary triggers)',
             redPrimaryRows,
             'Any single primary trigger can move the regime to RED.'
           )}
           ${buildTransitionTable(
-            'Escalate to RED (composite: 2 of 5)',
+            'Move up: escalate to RED (composite: 2 of 5)',
             redCompositeRows,
             'Two or more composite signals would also trigger RED.'
           )}
           ${buildTransitionTable(
-            'Normalize to GREEN',
+            'Move down: normalize to GREEN',
             normalizeRows,
             'Normalization requires percentile conditions to reset across price, flows, and macro.'
           )}
@@ -1109,7 +1240,7 @@
 
         const shortTermContext = percentileContext(horizons['3M']?.ret_pctile_5y);
         const longTermContext = percentileContext(horizons['1Y']?.ret_pctile_5y);
-        horizonSummaryEl.textContent = `Horizon snapshot: short-term ${shortTermContext}; long-term ${longTermContext}.`;
+        horizonSummaryEl.textContent = `Context only: short-term ${shortTermContext}; long-term ${longTermContext}.`;
 
         const repo = data.repository || 'https://github.com/';
         repoLink.href = repo;
