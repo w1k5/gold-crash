@@ -1,27 +1,35 @@
 {
-  "asof_utc": "2026-02-06T14:48:09.824657+00:00",
+  "asof_utc": "2026-02-06T14:58:41.179648+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
   "signals_triggered_count": 0,
   "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
+  "signal_counting": {
+    "excluded_from_threshold": [
+      "forced_flow_proxy_combo",
+      "volatility_spike"
+    ],
+    "notes": "Stale VIX data (>0 business day lag) is excluded from K-of-N counting."
+  },
   "signals": [
     {
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.702458605117906,
-        "spy_intraday_range_pct": 0.23300800140684544,
-        "spy_range_z": -0.2249854205529252
+        "spy_1d_return_pct": 1.053687907676859,
+        "spy_intraday_range_pct": 0.63964016589754,
+        "spy_range_z": -0.15397012619459235
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -2.7006636142289095,
-        "spy_range_z": -0.2249854205529252
+        "spy_dollar_volume_z": -2.4725395330975046,
+        "spy_range_z": -0.15397012619459235,
+        "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range."
       }
     },
     {
@@ -39,9 +47,9 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": 0.16143052278654313,
-        "spy_1d_return_pct": 0.702458605117906,
-        "hyg_minus_spy_pct": -0.5410280823313629
+        "hyg_1d_return_pct": 0.16763938904755804,
+        "spy_1d_return_pct": 1.053687907676859,
+        "hyg_minus_spy_pct": -0.886048518629301
       }
     },
     {
@@ -88,16 +96,16 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.702458605117906,
-        "gld_1d_return_pct": 2.4214718928215806
+        "spy_1d_return_pct": 1.053687907676859,
+        "gld_1d_return_pct": 2.491626685978088
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.702458605117906,
-        "hyg_minus_spy_pct": -0.5410280823313629,
+        "spy_1d_return_pct": 1.053687907676859,
+        "hyg_minus_spy_pct": -0.886048518629301,
         "vix_level": 21.77,
         "vix_1d_change_pct": 16.791845493562228,
         "counted_toward_threshold": false
