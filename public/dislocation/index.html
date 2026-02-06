@@ -1,759 +1,407 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫨</text></svg>">
   <title>Dislocation Detector</title>
   <style>
-    :root {
+    :root{
       color-scheme: light dark;
-      --green: #2d6a4f;
-      --blue: #2563eb;
-      --orange: #f97316;
-      --red: #b91c1c;
-      --gray: #334155;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --row-alt: #f8fafc;
-      --code-bg: #0b1020;
-      --code-text: #e2e8f0;
+      --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+      --good:#16a34a; --warn:#f97316; --bad:#dc2626; --info:#2563eb;
+      --pill-bg:rgba(2,6,23,.04);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-    main {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 32px 20px 64px;
-    }
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 32px;
-      letter-spacing: -0.02em;
-    }
-    .hero {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      background: var(--card);
-      border-radius: 20px;
-      padding: 22px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-    }
-    .header-note {
-      font-size: 14px;
-      color: var(--muted);
-      margin: 0;
-    }
-    .meta-note {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 0;
-      line-height: 1.5;
-    }
-    .section {
-      margin-top: 28px;
-    }
-    .section-card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 18px 20px;
-      border: 1px solid var(--border);
-      margin-top: 16px;
-    }
-    .section-explainer {
-      margin: 6px 0 0;
-      font-size: 14px;
-      color: var(--muted);
-    }
-    ul {
-      margin: 12px 0 0;
-      padding-left: 20px;
-    }
-    li {
-      margin-bottom: 8px;
-    }
-    li:last-child {
-      margin-bottom: 0;
-    }
-    pre {
-      margin: 16px 0 0;
-      background: var(--code-bg);
-      color: var(--code-text);
-      padding: 16px;
-      border-radius: 12px;
-      overflow-x: auto;
-      border: 1px solid #111827;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    blockquote {
-      margin: 16px 0 0;
-      padding: 12px 16px;
-      border-left: 4px solid var(--orange);
-      background: rgba(249, 115, 22, 0.08);
-      border-radius: 10px;
-      color: var(--text);
-    }
-    a {
-      color: var(--blue);
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 700px) {
-      main {
-        padding: 24px 16px 40px;
-      }
-      .hero {
-        padding: 18px;
-      }
-      pre {
-        font-size: 12px;
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2a44;
+        --shadow:0 10px 30px rgba(0,0,0,.35);
+        --pill-bg:rgba(148,163,184,.10);
       }
     }
+
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;}
+    main{max-width:1040px;margin:0 auto;padding:28px 18px 60px;}
+    header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;}
+    h1{margin:0;font-size:28px;letter-spacing:-.02em;}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:64ch;}
+    a{color:var(--info);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+
+    .grid{display:grid;gap:14px;margin-top:16px;}
+    @media (min-width: 900px){
+      .grid{grid-template-columns: 1.15fr .85fr;}
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px 16px;
+    }
+    .card h2{margin:0 0 10px;font-size:16px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .pill{
+      display:inline-flex;gap:8px;align-items:center;
+      border:1px solid var(--border);
+      background:var(--pill-bg);
+      padding:8px 10px;border-radius:999px;font-size:13px;color:var(--muted);
+    }
+    .pill strong{color:var(--text);font-weight:600;}
+    .statusBig{
+      display:flex;flex-direction:column;gap:10px;
+      padding:18px;border-radius:18px;border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(37,99,235,.08), transparent 60%);
+    }
+    .statusLine{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;font-size:13px;font-weight:600;
+      border:1px solid transparent;
+    }
+    .b-good{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.25);color:var(--good);}
+    .b-warn{background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.25);color:var(--warn);}
+    .b-bad{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:var(--bad);}
+    .b-muted{background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20);color:var(--muted);}
+
+    .bigNumber{font-size:38px;letter-spacing:-.03em;font-weight:700;margin:0;}
+    .help{color:var(--muted);font-size:14px;margin:0;}
+
+    .signalsGrid{
+      display:grid;gap:10px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 650px){ .signalsGrid{grid-template-columns: 1fr 1fr;} }
+    .sig{
+      border:1px solid var(--border);border-radius:14px;padding:12px;
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .sigTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+    .sigName{font-weight:650;font-size:14px;margin:0;}
+    .sigHint{margin:0;color:var(--muted);font-size:12px;}
+    details{border-top:1px dashed var(--border);padding-top:10px;}
+    summary{cursor:pointer;color:var(--info);font-size:13px;user-select:none;}
+    .kv{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;margin:8px 0 0;}
+    .timeline{margin:0;padding-left:18px;color:var(--muted);font-size:13px;}
+    .tiny{font-size:12px;color:var(--muted);margin:0;}
+    .skeleton{opacity:.65}
   </style>
 </head>
+
 <body>
-  <main>
-    <header>
-      <div class="hero">
-        <h1>Dislocation Detector</h1>
-        <p class="header-note">A low-churn checklist turned into a daily dislocation signal using free market data.</p>
-        <p class="meta-note"><a href="/">← Back to Gold Risk Monitor</a></p>
-      </div>
-    </header>
+<main>
+  <header>
+    <div>
+      <h1>Dislocation Detector</h1>
+      <p class="sub">
+        A low-churn “market plumbing” monitor. It only flags a dislocation when multiple independent stress signals agree.
+      </p>
+      <p class="tiny"><a href="https://w1k5.github.io/gold-crash/">← Back to Gold Risk Monitor</a></p>
+    </div>
+    <div class="row">
+      <span class="pill"><strong id="asof">As of</strong> <span id="asofVal" class="skeleton">Loading…</span></span>
+      <span class="pill"><strong>Rule</strong> <span id="ruleVal" class="skeleton">Loading…</span></span>
+    </div>
+    <p class="tiny" id="dataDatesVal">Data dates: Loading…</p>
+  </header>
 
-    <section class="section">
-      <h2>Current status</h2>
-      <p class="section-explainer">Pulled from the latest <code>dislocation.json</code> run in the daily workflow.</p>
-      <div class="section-card">
-        <p id="dislocationStatus"><strong>Status:</strong> Loading...</p>
-        <p class="meta-note" id="dislocationTimestamp">As of: Loading...</p>
-        <p class="meta-note" id="dislocationDataDates">Data dates: Loading...</p>
-        <p class="meta-note" id="dislocationRule">Rule: Loading...</p>
-        <p class="meta-note" id="dislocationYesterday">Yesterday signals: Loading...</p>
-        <p class="meta-note"><strong>Signals triggered:</strong></p>
-        <ul id="dislocationSignals">
-          <li>Loading signal details...</li>
-        </ul>
-        <p class="meta-note"><strong>Recent regime transitions:</strong></p>
-        <ul id="dislocationTransitions">
-          <li>Loading transition details...</li>
-        </ul>
+  <div class="grid">
+    <section class="card">
+      <div class="statusBig">
+        <div class="statusLine">
+          <span id="statusBadge" class="badge b-muted">Loading…</span>
+          <span class="pill"><strong>Signals today</strong> <span id="countVal" class="skeleton">—</span></span>
+          <span class="pill"><strong>Yesterday</strong> <span id="yCountVal" class="skeleton">—</span></span>
+        </div>
+        <p class="bigNumber" id="statusHeadline">—</p>
+        <p class="help" id="statusExplain" class="skeleton">
+          Loading status…
+        </p>
       </div>
-    </section>
 
-    <section class="section">
-      <h2>Overview</h2>
-      <p class="section-explainer">Yes. You can turn that checklist into a <strong>stable, low-churn “dislocation detector”</strong> that runs daily, pulls <strong>free public market data</strong>, and only triggers when <strong>multiple, smoothed signals</strong> agree.</p>
-      <div class="section-card">
-        <p>This Python script does the following:</p>
-        <ul>
-          <li>Scrapes <strong>daily OHLCV</strong> from <strong>Stooq</strong> (no API key) for: SPY proxy, VTI proxy, GLD, HYG, and VIX.</li>
-          <li>Computes <strong>robust signals</strong> (not twitchy):
-            <ul>
-              <li>“Big down + whipsaw” (large down day + unusually large intraday range vs its own history)</li>
-              <li>“Volatility spike” (VIX level + VIX jump vs its own history)</li>
-              <li>“Credit stress” (HYG underperforms SPY by a lot, plus optional FRED spread if you add a key)</li>
-              <li>“Everything sells together” (equities down hard and gold down too)</li>
-              <li>“Liquidity degraded” <em>proxy</em> (volume + range spike; true bid/ask spreads aren’t reliably accessible free)</li>
-            </ul>
-          </li>
-          <li>Uses <strong>persistence</strong> (e.g., a 2-signal day can carry a 1-signal yesterday) to reduce false negatives.</li>
-          <li>Outputs a <strong>dislocation vs watch state</strong> plus which signals fired.</li>
-        </ul>
-        <blockquote>
-          ⚠️ Note on “bid–ask spreads”: truly accurate spreads require market data feeds (IEX/Polygon/Alpaca/etc). Without that, the best low-volatility proxy is <strong>range spike + volume spike + gapiness</strong>.
-        </blockquote>
+      <div style="margin-top:14px;">
+        <h2>What this means</h2>
+        <p class="help" style="margin:0;">
+          <strong>Normal</strong> = signals are quiet. <strong>Watch</strong> = at least one stress signal is elevated.
+          <strong>Dislocation</strong> = a flow-driven event is likely (≥K signals, with optional persistence).
+        </p>
       </div>
     </section>
 
-    <section class="section">
-      <h2>Python script: dislocation_detector.py</h2>
-      <div class="section-card">
-        <pre><code>#!/usr/bin/env python3
-"""
-Dislocation detector (daily, low-churn) using free data (Stooq) + optional FRED.
+    <section class="card">
+      <h2>Recent transitions</h2>
+      <ul id="transitions" class="timeline">
+        <li class="skeleton">Loading…</li>
+      </ul>
+      <p class="tiny" id="persistenceNote" style="margin-top:12px;"></p>
 
-Goal: flag likely "flow-driven dislocation" when &gt;=K signals are true,
-with smoothing/persistence to avoid noise.
+      <details style="margin-top:14px;">
+        <summary>Methodology (high level)</summary>
+        <p class="help" style="margin-top:10px;">
+          This page shows outcomes. The detector uses daily market data (e.g., SPY/HYG/GLD/VIX proxies) and checks for
+          dislocation-style patterns: “big down + whipsaw”, “vol spike”, “credit stress”, “everything sells together”, etc.
+        </p>
+        <p class="help">
+          If you want implementation details, link out to the repo or keep the script on a separate /method page—don’t put it on the dashboard.
+        </p>
+      </details>
+    </section>
+  </div>
 
-Data source: Stooq daily CSV (no API key)
-Optional: FRED high-yield spread series (requires FRED_API_KEY env var)
-"""
+  <section class="card" style="margin-top:14px;">
+    <h2>Signals</h2>
+    <p class="help" style="margin-top:-4px;">
+      Each card is one independent check. The detector triggers only when enough cards flip to “Triggered”.
+    </p>
+    <div id="signals" class="signalsGrid">
+      <div class="sig skeleton"><p class="sigName">Loading…</p><p class="sigHint">—</p></div>
+      <div class="sig skeleton"><p class="sigName">Loading…</p><p class="sigHint">—</p></div>
+    </div>
+  </section>
 
-from __future__ import annotations
+</main>
 
-import argparse
-import json
-import os
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from io import StringIO
-from typing import Dict, List, Optional, Tuple
+<script>
+  // ---- Helpers
+  const fmtPct = (x) => (typeof x === 'number' && isFinite(x)) ? `${x.toFixed(2)}%` : '—';
+  const fmtNum = (x) => (typeof x === 'number' && isFinite(x)) ? `${x.toFixed(2)}` : '—';
 
-import pandas as pd
-import requests
+  const prettyName = (name) => {
+    const map = {
+      big_down_and_whipsaw: "Big down + whipsaw",
+      liquidity_degraded_proxy: "Liquidity degraded (proxy)",
+      volatility_spike: "Volatility spike",
+      credit_stress_proxy: "Credit stress (proxy)",
+      credit_spread_widening_fred: "HY credit spread widening",
+      funding_stress_sofr_iorb: "Funding stress (SOFR-IORB)",
+      repo_rate_volume_dislocation: "Repo rate/volume dislocation",
+      rates_volatility_shock: "Rates volatility shock",
+      everything_sells_together: "Everything sells together",
+      forced_flow_proxy_combo: "Forced-flow combo (proxy)"
+    };
+    return map[name] || name.replaceAll('_',' ');
+  };
 
-
-# -----------------------------
-# Data fetch (Stooq, free)
-# -----------------------------
-
-STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&i=d"
-
-# Stooq tickers:
-# - S&amp;P 500 ETF proxy: "spy.us" (Stooq usually has it)
-# - Total market proxy: "vti.us"
-# - Gold: "gld.us"
-# - High yield credit ETF proxy: "hyg.us"
-# - VIX index: "vi.c" is the Stooq symbol for VIX.
-DEFAULT_TICKERS = {
-    "equity_core": "spy.us",
-    "equity_broad": "vti.us",
-    "gold": "gld.us",
-    "credit_hy": "hyg.us",
-    "vix": "vi.c",  # if this fails, try "^vix" or "vix" manually
-}
-
-
-def fetch_stooq_daily(symbol: str, require_volume: bool = True) -&gt; pd.DataFrame:
-    url = STOOQ_DAILY.format(symbol=symbol)
-    response = requests.get(url, timeout=20)
-    response.raise_for_status()
-    if "&lt;html" in response.text.lower():
-        raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
-    try:
-        df = pd.read_csv(StringIO(response.text))
-    except pd.errors.ParserError as exc:
-        raise ValueError(f"Unable to parse Stooq CSV for symbol: {symbol}") from exc
-    normalized = {column.lower(): column for column in df.columns}
-    if "date" not in normalized:
-        raise ValueError(f"Stooq CSV missing Date column for symbol: {symbol}")
-    df = df.rename(columns={normalized["date"]: "Date"})
-    # Expected columns: Date, Open, High, Low, Close, Volume
-    df["Date"] = pd.to_datetime(df["Date"], utc=True)
-    df = df.sort_values("Date").set_index("Date")
-    # Ensure numeric
-    for c in ["Open", "High", "Low", "Close", "Volume"]:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-    required = {"Open", "High", "Low", "Close"}
-    if require_volume:
-        required.add("Volume")
-    missing = required.difference(df.columns)
-    if missing:
-        raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
-    if "Volume" not in df.columns:
-        df["Volume"] = 0.0
-    df = df.dropna(subset=["Close"])
-    return df
-
-
-# -----------------------------
-# Optional FRED credit spread
-# -----------------------------
-
-def fetch_fred_series(series_id: str, api_key: str) -&gt; pd.DataFrame:
-    """
-    Pulls a FRED series via their JSON API.
-    We keep it optional; dislocation detection works without it.
-    """
-    import urllib.parse
-
-    base = "https://api.stlouisfed.org/fred/series/observations"
-    params = {
-        "series_id": series_id,
-        "api_key": api_key,
-        "file_type": "json",
+  const hint = (signal) => {
+    const d = signal.details || {};
+    switch(signal.name){
+      case "big_down_and_whipsaw":
+        return `SPY 1D ${fmtPct(d.spy_1d_return_pct)} • Range ${fmtPct(d.spy_intraday_range_pct)}`;
+      case "liquidity_degraded_proxy":
+        return `Dollar vol z ${fmtNum(d.spy_dollar_volume_z)} • Range z ${fmtNum(d.spy_range_z)}`;
+      case "volatility_spike":
+        if (d.note) return d.note;
+        return `VIX ${fmtNum(d.vix_level)} • 1D ${fmtPct(d.vix_1d_change_pct)}`;
+      case "credit_stress_proxy":
+        return `HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • HYG ${fmtPct(d.hyg_1d_return_pct)}`;
+      case "credit_spread_widening_fred":
+        return `HY OAS ${fmtNum(d.hy_oas_level)} • 5D ${fmtNum(d.hy_oas_5d_change)}`;
+      case "funding_stress_sofr_iorb":
+        return `SOFR-IORB ${fmtNum(d.sofr_iorb_spread_bp)}bp • 5D ${fmtNum(d.sofr_iorb_spread_5d_bp)}bp`;
+      case "repo_rate_volume_dislocation":
+        return `TGCR ${fmtNum(d.tgcr_rate)} • Vol 5D ${fmtPct(d.tgcr_volume_5d_change_pct)}`;
+      case "rates_volatility_shock":
+        return `10Y RV5 ${fmtNum(d.dgs10_rv5_bp)}bp • 5D 10Y ${fmtNum(d.dgs10_5d_change_bp)}bp`;
+      case "everything_sells_together":
+        return `SPY ${fmtPct(d.spy_1d_return_pct)} • GLD ${fmtPct(d.gld_1d_return_pct)}`;
+      case "forced_flow_proxy_combo":
+        if (d.note) return d.note;
+        return `SPY ${fmtPct(d.spy_1d_return_pct)} • HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • VIX ${fmtNum(d.vix_level)}`;
+      default:
+        return "—";
     }
-    url = base + "?" + urllib.parse.urlencode(params)
-    r = requests.get(url, timeout=20)
-    r.raise_for_status()
-    data = r.json()
-    obs = data.get("observations", [])
-    rows = []
-    for o in obs:
-        dt = pd.to_datetime(o["date"], utc=True)
-        val = o["value"]
-        try:
-            val = float(val)
-        except ValueError:
-            val = None
-        rows.append((dt, val))
-    df = pd.DataFrame(rows, columns=["Date", series_id]).dropna()
-    df = df.set_index("Date").sort_index()
-    return df
+  };
 
+  const formatLocalDateTime = (value) => {
+    if (!value) {
+      return 'unknown';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    try {
+      return new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(date);
+    } catch (_) {
+      return date.toLocaleString();
+    }
+  };
 
-# -----------------------------
-# Helpers
-# -----------------------------
+  const setStatus = (data) => {
+    const badge = document.getElementById('statusBadge');
+    const headline = document.getElementById('statusHeadline');
+    const explain = document.getElementById('statusExplain');
 
-def pct_change(series: pd.Series, periods: int = 1) -&gt; pd.Series:
-    return series.pct_change(periods=periods) * 100.0
+    const count = data.signals_triggered_count ?? 0;
+    const k = data.rule?.k_required ?? 3;
 
-def rolling_z(series: pd.Series, window: int) -&gt; pd.Series:
-    mu = series.rolling(window).mean()
-    sd = series.rolling(window).std(ddof=0)
-    return (series - mu) / sd.replace(0, pd.NA)
+    if (data.status === "dislocation" || data.dislocation === true){
+      badge.className = "badge b-bad";
+      badge.textContent = "DISLOCATION";
+      headline.textContent = "Flow-driven event likely";
+      explain.textContent = `Triggered because ${count}/${k} signals are active (or persistence carried it). Expect correlations to rise and prices to gap more than usual.`;
+      return;
+    }
+    if (data.watch === true || data.status === "stress_building" || count >= 1){
+      badge.className = "badge b-warn";
+      badge.textContent = "WATCH";
+      headline.textContent = "Stress building";
+      explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.`;
+      return;
+    }
+    if (data.status === "data_stale"){
+      badge.className = "badge b-muted";
+      badge.textContent = "DATA STALE";
+      headline.textContent = "Freshness guardrail triggered";
+      explain.textContent = "At least one required series is stale beyond tolerance. Treat this run as informational until data refreshes.";
+      return;
+    }
+    badge.className = "badge b-good";
+    badge.textContent = "NORMAL";
+    headline.textContent = "Conditions look normal";
+    explain.textContent = `0/${k} dislocation signals. Liquidity/vol/credit relationships look typical today.`;
+  };
 
-def intraday_range_pct(df: pd.DataFrame) -&gt; pd.Series:
-    # (High - Low) / Close * 100
-    return (df["High"] - df["Low"]) / df["Close"] * 100.0
+  const renderSignals = (data) => {
+    const root = document.getElementById('signals');
+    root.innerHTML = '';
 
-def safe_last(series: pd.Series) -&gt; float:
-    return float(series.dropna().iloc[-1])
+    const signals = Array.isArray(data.signals) ? data.signals : [];
+    signals.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'sig';
 
-def any_recent_true(flag_series: pd.Series, lookback_days: int) -&gt; bool:
-    s = flag_series.dropna()
-    if s.empty:
-        return False
-    return bool(s.iloc[-lookback_days:].any())
+      const top = document.createElement('div');
+      top.className = 'sigTop';
 
+      const left = document.createElement('div');
+      const name = document.createElement('p');
+      name.className = 'sigName';
+      name.textContent = prettyName(s.name);
+      const small = document.createElement('p');
+      small.className = 'sigHint';
+      small.textContent = hint(s);
+      left.appendChild(name);
+      left.appendChild(small);
 
-# -----------------------------
-# Signals
-# -----------------------------
+      const b = document.createElement('span');
+      b.className = `badge ${s.triggered ? 'b-bad' : 'b-muted'}`;
+      b.textContent = s.triggered ? 'Triggered' : 'Not triggered';
 
-@dataclass
-class SignalResult:
-    name: str
-    triggered: bool
-    details: Dict[str, object]
+      top.appendChild(left);
+      top.appendChild(b);
 
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = 'See underlying numbers';
+      const kv = document.createElement('div');
+      kv.className = 'kv';
+      kv.textContent = JSON.stringify(s.details || {}, null, 2);
 
-def compute_signals(
-    spy: pd.DataFrame,
-    gld: pd.DataFrame,
-    hyg: pd.DataFrame,
-    vix: Optional[pd.DataFrame] = None,
-    fred_hy_spread: Optional[pd.DataFrame] = None,
-    lookback: int = 252,
-) -&gt; List[SignalResult]:
-    # Align on dates
-    idx = spy.index.intersection(gld.index).intersection(hyg.index)
-    # VIX may have different date stamps; align by intersection too
-    if vix is not None:
-        idx = idx.intersection(vix.index)
-    spy = spy.loc[idx]
-    gld = gld.loc[idx]
-    hyg = hyg.loc[idx]
-    if vix is not None:
-        vix = vix.loc[idx]
+      details.appendChild(summary);
+      details.appendChild(kv);
 
-    # Basic series
-    spy_ret = pct_change(spy["Close"], 1)
-    gld_ret = pct_change(gld["Close"], 1)
-    hyg_ret = pct_change(hyg["Close"], 1)
+      card.appendChild(top);
+      card.appendChild(details);
+      root.appendChild(card);
+    });
 
-    spy_rng = intraday_range_pct(spy)
-    spy_rng_z = rolling_z(spy_rng, lookback)
+    if (signals.length === 0){
+      const empty = document.createElement('p');
+      empty.className = 'help';
+      empty.textContent = 'No signal data available.';
+      root.appendChild(empty);
+    }
+  };
 
-    spy_vol = spy["Volume"].replace(0, pd.NA)
-    spy_vol_z = rolling_z(spy_vol, lookback)
+  const renderTransitions = (data) => {
+    const ul = document.getElementById('transitions');
+    ul.innerHTML = '';
+    const transitions = Array.isArray(data.transitions) ? data.transitions : [];
+    if (transitions.length === 0){
+      const li = document.createElement('li');
+      li.textContent = 'No recent transitions logged.';
+      ul.appendChild(li);
+      return;
+    }
+    transitions.slice(-6).reverse().forEach(t => {
+      const li = document.createElement('li');
+      li.textContent = `${formatLocalDateTime(t.timestamp_utc)}: ${t.from} → ${t.to}`;
+      ul.appendChild(li);
+    });
+  };
 
-    vix_level = None
-    vix_ret = None
-    vix_level_z = None
-    vix_ret_z = None
-    if vix is not None:
-        vix_level = vix["Close"]
-        vix_ret = pct_change(vix_level, 1)
-        vix_level_z = rolling_z(vix_level, lookback)
-        vix_ret_z = rolling_z(vix_ret, lookback)
+  const robustJsonUrl = () => {
+    // Works whether you’re at /gold-crash/dislocation/ or elsewhere.
+    // Prefer the parent (site root) dislocation.json to avoid 404s in /dislocation/.
+    const here = new URL(window.location.href);
+    const tryParent = new URL('../dislocation.json', here).toString();
+    const trySameFolder = new URL('dislocation.json', here).toString();
+    return { tryParent, trySameFolder };
+  };
 
-    # 1) Major indexes down big + whipsaw huge (stable: use both absolute and relative thresholds)
-    big_down = spy_ret &lt;= -2.5
-    whipsaw = (spy_rng &gt;= 2.5) | (spy_rng_z &gt;= 2.0)
-    sig1 = big_down &amp; whipsaw
+  async function load(){
+    const { trySameFolder, tryParent } = robustJsonUrl();
 
-    # 2) "Bid-ask wider" proxy: liquidity degraded (range spike + volume spike)
-    # We require BOTH to reduce false positives.
-    liq_proxy = (spy_rng_z &gt;= 2.0) &amp; (spy_vol_z &gt;= 2.0)
+    let data = null;
+    try {
+      const r1 = await fetch(tryParent, { cache: "no-store" });
+      if (r1.ok) data = await r1.json();
+    } catch (e) {}
 
-    # 3) Volatility spike sharply (not just high):
-    # Trigger if VIX is high *and* jumps unusually.
-    if vix is None:
-        vol_spike = pd.Series(False, index=idx)
-    else:
-        vol_spike = ((vix_level &gt;= 30) | (vix_level_z &gt;= 1.5)) &amp; ((vix_ret &gt;= 20) | (vix_ret_z &gt;= 2.0))
-
-    # 4) Credit stress: HY underperforms equities a lot (flow stress)
-    # Trigger when HYG drops meaningfully more than SPY in a day.
-    credit_stress = (hyg_ret - spy_ret) &lt;= -1.5
-
-    # Optional: FRED HY spread (weekly-ish, smoother)
-    fred_flag = pd.Series(False, index=idx)
-    fred_details = {}
-    if fred_hy_spread is not None and not fred_hy_spread.empty:
-        # Example series: "BAMLH0A0HYM2" (ICE BofA US High Yield OAS)
-        series_id = fred_hy_spread.columns[0]
-        # Align and forward-fill (spreads update daily-ish, sometimes lag)
-        tmp = fred_hy_spread.reindex(idx, method="ffill")[series_id]
-        # Dislocation-like widening: 5-day change &gt; 0.50 (50 bps) or z &gt; 2
-        chg_5 = tmp.diff(5)
-        z = rolling_z(tmp, lookback)
-        fred_flag = (chg_5 &gt;= 0.50) | (z &gt;= 2.0)
-        fred_details = {
-            "hy_oas_level": safe_last(tmp),
-            "hy_oas_5d_change": float(chg_5.dropna().iloc[-1]),
-            "hy_oas_z": float(z.dropna().iloc[-1]),
-        }
-
-    # 5) Everything selling together: equities down hard AND gold down too.
-    # This is a classic forced-liquidation tell (temporary correlation=1).
-    everything_sells = (spy_ret &lt;= -2.0) &amp; (gld_ret &lt;= -1.0)
-
-    # 6) Multiple forced-seller narratives: hard to scrape reliably without paid news.
-    # Instead we use a "mechanical" proxy: big_down + credit_stress + vol_spike together.
-    forced_flow_proxy = big_down &amp; credit_stress &amp; vol_spike
-
-    # Build results for the latest day
-    def latest_bool(s: pd.Series) -&gt; bool:
-        s2 = s.dropna()
-        return bool(s2.iloc[-1]) if not s2.empty else False
-
-    results: List[SignalResult] = []
-
-    results.append(SignalResult(
-        name="big_down_and_whipsaw",
-        triggered=latest_bool(sig1),
-        details={"spy_1d_return_pct": safe_last(spy_ret), "spy_intraday_range_pct": safe_last(spy_rng), "spy_range_z": safe_last(spy_rng_z)},
-    ))
-
-    results.append(SignalResult(
-        name="liquidity_degraded_proxy",
-        triggered=latest_bool(liq_proxy),
-        details={"spy_volume_z": safe_last(spy_vol_z), "spy_range_z": safe_last(spy_rng_z)},
-    ))
-
-    if vix is None:
-        results.append(SignalResult(
-            name="volatility_spike",
-            triggered=False,
-            details={"note": "VIX data unavailable from Stooq."},
-        ))
-    else:
-        results.append(SignalResult(
-            name="volatility_spike",
-            triggered=latest_bool(vol_spike),
-            details={"vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret), "vix_level_z": safe_last(vix_level_z), "vix_change_z": safe_last(vix_ret_z)},
-        ))
-
-    results.append(SignalResult(
-        name="credit_stress_proxy",
-        triggered=latest_bool(credit_stress),
-        details={"hyg_1d_return_pct": safe_last(hyg_ret), "spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret)},
-    ))
-
-    if fred_hy_spread is not None and not fred_hy_spread.empty:
-        results.append(SignalResult(
-            name="credit_spread_widening_fred",
-            triggered=latest_bool(fred_flag),
-            details=fred_details,
-        ))
-
-    results.append(SignalResult(
-        name="everything_sells_together",
-        triggered=latest_bool(everything_sells),
-        details={"spy_1d_return_pct": safe_last(spy_ret), "gld_1d_return_pct": safe_last(gld_ret)},
-    ))
-
-    if vix is None:
-        results.append(SignalResult(
-            name="forced_flow_proxy_combo",
-            triggered=False,
-            details={"spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret), "note": "VIX data unavailable from Stooq."},
-        ))
-    else:
-        results.append(SignalResult(
-            name="forced_flow_proxy_combo",
-            triggered=latest_bool(forced_flow_proxy),
-            details={"spy_1d_return_pct": safe_last(spy_ret), "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret), "vix_level": safe_last(vix_level), "vix_1d_change_pct": safe_last(vix_ret)},
-        ))
-
-    return results
-
-
-def derive_status(count: int, dislocation: bool) -&gt; str:
-    if dislocation:
-        return "dislocation"
-    if count &gt;= 1:
-        return "stress_building"
-    return "normal"
-
-
-def summarize_dislocation(
-    signals: List[SignalResult],
-    k_required: int = 3,
-    previous_summary: Optional[Dict[str, object]] = None,
-) -&gt; Dict[str, object]:
-    triggered = [s for s in signals if s.triggered]
-    count = len(triggered)
-    yesterday_count = 0
-    previous_status = None
-    if previous_summary:
-        try:
-            yesterday_count = int(previous_summary.get("signals_triggered_count", 0) or 0)
-        except (TypeError, ValueError):
-            yesterday_count = 0
-        previous_status = previous_summary.get("status")
-        if not previous_status:
-            previous_dislocation = bool(previous_summary.get("dislocation", False))
-            previous_status = derive_status(yesterday_count, previous_dislocation)
-
-    carry_forward = count == (k_required - 1) and yesterday_count &gt;= 1
-    dislocation = bool(count &gt;= k_required or carry_forward)
-    watch = bool((not dislocation) and count &gt;= 1)
-    status = derive_status(count, dislocation)
-    transitions = []
-    if previous_summary and isinstance(previous_summary.get("transitions"), list):
-        transitions = list(previous_summary["transitions"])
-    if previous_status and previous_status != status:
-        transitions.append({
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "from": previous_status,
-            "to": status,
-        })
-
-    return {
-        "asof_utc": datetime.now(timezone.utc).isoformat(),
-        "dislocation": dislocation,
-        "watch": watch,
-        "status": status,
-        "signals_triggered_count": count,
-        "signals_triggered_count_yesterday": yesterday_count,
-        "signals_triggered": [s.name for s in triggered],
-        "signals": [
-            {"name": s.name, "triggered": s.triggered, "details": s.details}
-            for s in signals
-        ],
-        "transitions": transitions,
-        "rule": {
-            "k_required": k_required,
-            "notes": "Designed to be low-churn: multiple independent stress signals must agree.",
-            "persistence": {
-                "enabled": True,
-                "today_minimum": max(k_required - 1, 1),
-                "yesterday_minimum": 1,
-                "description": "Dislocation holds if today is k-1 and yesterday had &gt;=1 signal.",
-            },
-        },
+    if (!data){
+      const r2 = await fetch(trySameFolder, { cache: "no-store" });
+      if (!r2.ok) throw new Error('Failed to load dislocation.json');
+      data = await r2.json();
     }
 
+    document.getElementById('asofVal').textContent = formatLocalDateTime(data.asof_utc);
+    document.getElementById('ruleVal').textContent = `${data.rule?.k_required ?? 3} signals`;
+    document.getElementById('countVal').textContent = `${data.signals_triggered_count ?? 0}`;
+    document.getElementById('yCountVal').textContent = `${data.signals_triggered_count_yesterday ?? 0}`;
+    const dataDates = data.data_dates || {};
+    const sessionDate = dataDates.equity_session_date || 'unknown';
+    const equitiesDate = formatLocalDateTime(dataDates.equities_close_utc);
+    const vixDate = formatLocalDateTime(dataDates.vix_close_utc);
+    const vixStale = dataDates.vix_stale_days;
+    const staleReasons = Array.isArray(dataDates.stale_reasons) && dataDates.stale_reasons.length
+      ? `; stale reasons: ${dataDates.stale_reasons.join(', ')}`
+      : '';
+    let staleNote = 'staleness unknown';
+    if (typeof vixStale === 'number' && isFinite(vixStale)) {
+      staleNote = vixStale === 0 ? 'same session' : `${vixStale} day${vixStale === 1 ? '' : 's'} stale`;
+    }
+    document.getElementById('dataDatesVal').textContent =
+      `Data dates: equity session ${sessionDate}; equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote})${staleReasons}.`;
 
-def load_previous_summary(path: str) -&gt; Optional[Dict[str, object]]:
-    if not os.path.exists(path):
-        return None
-    try:
-        with open(path, "r", encoding="utf-8") as handle:
-            return json.load(handle)
-    except (OSError, json.JSONDecodeError):
-        return None
+    const p = data.rule?.persistence;
+    const pEl = document.getElementById('persistenceNote');
+    if (p?.enabled){
+      pEl.textContent = `Persistence: holds if today is ${p.today_minimum} and yesterday had ≥${p.yesterday_minimum}.`;
+    } else {
+      pEl.textContent = '';
+    }
 
+    setStatus(data);
+    renderSignals(data);
+    renderTransitions(data);
+  }
 
-# -----------------------------
-# CLI
-# -----------------------------
-
-def main() -&gt; None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--output", default="dislocation.json", help="Output JSON path")
-    ap.add_argument("--k", type=int, default=3, help="Signals required to flag dislocation")
-    ap.add_argument("--lookback", type=int, default=252, help="Lookback window for z-scores")
-    ap.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vi.c, vix, or ^vix)")
-    ap.add_argument("--spy-symbol", default=DEFAULT_TICKERS["equity_core"], help="Stooq symbol for SPY proxy")
-    ap.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Stooq symbol for GLD")
-    ap.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Stooq symbol for HYG")
-    ap.add_argument("--fred-series", default="", help="Optional FRED series id (e.g., BAMLH0A0HYM2)")
-    args = ap.parse_args()
-
-    spy = fetch_stooq_daily(args.spy_symbol)
-    gld = fetch_stooq_daily(args.gld_symbol)
-    hyg = fetch_stooq_daily(args.hyg_symbol)
-
-    # VIX symbol sometimes differs; try a fallback automatically
-    vix = None
-    tried = []
-    for candidate in [args.vix_symbol, "vi.c", "^vix", "vix"]:
-        if candidate in tried:
-            continue
-        tried.append(candidate)
-        try:
-            vix = fetch_stooq_daily(candidate, require_volume=False)
-            break
-        except ValueError:
-            continue
-    if vix is None:
-        print(f"Warning: Unable to fetch VIX data from Stooq. Tried: {tried}")
-
-    fred_df = None
-    if args.fred_series:
-        api_key = os.environ.get("FRED_API_KEY", "").strip()
-        if api_key:
-            fred_df = fetch_fred_series(args.fred_series, api_key)
-
-    previous_summary = load_previous_summary(args.output)
-    signals = compute_signals(spy=spy, gld=gld, hyg=hyg, vix=vix, fred_hy_spread=fred_df, lookback=args.lookback)
-    summary = summarize_dislocation(signals, k_required=args.k, previous_summary=previous_summary)
-
-    with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-
-    print(json.dumps({
-        "wrote": args.output,
-        "dislocation": summary["dislocation"],
-        "count": summary["signals_triggered_count"],
-        "status": summary["status"],
-    }, indent=2))
-
-
-if __name__ == "__main__":
-    main()
-</code></pre>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>How this hits your “accuracy + lack of volatility” requirement</h2>
-      <div class="section-card">
-        <h3>What’s accurate here</h3>
-        <ul>
-          <li>It uses <strong>observable market plumbing proxies</strong> that reliably show up in dislocations:</li>
-          <li>outsized index down days + outsized intraday ranges</li>
-          <li>VIX level + spike</li>
-          <li>HY underperformance vs equities (credit stress)</li>
-          <li>“everything sells” pattern (forced liquidation)</li>
-        </ul>
-        <h3>What avoids twitchy false positives</h3>
-        <ul>
-          <li>Uses <strong>z-scores vs 1-year history</strong> (self-calibrating)</li>
-          <li>Requires <strong>multiple independent signals</strong> (K-of-N rule)</li>
-          <li>Uses <strong>both level AND change</strong> for VIX (so “VIX merely high” doesn’t trigger)</li>
-          <li>Uses <strong>HYG relative</strong> (so “market down because reasons” isn’t enough)</li>
-        </ul>
-      </div>
-    </section>
-  </main>
-  <script>
-    const statusEl = document.getElementById('dislocationStatus');
-    const timestampEl = document.getElementById('dislocationTimestamp');
-    const dataDatesEl = document.getElementById('dislocationDataDates');
-    const ruleEl = document.getElementById('dislocationRule');
-    const yesterdayEl = document.getElementById('dislocationYesterday');
-    const signalsEl = document.getElementById('dislocationSignals');
-    const transitionsEl = document.getElementById('dislocationTransitions');
-
-    const formatStatus = (data) => {
-      if (data.status === 'dislocation') {
-        return 'Dislocation: TRUE';
-      }
-      if (data.status === 'stress_building') {
-        return 'Stress building (watch)';
-      }
-      return 'Dislocation: false';
-    };
-    const formatRule = (data) => {
-      if (!data.rule) {
-        return 'Rule: unavailable';
-      }
-      return `Rule: ${data.rule.k_required} signals required. ${data.rule.notes || ''}`.trim();
-    };
-    const formatLocalDateTime = (value) => {
-      if (!value) {
-        return 'unknown';
-      }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-      try {
-        return new Intl.DateTimeFormat(undefined, {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        }).format(date);
-      } catch (_) {
-        return date.toLocaleString();
-      }
-    };
-
-    const dislocationUrl = new URL('../dislocation.json', window.location.href).toString();
-    fetch(dislocationUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to load dislocation.json');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        statusEl.innerHTML = `<strong>Status:</strong> ${formatStatus(data)} (${data.signals_triggered_count} signals today)`;
-        timestampEl.textContent = `As of: ${formatLocalDateTime(data.asof_utc)}`;
-        const dataDates = data.data_dates || {};
-        const equitiesDate = formatLocalDateTime(dataDates.equities_close_utc);
-        const vixDate = formatLocalDateTime(dataDates.vix_close_utc);
-        const vixStale = dataDates.vix_stale_days;
-        let staleNote = 'staleness unknown';
-        if (typeof vixStale === 'number' && isFinite(vixStale)) {
-          staleNote = vixStale === 0 ? 'same session' : `${vixStale} day${vixStale === 1 ? '' : 's'} stale`;
-        }
-        dataDatesEl.textContent = `Data dates: equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote}).`;
-        ruleEl.textContent = formatRule(data);
-        yesterdayEl.textContent = `Yesterday signals: ${data.signals_triggered_count_yesterday ?? 'unknown'}`;
-        signalsEl.innerHTML = '';
-        if (Array.isArray(data.signals)) {
-          data.signals.forEach((signal) => {
-            const li = document.createElement('li');
-            li.textContent = `${signal.name}: ${signal.triggered ? 'triggered' : 'not triggered'}`;
-            signalsEl.appendChild(li);
-          });
-        } else {
-          const li = document.createElement('li');
-          li.textContent = 'Signal details unavailable.';
-          signalsEl.appendChild(li);
-        }
-        transitionsEl.innerHTML = '';
-        if (Array.isArray(data.transitions) && data.transitions.length > 0) {
-          data.transitions.slice(-5).forEach((transition) => {
-            const li = document.createElement('li');
-            li.textContent = `${formatLocalDateTime(transition.timestamp_utc)}: ${transition.from} → ${transition.to}`;
-            transitionsEl.appendChild(li);
-          });
-        } else {
-          const li = document.createElement('li');
-          li.textContent = 'No recent transitions logged.';
-          transitionsEl.appendChild(li);
-        }
-      })
-      .catch(() => {
-        statusEl.innerHTML = '<strong>Status:</strong> Unable to load dislocation.json';
-        timestampEl.textContent = 'As of: unavailable';
-        dataDatesEl.textContent = 'Data dates: unavailable';
-        ruleEl.textContent = 'Rule: unavailable';
-        yesterdayEl.textContent = 'Yesterday signals: unavailable';
-        signalsEl.innerHTML = '<li>Signal details unavailable.</li>';
-        transitionsEl.innerHTML = '<li>Transition details unavailable.</li>';
-      });
-  </script>
+  load().catch(() => {
+    document.getElementById('statusBadge').className = "badge b-muted";
+    document.getElementById('statusBadge').textContent = "ERROR";
+    document.getElementById('statusHeadline').textContent = "Couldn’t load data";
+    document.getElementById('statusExplain').textContent = "dislocation.json failed to load. Check path and GitHub Pages publishing.";
+    document.getElementById('signals').innerHTML = '<p class="help">Signal details unavailable.</p>';
+    document.getElementById('transitions').innerHTML = '<li>Transition details unavailable.</li>';
+    document.getElementById('dataDatesVal').textContent = 'Data dates: unavailable.';
+  });
+</script>
 </body>
 </html>
