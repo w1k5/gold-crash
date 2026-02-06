@@ -186,6 +186,22 @@
     return map[name] || name.replaceAll('_',' ');
   };
 
+  const tooltipText = (name) => {
+    const map = {
+      big_down_and_whipsaw: "Checks for sharp market losses combined with unusually violent intraday swings, a common sign of forced selling in thin liquidity.",
+      liquidity_degraded_proxy: "Looks for outsized price moves relative to trading activity, suggesting markets may struggle to absorb trades smoothly.",
+      volatility_spike: "Flags sudden jumps in implied volatility, which often accompany margin stress and rapid repositioning by leveraged players.",
+      credit_stress_proxy: "Monitors whether high-yield bonds are underperforming equities, an early warning that risk tolerance and funding conditions are tightening.",
+      credit_spread_widening_fred: "Detects widening junk-bond spreads, indicating investors are demanding more compensation for credit risk.",
+      funding_stress_sofr_iorb: "Checks for unusual strains in overnight funding markets, where disruptions can signal balance-sheet or collateral pressure.",
+      repo_rate_volume_dislocation: "Watches for abnormal repo rates or volumes that may reflect stress in the system’s primary financing channel.",
+      rates_volatility_shock: "Tracks sudden increases in Treasury yield volatility, which can force deleveraging across markets due to rising margin requirements.",
+      everything_sells_together: "Flags moments when typically diversifying assets fall together, a hallmark of liquidity-driven, indiscriminate selling.",
+      forced_flow_proxy_combo: "Combines equity stress, credit weakness, and volatility pressure to confirm margin-driven or forced liquidation dynamics."
+    };
+    return map[name] || '';
+  };
+
   const hint = (signal) => {
     const d = signal.details || {};
     switch(signal.name){
@@ -277,6 +293,10 @@
     signals.forEach(s => {
       const card = document.createElement('div');
       card.className = 'sig';
+      const tooltip = tooltipText(s.name);
+      if (tooltip) {
+        card.title = tooltip;
+      }
 
       const top = document.createElement('div');
       top.className = 'sigTop';
@@ -285,6 +305,9 @@
       const name = document.createElement('p');
       name.className = 'sigName';
       name.textContent = prettyName(s.name);
+      if (tooltip) {
+        name.title = tooltip;
+      }
       const small = document.createElement('p');
       small.className = 'sigHint';
       small.textContent = hint(s);
