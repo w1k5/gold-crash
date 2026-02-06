@@ -175,6 +175,10 @@
       liquidity_degraded_proxy: "Liquidity degraded (proxy)",
       volatility_spike: "Volatility spike",
       credit_stress_proxy: "Credit stress (proxy)",
+      credit_spread_widening_fred: "HY credit spread widening",
+      funding_stress_sofr_iorb: "Funding stress (SOFR-IORB)",
+      repo_rate_volume_dislocation: "Repo rate/volume dislocation",
+      rates_volatility_shock: "Rates volatility shock",
       everything_sells_together: "Everything sells together",
       forced_flow_proxy_combo: "Forced-flow combo (proxy)"
     };
@@ -187,12 +191,20 @@
       case "big_down_and_whipsaw":
         return `SPY 1D ${fmtPct(d.spy_1d_return_pct)} • Range ${fmtPct(d.spy_intraday_range_pct)}`;
       case "liquidity_degraded_proxy":
-        return `Volume z ${fmtNum(d.spy_volume_z)} • Range z ${fmtNum(d.spy_range_z)}`;
+        return `Dollar vol z ${fmtNum(d.spy_dollar_volume_z)} • Range z ${fmtNum(d.spy_range_z)}`;
       case "volatility_spike":
         if (d.note) return d.note;
         return `VIX ${fmtNum(d.vix_level)} • 1D ${fmtPct(d.vix_1d_change_pct)}`;
       case "credit_stress_proxy":
         return `HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • HYG ${fmtPct(d.hyg_1d_return_pct)}`;
+      case "credit_spread_widening_fred":
+        return `HY OAS ${fmtNum(d.hy_oas_level)} • 5D ${fmtNum(d.hy_oas_5d_change)}`;
+      case "funding_stress_sofr_iorb":
+        return `SOFR-IORB ${fmtNum(d.sofr_iorb_spread_bp)}bp • 5D ${fmtNum(d.sofr_iorb_spread_5d_bp)}bp`;
+      case "repo_rate_volume_dislocation":
+        return `TGCR ${fmtNum(d.tgcr_rate)} • Vol 5D ${fmtPct(d.tgcr_volume_5d_change_pct)}`;
+      case "rates_volatility_shock":
+        return `10Y RV5 ${fmtNum(d.dgs10_rv5_bp)}bp • 5D 10Y ${fmtNum(d.dgs10_5d_change_bp)}bp`;
       case "everything_sells_together":
         return `SPY ${fmtPct(d.spy_1d_return_pct)} • GLD ${fmtPct(d.gld_1d_return_pct)}`;
       case "forced_flow_proxy_combo":
@@ -241,6 +253,13 @@
       badge.textContent = "WATCH";
       headline.textContent = "Stress building";
       explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.`;
+      return;
+    }
+    if (data.status === "data_stale"){
+      badge.className = "badge b-muted";
+      badge.textContent = "DATA STALE";
+      headline.textContent = "Freshness guardrail triggered";
+      explain.textContent = "At least one required series is stale beyond tolerance. Treat this run as informational until data refreshes.";
       return;
     }
     badge.className = "badge b-good";
@@ -347,15 +366,19 @@
     document.getElementById('countVal').textContent = `${data.signals_triggered_count ?? 0}`;
     document.getElementById('yCountVal').textContent = `${data.signals_triggered_count_yesterday ?? 0}`;
     const dataDates = data.data_dates || {};
+    const sessionDate = dataDates.equity_session_date || 'unknown';
     const equitiesDate = formatLocalDateTime(dataDates.equities_close_utc);
     const vixDate = formatLocalDateTime(dataDates.vix_close_utc);
     const vixStale = dataDates.vix_stale_days;
+    const staleReasons = Array.isArray(dataDates.stale_reasons) && dataDates.stale_reasons.length
+      ? `; stale reasons: ${dataDates.stale_reasons.join(', ')}`
+      : '';
     let staleNote = 'staleness unknown';
     if (typeof vixStale === 'number' && isFinite(vixStale)) {
       staleNote = vixStale === 0 ? 'same session' : `${vixStale} day${vixStale === 1 ? '' : 's'} stale`;
     }
     document.getElementById('dataDatesVal').textContent =
-      `Data dates: equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote}).`;
+      `Data dates: equity session ${sessionDate}; equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote})${staleReasons}.`;
 
     const p = data.rule?.persistence;
     const pEl = document.getElementById('persistenceNote');
