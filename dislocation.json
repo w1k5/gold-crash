@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-06T14:58:41.179648+00:00",
+  "asof_utc": "2026-02-06T14:59:32.980184+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -18,17 +18,17 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.053687907676859,
-        "spy_intraday_range_pct": 0.63964016589754,
-        "spy_range_z": -0.15397012619459235
+        "spy_1d_return_pct": 1.0772999616303958,
+        "spy_intraday_range_pct": 0.6497109151433645,
+        "spy_range_z": -0.15221120900864568
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -2.4725395330975046,
-        "spy_range_z": -0.15397012619459235,
+        "spy_dollar_volume_z": -2.4594795873133677,
+        "spy_range_z": -0.15221120900864568,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range."
       }
     },
@@ -47,9 +47,9 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": 0.16763938904755804,
-        "spy_1d_return_pct": 1.053687907676859,
-        "hyg_minus_spy_pct": -0.886048518629301
+        "hyg_1d_return_pct": 0.18005712156958786,
+        "spy_1d_return_pct": 1.0772999616303958,
+        "hyg_minus_spy_pct": -0.8972428400608079
       }
     },
     {
@@ -96,16 +96,16 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.053687907676859,
-        "gld_1d_return_pct": 2.491626685978088
+        "spy_1d_return_pct": 1.0772999616303958,
+        "gld_1d_return_pct": 2.595727346790988
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.053687907676859,
-        "hyg_minus_spy_pct": -0.886048518629301,
+        "spy_1d_return_pct": 1.0772999616303958,
+        "hyg_minus_spy_pct": -0.8972428400608079,
         "vix_level": 21.77,
         "vix_1d_change_pct": 16.791845493562228,
         "counted_toward_threshold": false
