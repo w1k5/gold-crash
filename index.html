@@ -175,6 +175,59 @@
     .section-card #reasons li:last-child {
       margin-bottom: 0;
     }
+    .reason-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .reason-help {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--row-alt);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: help;
+      flex: 0 0 auto;
+    }
+    .reason-help-tooltip {
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 8px);
+      transform: translateX(-50%);
+      min-width: 220px;
+      max-width: min(420px, calc(100vw - 48px));
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
+      box-shadow: var(--shadow);
+      text-transform: none;
+      letter-spacing: normal;
+      white-space: normal;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.14s ease;
+    }
+    .reason-help:hover .reason-help-tooltip,
+    .reason-help:focus-visible .reason-help-tooltip,
+    .reason-help:active .reason-help-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
     .card-grid {
       display: grid;
       gap: 14px;
@@ -625,6 +678,12 @@
       if (!note) return note;
       return note.replace(/(\bused available history\b)(\s+\1)+/gi, '$1');
     };
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
     const formatOrdinal = (value) => {
       const rounded = Math.round(value);
       const mod10 = rounded % 10;
@@ -739,8 +798,18 @@
         reasonLeadEl.innerHTML = `<strong>${state}</strong> because:`;
         reasonsEl.innerHTML = reasons.length
           ? reasons.map((item) => {
-            const label = REASON_LABELS[item] || item;
-            return `<li title="${item}">${label}</li>`;
+            const label = escapeHtml(REASON_LABELS[item] || item);
+            const reasonCode = escapeHtml(item);
+            return `
+              <li>
+                <span class="reason-item">
+                  <span>${label}</span>
+                  <span class="reason-help" tabindex="0" aria-label="Show trigger code for ${label}">ⓘ
+                    <span class="reason-help-tooltip">Trigger code: <code>${reasonCode}</code></span>
+                  </span>
+                </span>
+              </li>
+            `;
           }).join('')
           : '<li>No active triggers.</li>';
 
