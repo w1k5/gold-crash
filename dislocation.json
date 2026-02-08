@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-02-07T13:11:45.884598+00:00",
+  "asof_utc": "2026-02-08T13:12:40.067282+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
   "signals_triggered_count": 1,
-  "signals_triggered_count_yesterday": 0,
+  "signals_triggered_count_yesterday": 1,
   "signals_triggered": [
     "credit_stress_proxy"
   ],
