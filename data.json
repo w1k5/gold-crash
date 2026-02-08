@@ -2,7 +2,7 @@
   "metrics": {
     "flows": {
       "holdings_change_21d_pct": 0.008527545847272592,
-      "holdings_change_21d_pct_pctile_5y": 65,
+      "holdings_change_21d_pct_pctile_5y": 64,
       "holdings_change_21d_pct_pctile_5y_explain": null,
       "holdings_change_5d_pct": -0.009999080121423972,
       "holdings_change_5d_pct_pctile_5y": 10,
@@ -121,7 +121,7 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 24
+      "red_exit_streak": 25
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -271,7 +271,7 @@
           "unit": "pctile"
         },
         {
-          "current": 65.0,
+          "current": 64.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -300,5 +300,5 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-02-07T07:55:00.517020-05:00"
+  "updated_at": "2026-02-08T07:56:16.940921-05:00"
 }
