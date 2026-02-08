@@ -266,8 +266,33 @@
       return `${formatter(value)}${contextTag(explain)}`;
     };
 
-    fetch('data.json', { cache: 'no-store' })
-      .then((response) => response.json())
+    const robustDataUrls = () => {
+      const here = new URL(window.location.href);
+      return [
+        new URL('data.json', here).toString(),
+        new URL('./data.json', here).toString(),
+        new URL('../data.json', here).toString(),
+      ];
+    };
+
+    const loadData = async () => {
+      let lastError = null;
+      for (const candidate of robustDataUrls()) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) {
+            lastError = new Error(`HTTP ${response.status} for ${candidate}`);
+            continue;
+          }
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error('Failed to load data.json');
+    };
+
+    loadData()
       .then((data) => {
         const regime = data.regime || {};
         const state = regime.state || data.flag || 'UNKNOWN';

@@ -343,6 +343,42 @@
       font-size: 12px;
       color: var(--muted);
     }
+    .distance-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      min-width: 120px;
+    }
+    .mini-thermo {
+      position: relative;
+      width: 110px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.25);
+      overflow: visible;
+    }
+    .mini-thermo-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+      transition: width 0.2s ease;
+    }
+    .mini-thermo-marker {
+      position: absolute;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 2px solid var(--blue);
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+      transition: left 0.2s ease;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -847,6 +883,32 @@
       if (unit === 'pctile') return signedValue(value, (val) => `${Math.round(val)} pctile`);
       return signedValue(value, (val) => `${val}`);
     };
+    const clamp01 = (value) => Math.max(0, Math.min(1, value));
+    const transitionScore = (row) => {
+      if (!row) return 0;
+      if (row.fired === true) return 1;
+      if (typeof row.distance !== 'number' || !Number.isFinite(row.distance)) return 0;
+      const ramps = {
+        percent: 0.05,
+        bp: 25,
+        pctile: 20,
+      };
+      const ramp = ramps[row.unit] ?? 1;
+      return clamp01(1 - (Math.abs(row.distance) / ramp));
+    };
+    const renderTransitionThermometer = (row) => {
+      const score = transitionScore(row);
+      const pct = (score * 100).toFixed(1);
+      const tooltip = row?.fired
+        ? 'Trigger met'
+        : `Proximity: ${pct}%`;
+      return `
+        <div class="mini-thermo" title="${tooltip}">
+          <div class="mini-thermo-fill" style="width:${pct}%"></div>
+          <div class="mini-thermo-marker" style="left:${pct}%"></div>
+        </div>
+      `;
+    };
     const formatCurrent = (value, unit) => {
       if (value == null) return 'N/A';
       if (unit === 'percent') return formatPercent(value);
@@ -867,7 +929,12 @@
       const bodyRows = rows.map((row) => `
         <tr>
           <td class="num">${row.fired == null ? 'N/A' : (row.fired ? 'Met' : 'Not met')}</td>
-          <td class="num">${formatDistance(row.distance, row.unit)}</td>
+          <td class="num">
+            <div class="distance-cell">
+              <span>${formatDistance(row.distance, row.unit)}</span>
+              ${renderTransitionThermometer(row)}
+            </div>
+          </td>
           <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
           <td class="num">${formatCurrent(row.current, row.unit)}</td>
           <td class="num">${row.threshold}</td>
@@ -906,8 +973,33 @@
         <div class="why">${why}</div>
       </div>
     `;
-    fetch('data.json', { cache: 'no-store' })
-      .then((response) => response.json())
+    const robustDataUrls = () => {
+      const here = new URL(window.location.href);
+      return [
+        new URL('data.json', here).toString(),
+        new URL('./data.json', here).toString(),
+        new URL('../data.json', here).toString(),
+      ];
+    };
+
+    const loadData = async () => {
+      let lastError = null;
+      for (const candidate of robustDataUrls()) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) {
+            lastError = new Error(`HTTP ${response.status} for ${candidate}`);
+            continue;
+          }
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error('Failed to load data.json');
+    };
+
+    loadData()
       .then((data) => {
         const regime = data.regime || {};
         const state = regime.state || data.flag || 'UNKNOWN';

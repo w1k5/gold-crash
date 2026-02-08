@@ -116,6 +116,36 @@ def safe_bool(series: pd.Series) -> bool:
     return bool(cleaned.iloc[-1]) if not cleaned.empty else False
 
 
+def clamp_0_1(value: Optional[float]) -> float:
+    if value is None:
+        return 0.0
+    return float(max(0.0, min(1.0, value)))
+
+
+def score_ge(value: Optional[float], threshold: float, ramp: float) -> tuple[float, Optional[float]]:
+    """Score how close value is to meeting a >= threshold rule."""
+    if value is None or ramp <= 0:
+        return 0.0, None
+    score = (value - (threshold - ramp)) / ramp
+    return clamp_0_1(score), float(value - threshold)
+
+
+def score_le(value: Optional[float], threshold: float, ramp: float) -> tuple[float, Optional[float]]:
+    """Score how close value is to meeting a <= threshold rule."""
+    if value is None or ramp <= 0:
+        return 0.0, None
+    score = (threshold - value + ramp) / ramp
+    return clamp_0_1(score), float(threshold - value)
+
+
+def combine_or(*scores: float) -> float:
+    return clamp_0_1(max(scores) if scores else 0.0)
+
+
+def combine_and(*scores: float) -> float:
+    return clamp_0_1(min(scores) if scores else 0.0)
+
+
 def bday_lag_days(base_index: pd.Index, other_index: Optional[pd.Index]) -> Optional[int]:
     if base_index.empty or other_index is None or len(other_index) == 0:
         return None
@@ -184,39 +214,80 @@ def compute_signals(
         vix_level_z = rolling_z(raw_vix_level, lookback).reindex(idx, method="ffill")
         vix_ret_z = rolling_z(cleaned_vix_ret, lookback).reindex(idx, method="ffill")
 
+    last_spy_ret = safe_last(spy_ret)
+    last_gld_ret = safe_last(gld_ret)
+    last_hyg_ret = safe_last(hyg_ret)
+    last_hyg_minus_spy = safe_last(hyg_ret - spy_ret)
+    last_spy_rng = safe_last(spy_rng)
+    last_spy_rng_z = safe_last(spy_rng_z)
+    last_spy_dollar_vol_z = safe_last(spy_dollar_vol_z)
+    last_vix_level = safe_last(vix_level)
+    last_vix_ret = safe_last(vix_ret)
+    last_vix_level_z = safe_last(vix_level_z)
+    last_vix_ret_z = safe_last(vix_ret_z)
+
     big_down = spy_ret <= -2.5
     whipsaw = (spy_rng >= 2.5) | (spy_rng_z >= 2.0)
     sig1 = big_down & whipsaw
 
+    score_big_down, _ = score_le(last_spy_ret, -2.5, 2.5)
+    score_whipsaw = combine_or(
+        score_ge(last_spy_rng, 2.5, 2.5)[0],
+        score_ge(last_spy_rng_z, 2.0, 2.0)[0],
+    )
+    score_sig1 = combine_and(score_big_down, score_whipsaw)
+
     liq_proxy = (spy_rng_z >= 2.0) & (spy_dollar_vol_z >= 2.0)
+    score_liq = combine_and(
+        score_ge(last_spy_rng_z, 2.0, 2.0)[0],
+        score_ge(last_spy_dollar_vol_z, 2.0, 2.0)[0],
+    )
 
     if vix is None:
         vol_spike = pd.Series(False, index=idx)
+        score_vol_spike = 0.0
     else:
         vol_spike = ((vix_level >= 30) | (vix_level_z >= 1.5)) & ((vix_ret >= 20) | (vix_ret_z >= 2.0))
+        score_vol_level = combine_or(
+            score_ge(last_vix_level, 30.0, 10.0)[0],
+            score_ge(last_vix_level_z, 1.5, 1.5)[0],
+        )
+        score_vol_change = combine_or(
+            score_ge(last_vix_ret, 20.0, 20.0)[0],
+            score_ge(last_vix_ret_z, 2.0, 2.0)[0],
+        )
+        score_vol_spike = combine_and(score_vol_level, score_vol_change)
 
     credit_stress = (hyg_ret - spy_ret) <= -1.5
+    score_credit, margin_credit = score_le(last_hyg_minus_spy, -1.5, 1.5)
 
     everything_sells = (spy_ret <= -2.0) & (gld_ret <= -1.0)
+    score_everything = combine_and(
+        score_le(last_spy_ret, -2.0, 2.0)[0],
+        score_le(last_gld_ret, -1.0, 1.0)[0],
+    )
     forced_flow_proxy = big_down & credit_stress & vol_spike
+    score_forced_flow = combine_and(score_big_down, score_credit, score_vol_spike)
 
     results: List[SignalResult] = []
     results.append(SignalResult(
         name="big_down_and_whipsaw",
         triggered=safe_bool(sig1),
         details={
-            "spy_1d_return_pct": safe_last(spy_ret),
-            "spy_intraday_range_pct": safe_last(spy_rng),
-            "spy_range_z": safe_last(spy_rng_z),
+            "spy_1d_return_pct": last_spy_ret,
+            "spy_intraday_range_pct": last_spy_rng,
+            "spy_range_z": last_spy_rng_z,
+            "score_0_1": score_sig1,
         },
     ))
     results.append(SignalResult(
         name="liquidity_degraded_proxy",
         triggered=safe_bool(liq_proxy),
         details={
-            "spy_dollar_volume_z": safe_last(spy_dollar_vol_z),
-            "spy_range_z": safe_last(spy_rng_z),
+            "spy_dollar_volume_z": last_spy_dollar_vol_z,
+            "spy_range_z": last_spy_rng_z,
             "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
+            "score_0_1": score_liq,
         },
     ))
 
@@ -224,18 +295,22 @@ def compute_signals(
         results.append(SignalResult(
             name="volatility_spike",
             triggered=False,
-            details={"note": "VIX data unavailable from Stooq."},
+            details={
+                "note": "VIX data unavailable from Stooq.",
+                "score_0_1": 0.0,
+            },
         ))
     else:
         results.append(SignalResult(
             name="volatility_spike",
             triggered=safe_bool(vol_spike),
             details={
-                "vix_level": safe_last(vix_level),
-                "vix_1d_change_pct": safe_last(vix_ret),
-                "vix_level_z": safe_last(vix_level_z),
-                "vix_change_z": safe_last(vix_ret_z),
+                "vix_level": last_vix_level,
+                "vix_1d_change_pct": last_vix_ret,
+                "vix_level_z": last_vix_level_z,
+                "vix_change_z": last_vix_ret_z,
                 "vix_eligible": bool(vix_stale_days is not None and vix_stale_days <= 1),
+                "score_0_1": score_vol_spike,
             },
         ))
 
@@ -243,9 +318,12 @@ def compute_signals(
         name="credit_stress_proxy",
         triggered=safe_bool(credit_stress),
         details={
-            "hyg_1d_return_pct": safe_last(hyg_ret),
-            "spy_1d_return_pct": safe_last(spy_ret),
-            "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret),
+            "hyg_1d_return_pct": last_hyg_ret,
+            "spy_1d_return_pct": last_spy_ret,
+            "hyg_minus_spy_pct": last_hyg_minus_spy,
+            "score_0_1": score_credit,
+            "margin": margin_credit,
+            "margin_unit": "%",
         },
     ))
 
@@ -257,14 +335,25 @@ def compute_signals(
             oas_chg_10 = oas.diff(10)
             oas_z = rolling_z(oas, 756)
             trig = (oas >= 6.5) | (oas_chg_5 >= 0.50) | (oas_chg_10 >= 0.40) | ((oas_z >= 2.0) & (oas_chg_10 >= 0.60))
+            last_oas = safe_last(oas)
+            last_oas_5 = safe_last(oas_chg_5)
+            last_oas_10 = safe_last(oas_chg_10)
+            last_oas_z = safe_last(oas_z)
+            score_oas = combine_or(
+                score_ge(last_oas, 6.5, 2.0)[0],
+                score_ge(last_oas_5, 0.50, 0.50)[0],
+                score_ge(last_oas_10, 0.40, 0.40)[0],
+                combine_and(score_ge(last_oas_z, 2.0, 2.0)[0], score_ge(last_oas_10, 0.60, 0.60)[0]),
+            )
             results.append(SignalResult(
                 name="credit_spread_widening_fred",
                 triggered=safe_bool(trig),
                 details={
-                    "hy_oas_level": safe_last(oas),
-                    "hy_oas_5d_change": safe_last(oas_chg_5),
-                    "hy_oas_10d_change": safe_last(oas_chg_10),
-                    "hy_oas_z": safe_last(oas_z),
+                    "hy_oas_level": last_oas,
+                    "hy_oas_5d_change": last_oas_5,
+                    "hy_oas_10d_change": last_oas_10,
+                    "hy_oas_z": last_oas_z,
+                    "score_0_1": score_oas,
                 },
             ))
 
@@ -276,13 +365,22 @@ def compute_signals(
             spread_5 = spread_bp.diff(5)
             persistent = spread_bp.rolling(3).apply(lambda x: int((x >= 15).sum()), raw=True) >= 2
             trig = (spread_bp >= 25) | ((spread_z >= 2.5) & (spread_5 >= 10)) | persistent
+            last_spread = safe_last(spread_bp)
+            last_spread_5 = safe_last(spread_5)
+            last_spread_z = safe_last(spread_z)
+            score_spread = combine_or(
+                score_ge(last_spread, 25.0, 25.0)[0],
+                combine_and(score_ge(last_spread_z, 2.5, 2.5)[0], score_ge(last_spread_5, 10.0, 10.0)[0]),
+                score_ge(last_spread, 15.0, 10.0)[0],
+            )
             results.append(SignalResult(
                 name="funding_stress_sofr_iorb",
                 triggered=safe_bool(trig),
                 details={
-                    "sofr_iorb_spread_bp": safe_last(spread_bp),
-                    "sofr_iorb_spread_5d_bp": safe_last(spread_5),
-                    "sofr_iorb_spread_z": safe_last(spread_z),
+                    "sofr_iorb_spread_bp": last_spread,
+                    "sofr_iorb_spread_5d_bp": last_spread_5,
+                    "sofr_iorb_spread_z": last_spread_z,
+                    "score_0_1": score_spread,
                 },
             ))
 
@@ -296,15 +394,25 @@ def compute_signals(
             rate_5 = rate.diff(5)
             vol_5_pct = vol.pct_change(5) * 100
             trig = ((rate_z >= 2.5) | (rate_5 >= 0.15)) & ((vol_z <= -2.0) | (vol_5_pct <= -20))
+            last_rate = safe_last(rate)
+            last_rate_5 = safe_last(rate_5)
+            last_rate_z = safe_last(rate_z)
+            last_vol_z = safe_last(vol_z)
+            last_vol_5_pct = safe_last(vol_5_pct)
+            score_repo = combine_and(
+                combine_or(score_ge(last_rate_z, 2.5, 2.5)[0], score_ge(last_rate_5, 0.15, 0.15)[0]),
+                combine_or(score_le(last_vol_z, -2.0, 2.0)[0], score_le(last_vol_5_pct, -20.0, 20.0)[0]),
+            )
             results.append(SignalResult(
                 name="repo_rate_volume_dislocation",
                 triggered=safe_bool(trig),
                 details={
-                    "tgcr_rate": safe_last(rate),
-                    "tgcr_rate_5d_change_pct": safe_last(rate_5),
-                    "tgcr_rate_z": safe_last(rate_z),
-                    "tgcr_volume_z": safe_last(vol_z),
-                    "tgcr_volume_5d_change_pct": safe_last(vol_5_pct),
+                    "tgcr_rate": last_rate,
+                    "tgcr_rate_5d_change_pct": last_rate_5,
+                    "tgcr_rate_z": last_rate_z,
+                    "tgcr_volume_z": last_vol_z,
+                    "tgcr_volume_5d_change_pct": last_vol_5_pct,
+                    "score_0_1": score_repo,
                 },
             ))
 
@@ -317,14 +425,24 @@ def compute_signals(
             rv5_5 = rv5.diff(5)
             yld_5 = yld.diff(5) * 100
             trig = (rv5 >= 12) | ((rv5_z >= 2.5) & (rv5_5 >= 4)) | ((yld_5.abs() >= 25) & (rv5 >= 8))
+            last_rv5 = safe_last(rv5)
+            last_rv5_z = safe_last(rv5_z)
+            last_rv5_5 = safe_last(rv5_5)
+            last_yld_5 = safe_last(yld_5)
+            score_rates = combine_or(
+                score_ge(last_rv5, 12.0, 12.0)[0],
+                combine_and(score_ge(last_rv5_z, 2.5, 2.5)[0], score_ge(last_rv5_5, 4.0, 4.0)[0]),
+                combine_and(score_ge(abs(last_yld_5) if last_yld_5 is not None else None, 25.0, 25.0)[0], score_ge(last_rv5, 8.0, 8.0)[0]),
+            )
             results.append(SignalResult(
                 name="rates_volatility_shock",
                 triggered=safe_bool(trig),
                 details={
-                    "dgs10_rv5_bp": safe_last(rv5),
-                    "dgs10_rv5_z": safe_last(rv5_z),
-                    "dgs10_rv5_5d_change_bp": safe_last(rv5_5),
-                    "dgs10_5d_change_bp": safe_last(yld_5),
+                    "dgs10_rv5_bp": last_rv5,
+                    "dgs10_rv5_z": last_rv5_z,
+                    "dgs10_rv5_5d_change_bp": last_rv5_5,
+                    "dgs10_5d_change_bp": last_yld_5,
+                    "score_0_1": score_rates,
                 },
             ))
 
@@ -332,8 +450,9 @@ def compute_signals(
         name="everything_sells_together",
         triggered=safe_bool(everything_sells),
         details={
-            "spy_1d_return_pct": safe_last(spy_ret),
-            "gld_1d_return_pct": safe_last(gld_ret),
+            "spy_1d_return_pct": last_spy_ret,
+            "gld_1d_return_pct": last_gld_ret,
+            "score_0_1": score_everything,
         },
     ))
 
@@ -342,9 +461,10 @@ def compute_signals(
             name="forced_flow_proxy_combo",
             triggered=False,
             details={
-                "spy_1d_return_pct": safe_last(spy_ret),
-                "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret),
+                "spy_1d_return_pct": last_spy_ret,
+                "hyg_minus_spy_pct": last_hyg_minus_spy,
                 "note": "VIX data unavailable from Stooq.",
+                "score_0_1": 0.0,
             },
         ))
     else:
@@ -352,11 +472,11 @@ def compute_signals(
             name="forced_flow_proxy_combo",
             triggered=safe_bool(forced_flow_proxy),
             details={
-                "spy_1d_return_pct": safe_last(spy_ret),
-                "hyg_minus_spy_pct": safe_last(hyg_ret - spy_ret),
-                "vix_level": safe_last(vix_level),
-                "vix_1d_change_pct": safe_last(vix_ret),
-                "counted_toward_threshold": False,
+                "spy_1d_return_pct": last_spy_ret,
+                "hyg_minus_spy_pct": last_hyg_minus_spy,
+                "vix_level": last_vix_level,
+                "vix_1d_change_pct": last_vix_ret,
+                "score_0_1": score_forced_flow,
             },
         ))
 
@@ -425,6 +545,8 @@ def summarize_dislocation(
             "to": status,
         })
 
+    excluded_set = set(excluded_from_threshold)
+
     return {
         "asof_utc": datetime.now(timezone.utc).isoformat(),
         "dislocation": dislocation,
@@ -438,7 +560,14 @@ def summarize_dislocation(
             "notes": "Stale VIX data (>0 business day lag) is excluded from K-of-N counting.",
         },
         "signals": [
-            {"name": signal.name, "triggered": signal.triggered, "details": signal.details}
+            {
+                "name": signal.name,
+                "triggered": signal.triggered,
+                "details": {
+                    **signal.details,
+                    "counted_toward_threshold": signal.name not in excluded_set,
+                },
+            }
             for signal in signals
         ],
         "data_dates": {
