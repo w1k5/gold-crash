@@ -82,6 +82,13 @@
     .sigTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
     .sigName{font-weight:650;font-size:14px;margin:0;}
     .sigHint{margin:0;color:var(--muted);font-size:12px;}
+    .thermoWrap{display:flex;flex-direction:column;gap:6px;}
+    .thermoTrack{position:relative;height:8px;border-radius:999px;background:rgba(148,163,184,.25);overflow:visible;}
+    .thermoFill{position:absolute;left:0;top:0;height:100%;border-radius:inherit;background:var(--info);transition:width .2s ease;}
+    .thermoMarker{position:absolute;top:50%;width:10px;height:10px;border-radius:999px;background:var(--card);border:2px solid var(--info);transform:translate(-50%,-50%);transition:left .2s ease;box-sizing:border-box;}
+    .thermoLabels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;}
+    .thermoMuted{opacity:.5;}
+    .thermoCaption{margin:0;color:var(--muted);font-size:11px;}
     details{border-top:1px dashed var(--border);padding-top:10px;}
     summary{cursor:pointer;color:var(--info);font-size:13px;user-select:none;}
     .kv{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;margin:8px 0 0;}
@@ -169,6 +176,20 @@
   // ---- Helpers
   const fmtPct = (x) => (typeof x === 'number' && isFinite(x)) ? `${x.toFixed(2)}%` : '—';
   const fmtNum = (x) => (typeof x === 'number' && isFinite(x)) ? `${x.toFixed(2)}` : '—';
+  const clamp01 = (x) => Math.max(0, Math.min(1, Number.isFinite(x) ? x : 0));
+  const thermometerScore = (signal) => {
+    const details = signal.details || {};
+    const raw = Number(details.score_0_1);
+    const base = Number.isFinite(raw) ? raw : (signal.triggered ? 1 : 0);
+    return signal.triggered ? 1 : clamp01(base);
+  };
+  const marginText = (details) => {
+    const margin = details?.margin;
+    if (!Number.isFinite(margin)) return '';
+    const unit = details?.margin_unit || '';
+    if (margin >= 0) return `${Math.abs(margin).toFixed(2)}${unit} past trigger`;
+    return `${Math.abs(margin).toFixed(2)}${unit} from trigger`;
+  };
 
   const prettyName = (name) => {
     const map = {
@@ -309,6 +330,11 @@
     root.innerHTML = '';
 
     const signals = Array.isArray(data.signals) ? data.signals : [];
+    const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
+      ? data.signal_counting.excluded_from_threshold
+      : [];
+    const excludedSet = new Set(excluded.filter(Boolean));
+
     signals.forEach(s => {
       const card = document.createElement('div');
       card.className = 'sig';
@@ -327,13 +353,9 @@
       small.textContent = hint(s);
       left.appendChild(small);
 
-      const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
-      ? data.signal_counting.excluded_from_threshold
-      : [];
-    const excludedSet = new Set(excluded.filter(Boolean));
-
       const b = document.createElement('span');
-      if (excludedSet.has(s.name)) {
+      const counted = s.details?.counted_toward_threshold ?? !excludedSet.has(s.name);
+      if (!counted) {
         b.className = 'badge b-muted';
         b.textContent = 'Excluded from K';
       } else {
@@ -343,6 +365,40 @@
 
       top.appendChild(left);
       top.appendChild(b);
+
+      const thermoWrap = document.createElement('div');
+      thermoWrap.className = `thermoWrap ${counted ? '' : 'thermoMuted'}`;
+      const score = thermometerScore(s);
+      const pct = clamp01(score) * 100;
+
+      const track = document.createElement('div');
+      track.className = 'thermoTrack';
+
+      const fill = document.createElement('div');
+      fill.className = 'thermoFill';
+      fill.style.width = `${pct}%`;
+
+      const marker = document.createElement('div');
+      marker.className = 'thermoMarker';
+      marker.style.left = `${pct}%`;
+      const markerTitle = marginText(s.details || {});
+      marker.title = markerTitle || `${pct.toFixed(0)}% to trigger`;
+
+      const labels = document.createElement('div');
+      labels.className = 'thermoLabels';
+      labels.innerHTML = '<span>Quiet</span><span>Trigger</span>';
+
+      track.appendChild(fill);
+      track.appendChild(marker);
+      thermoWrap.appendChild(track);
+      thermoWrap.appendChild(labels);
+
+      if (!counted) {
+        const caption = document.createElement('p');
+        caption.className = 'thermoCaption';
+        caption.textContent = 'Not counted toward threshold';
+        thermoWrap.appendChild(caption);
+      }
 
       const details = document.createElement('details');
       const summary = document.createElement('summary');
@@ -365,6 +421,7 @@
       explanationDetails.appendChild(explanation);
 
       card.appendChild(top);
+      card.appendChild(thermoWrap);
       card.appendChild(details);
       card.appendChild(explanationDetails);
       root.appendChild(card);
