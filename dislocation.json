@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-08T17:30:12.361855+00:00",
+  "asof_utc": "2026-02-09T13:45:40.897343+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
@@ -79,9 +79,9 @@
       "name": "funding_stress_sofr_iorb",
       "triggered": false,
       "details": {
-        "sofr_iorb_spread_bp": 0.0,
-        "sofr_iorb_spread_5d_bp": -3.000000000000025,
-        "sofr_iorb_spread_z": 1.050203493105344,
+        "sofr_iorb_spread_bp": -0.9999999999999787,
+        "sofr_iorb_spread_5d_bp": -4.0000000000000036,
+        "sofr_iorb_spread_z": 0.8732944976576384,
         "score_0_1": 0.0,
         "counted_toward_threshold": true
       }
@@ -90,11 +90,11 @@
       "name": "repo_rate_volume_dislocation",
       "triggered": false,
       "details": {
-        "tgcr_rate": 3.63,
-        "tgcr_rate_5d_change_pct": -0.03000000000000025,
-        "tgcr_rate_z": -2.1478560558704327,
-        "tgcr_volume_z": 2.006113344344196,
-        "tgcr_volume_5d_change_pct": 1.0180109631949819,
+        "tgcr_rate": 3.62,
+        "tgcr_rate_5d_change_pct": -0.040000000000000036,
+        "tgcr_rate_z": -2.16678744458792,
+        "tgcr_volume_z": 2.0514443311711563,
+        "tgcr_volume_5d_change_pct": 1.8794048551292075,
         "score_0_1": 0.0,
         "counted_toward_threshold": true
       }
