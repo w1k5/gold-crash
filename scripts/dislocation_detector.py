@@ -7,6 +7,7 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from urllib.parse import urlencode
 from io import StringIO
 from typing import Dict, List, Optional
 
@@ -14,7 +15,7 @@ import pandas as pd
 import requests
 
 
-STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&i=d"
+STOOQ_DAILY = "https://stooq.com/q/d/l/"
 DEFAULT_TICKERS = {
     "equity_core": "spy.us",
     "equity_broad": "vti.us",
@@ -32,9 +33,12 @@ DEFAULT_FRED_SERIES = {
 }
 
 
-def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
-    url = STOOQ_DAILY.format(symbol=symbol)
-    response = requests.get(url, timeout=20)
+def fetch_stooq_daily(symbol: str, require_volume: bool = True, no_cache: bool = False) -> pd.DataFrame:
+    params = {"s": symbol, "i": "d"}
+    if no_cache:
+        params["_ts"] = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    url = f"{STOOQ_DAILY}?{urlencode(params)}"
+    response = requests.get(url, timeout=20, headers={"Cache-Control": "no-cache" if no_cache else "max-age=0"})
     response.raise_for_status()
     if "<html" in response.text.lower():
         raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
@@ -86,6 +90,31 @@ def fetch_fred_series(series_id: str, api_key: str) -> pd.DataFrame:
         rows.append((dt, value))
     df = pd.DataFrame(rows, columns=["Date", series_id]).dropna()
     return df.set_index("Date").sort_index()
+
+
+
+
+def business_day_lag_to_today(data_index: pd.Index, now_utc: Optional[datetime] = None) -> Optional[int]:
+    if data_index.empty:
+        return None
+    current = now_utc or datetime.now(timezone.utc)
+    current_day = pd.Timestamp(current).normalize().tz_localize(None)
+    latest_day = pd.Timestamp(data_index.max()).normalize().tz_localize(None)
+    return int(max(pd.bdate_range(latest_day, current_day).size - 1, 0))
+
+
+def fetch_stooq_daily_fresh(symbol: str, require_volume: bool = True) -> pd.DataFrame:
+    """Fetch Stooq daily data and retry with a cache-buster if data appears stale."""
+    first = fetch_stooq_daily(symbol, require_volume=require_volume, no_cache=False)
+    lag = business_day_lag_to_today(first.index)
+    if lag is None or lag <= 1:
+        return first
+
+    refreshed = fetch_stooq_daily(symbol, require_volume=require_volume, no_cache=True)
+    refreshed_lag = business_day_lag_to_today(refreshed.index)
+    if refreshed_lag is None:
+        return refreshed
+    return refreshed if refreshed_lag <= lag else first
 
 
 def pct_change(series: pd.Series, periods: int = 1) -> pd.Series:
@@ -614,9 +643,9 @@ def main() -> None:
     parser.add_argument("--fred-series", default="", help="Optional legacy FRED series id (e.g., BAMLH0A0HYM2)")
     args = parser.parse_args()
 
-    spy = fetch_stooq_daily(args.spy_symbol)
-    gld = fetch_stooq_daily(args.gld_symbol)
-    hyg = fetch_stooq_daily(args.hyg_symbol)
+    spy = fetch_stooq_daily_fresh(args.spy_symbol)
+    gld = fetch_stooq_daily_fresh(args.gld_symbol)
+    hyg = fetch_stooq_daily_fresh(args.hyg_symbol)
 
     vix = None
     tried = []
@@ -625,7 +654,7 @@ def main() -> None:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate, require_volume=False)
+            vix = fetch_stooq_daily_fresh(candidate, require_volume=False)
             break
         except ValueError:
             continue
