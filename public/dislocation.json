@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-02-10T13:39:20.444854+00:00",
+  "asof_utc": "2026-02-10T13:51:50.530843+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
   "signals_triggered_count": 0,
-  "signals_triggered_count_yesterday": 1,
+  "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
   "signal_counting": {
     "excluded_from_threshold": [
