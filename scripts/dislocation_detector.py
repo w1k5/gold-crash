@@ -21,6 +21,7 @@ DEFAULT_TICKERS = {
     "gold": "gld.us",
     "credit_hy": "hyg.us",
     "vix": "vi.c",
+    "jgb_etf": "2561.jp",
 }
 DEFAULT_FRED_SERIES = {
     "hy_oas": "BAMLH0A0HYM2",
@@ -178,13 +179,17 @@ def compute_signals(
     gld: pd.DataFrame,
     hyg: pd.DataFrame,
     vix: Optional[pd.DataFrame] = None,
+    jgb_etf: Optional[pd.DataFrame] = None,
     fred_map: Optional[Dict[str, pd.DataFrame]] = None,
     lookback: int = 252,
 ) -> tuple[List[SignalResult], RunMeta]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
+    if jgb_etf is not None:
+        idx = idx.intersection(jgb_etf.index)
     spy = spy.loc[idx]
     gld = gld.loc[idx]
     hyg = hyg.loc[idx]
+    jgb_etf = jgb_etf.loc[idx] if jgb_etf is not None else None
 
     equities_data_date = idx.max() if len(idx) else None
     session_date = equities_data_date.date().isoformat() if equities_data_date is not None else None
@@ -492,38 +497,38 @@ def compute_signals(
                 },
             ))
 
-        if jgb10_df is not None and not jgb10_df.empty:
-            jgb = col(jgb10_df, DEFAULT_FRED_SERIES["jgb10"]).reindex(idx, method="ffill")
-            jgb_5d_bp = jgb.diff(5) * 100
-            jgb_20d_bp = jgb.diff(20) * 100
-            jgb_z = rolling_z(jgb_5d_bp, 756)
-            trig_jgb = (jgb_5d_bp >= 20) | (jgb_20d_bp >= 35) | ((jgb_z >= 2.5) & (jgb_5d_bp >= 15))
+        if jgb_etf is not None and not jgb_etf.empty:
+            jgb_px = jgb_etf["Close"]
+            jgb_5d = jgb_px.pct_change(5) * 100
+            jgb_20d = jgb_px.pct_change(20) * 100
+            jgb_5d_z = rolling_z(jgb_5d, 756)
+            trig_jgb = (jgb_5d <= -1.0) | (jgb_20d <= -2.0) | ((jgb_5d_z <= -2.5) & (jgb_5d <= -0.75))
 
-            last_jgb = safe_last(jgb)
-            last_jgb_5 = safe_last(jgb_5d_bp)
-            last_jgb_20 = safe_last(jgb_20d_bp)
-            last_jgb_z = safe_last(jgb_z)
-            score_jgb, margin_jgb = score_ge(last_jgb_5, 20.0, 20.0)
+            last_jgb_px = safe_last(jgb_px)
+            last_jgb_5d = safe_last(jgb_5d)
+            last_jgb_20d = safe_last(jgb_20d)
+            last_jgb_5d_z = safe_last(jgb_5d_z)
+            score_jgb, margin_jgb = score_le(last_jgb_5d, -1.0, 1.0)
 
             results.append(SignalResult(
-                name="jgb10_yield_spike",
+                name="jgb_price_drop_fast",
                 triggered=safe_bool(trig_jgb),
                 details={
-                    "jgb10_yield_pct": last_jgb,
-                    "jgb10_5d_change_bp": last_jgb_5,
-                    "jgb10_20d_change_bp": last_jgb_20,
-                    "jgb10_5d_change_z": last_jgb_z,
+                    "jgb_etf_close": last_jgb_px,
+                    "jgb_etf_5d_return_pct": last_jgb_5d,
+                    "jgb_etf_20d_return_pct": last_jgb_20d,
+                    "jgb_etf_5d_return_z": last_jgb_5d_z,
                     "score_0_1": score_jgb,
                     "margin": margin_jgb,
-                    "margin_unit": "bp (5D)",
+                    "margin_unit": "% (5D)",
                 },
             ))
         else:
             results.append(SignalResult(
-                name="jgb10_yield_spike",
+                name="jgb_price_drop_fast",
                 triggered=False,
                 details={
-                    "note": "Japan 10Y yield series unavailable (FRED jgb10 not loaded).",
+                    "note": "Japan bond ETF price series unavailable (Stooq 2561.jp not loaded).",
                     "score_0_1": 0.0,
                 },
             ))
@@ -572,12 +577,12 @@ def compute_signals(
         score_combo = combine_and(
             next((s.details.get("score_0_1", 0.0) for s in results if s.name == "yen_strengthening_fast"), 0.0),
             combine_or(
-                next((s.details.get("score_0_1", 0.0) for s in results if s.name == "jgb10_yield_spike"), 0.0),
+                next((s.details.get("score_0_1", 0.0) for s in results if s.name == "jgb_price_drop_fast"), 0.0),
                 next((s.details.get("score_0_1", 0.0) for s in results if s.name == "us_jp_spread_compression"), 0.0),
             ),
         )
         combo = trig_by_name("yen_strengthening_fast") and (
-            trig_by_name("jgb10_yield_spike") or trig_by_name("us_jp_spread_compression")
+            trig_by_name("jgb_price_drop_fast") or trig_by_name("us_jp_spread_compression")
         )
 
         results.append(SignalResult(
@@ -585,7 +590,7 @@ def compute_signals(
             triggered=bool(combo),
             details={
                 "yen_strengthening_fast": trig_by_name("yen_strengthening_fast"),
-                "jgb10_yield_spike": trig_by_name("jgb10_yield_spike"),
+                "jgb_price_drop_fast": trig_by_name("jgb_price_drop_fast"),
                 "us_jp_spread_compression": trig_by_name("us_jp_spread_compression"),
                 "score_0_1": score_combo,
             },
@@ -762,6 +767,7 @@ def main() -> None:
     spy = fetch_stooq_daily(args.spy_symbol)
     gld = fetch_stooq_daily(args.gld_symbol)
     hyg = fetch_stooq_daily(args.hyg_symbol)
+    jgb_etf = fetch_stooq_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True)
 
     vix = None
     tried = []
@@ -797,6 +803,7 @@ def main() -> None:
         gld=gld,
         hyg=hyg,
         vix=vix,
+        jgb_etf=jgb_etf,
         fred_map=fred_map,
         lookback=args.lookback,
     )
