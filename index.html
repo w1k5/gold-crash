@@ -57,6 +57,90 @@
       display: grid;
       gap: 10px;
     }
+    .daily-strip {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      margin-top: 2px;
+    }
+    .daily-chip {
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .daily-chip-title {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .lens-panel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--row-alt);
+    }
+    .lens-select {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    .sparkline-wrap {
+      margin-top: 8px;
+    }
+    .sparkline {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--row-alt);
+      display: block;
+    }
+    .sparkline-polyline {
+      fill: none;
+      stroke: var(--blue);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .sparkline-points {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      min-height: 1.2em;
+    }
+    .control-panel-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .trigger-progress {
+      margin-top: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #dbe4ef;
+      overflow: hidden;
+    }
+    .trigger-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #60a5fa);
+    }
+    .weakest-link {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
     .hero-note {
       background: var(--row-alt);
       border-radius: 14px;
@@ -520,6 +604,18 @@
           </div>
           <div class="status-explainer" id="macroFollowThrough">Loading macro follow-through...</div>
         </div>
+        <div class="daily-strip" id="dailyStrip">
+          <div class="daily-chip">Loading daily changes...</div>
+        </div>
+        <div class="lens-panel">
+          <label class="meta" for="portfolioLens"><strong>Portfolio lens</strong></label>
+          <select id="portfolioLens" class="lens-select">
+            <option value="conservative">Conservative</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="hardAsset">Hard-asset heavy</option>
+          </select>
+          <span class="meta" id="lensText">Balanced lens: watch whether extension cools before deterioration broadens.</span>
+        </div>
         <div class="hero-notes">
           <div class="hero-note">
             <span class="hero-note-title">Percentile context</span>
@@ -580,6 +676,10 @@
           <summary>Extension</summary>
           <div class="expandable-body">
             <p class="section-explainer">Extension measures how far price has moved relative to its longer-term trend.</p>
+            <div class="sparkline-wrap">
+              <svg id="extensionSparkline" class="sparkline" viewBox="0 0 220 40" preserveAspectRatio="none"></svg>
+              <div id="extensionSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div>
+            </div>
             <div class="table-container">
               <table>
                 <thead>
@@ -603,6 +703,10 @@
           <summary>Flow (short-term)</summary>
           <div class="expandable-body">
             <p class="section-explainer">Flow metrics track changes in GLD holdings as a proxy for investor demand.</p>
+            <div class="sparkline-wrap">
+              <svg id="flowSparkline" class="sparkline" viewBox="0 0 220 40" preserveAspectRatio="none"></svg>
+              <div id="flowSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div>
+            </div>
             <div class="table-container">
               <table>
                 <thead>
@@ -626,6 +730,10 @@
           <summary>Macro (short-term)</summary>
           <div class="expandable-body">
             <p class="section-explainer">Macro metrics focus on changes in real yields to contextualize price action.</p>
+            <div class="sparkline-wrap">
+              <svg id="macroSparkline" class="sparkline" viewBox="0 0 220 40" preserveAspectRatio="none"></svg>
+              <div id="macroSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div>
+            </div>
             <div class="table-container">
               <table>
                 <thead>
@@ -737,6 +845,15 @@
     const extensionRows = document.getElementById('extensionRows');
     const flowRows = document.getElementById('flowRows');
     const macroRows = document.getElementById('macroRows');
+    const dailyStripEl = document.getElementById('dailyStrip');
+    const portfolioLensEl = document.getElementById('portfolioLens');
+    const lensTextEl = document.getElementById('lensText');
+    const extensionSparklineEl = document.getElementById('extensionSparkline');
+    const extensionSparklinePointsEl = document.getElementById('extensionSparklinePoints');
+    const flowSparklineEl = document.getElementById('flowSparkline');
+    const flowSparklinePointsEl = document.getElementById('flowSparklinePoints');
+    const macroSparklineEl = document.getElementById('macroSparkline');
+    const macroSparklinePointsEl = document.getElementById('macroSparklinePoints');
     const repoLink = document.getElementById('repoLink');
     const issueLink = document.getElementById('issueLink');
     const setExpandGroup = (group, expand) => {
@@ -751,6 +868,7 @@
         setExpandGroup(group, action === 'expand');
       });
     });
+
 
     const contextTag = (text) => (text ? `<span class="context">${text}</span>` : '');
     const badgeDescriptions = {
@@ -791,6 +909,13 @@
       deterioration_followthrough: 'Macro follow-through (rates driving price)',
       composite_followthrough: 'Macro follow-through (rates driving price)'
     };
+    const LENS_COPY = {
+      conservative: 'Conservative lens: prioritize stability. A downgrade in regime matters more than upside extension.',
+      balanced: 'Balanced lens: watch whether extension cools before deterioration broadens.',
+      hardAsset: 'Hard-asset-heavy lens: focus on liquidation vs inflation signals before changing conviction.'
+    };
+    const STATE_RANK = { GREEN: 0, BLUE: 1, ORANGE: 2, RED: 3 };
+    const HISTORY_KEY = 'gold-risk-monitor-history-v1';
     const percentileContext = (value) => {
       if (value == null) return 'N/A';
       if (value <= 20) return 'low';
@@ -854,6 +979,65 @@
       if (unit === 'pctile') return `${formatOrdinal(value)} percentile`;
       return `${value}`;
     };
+    const distanceDirectionText = (distance, unit) => {
+      if (distance == null) return 'Need more data';
+      if (distance === 0) return 'Trigger met';
+      const move = distance > 0 ? 'rise' : 'fall';
+      return `Needs ${move} by ${formatDistance(Math.abs(distance), unit).replace('+', '')}`;
+    };
+    const progressToTrigger = (row) => {
+      if (row.fired) return 100;
+      if (row.current == null || row.distance == null) return 0;
+      const threshold = row.current + row.distance;
+      const denominator = Math.abs(threshold) + 1e-9;
+      const pct = 100 - (Math.abs(row.distance) / denominator) * 100;
+      return Math.max(0, Math.min(99, pct));
+    };
+    const loadHistory = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    };
+    const saveHistory = (history) => {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-120)));
+    };
+    const pushSnapshot = (snapshot) => {
+      const history = loadHistory();
+      const next = history.filter((item) => item.updated_at !== snapshot.updated_at);
+      next.push(snapshot);
+      next.sort((a, b) => (a.updated_at < b.updated_at ? -1 : 1));
+      saveHistory(next);
+      return next;
+    };
+    const lastFivePoints = (series, formatter) => series.slice(-5).map((point) => `${point.date.slice(5)} ${formatter(point.value)}`).join(' • ');
+    const renderSparkline = (svgEl, pointsEl, series, formatter) => {
+      if (!series.length) {
+        svgEl.innerHTML = '';
+        pointsEl.textContent = 'History builds as daily snapshots are saved.';
+        return;
+      }
+      const values = series.map((item) => item.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = max - min || 1;
+      const path = series.map((point, idx) => {
+        const x = (idx / Math.max(1, series.length - 1)) * 220;
+        const y = 36 - ((point.value - min) / span) * 32;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      svgEl.innerHTML = `<polyline class="sparkline-polyline" points="${path}"></polyline>`;
+      const hoverText = `Last 5 points: ${lastFivePoints(series, formatter)}`;
+      svgEl.onmouseenter = () => { pointsEl.textContent = hoverText; };
+      svgEl.onmouseleave = () => { pointsEl.textContent = 'Hover to see last 5 points.'; };
+    };
+    const updateLensCopy = () => {
+      lensTextEl.textContent = LENS_COPY[portfolioLensEl.value] || LENS_COPY.balanced;
+    };
+    portfolioLensEl.addEventListener('change', updateLensCopy);
+    updateLensCopy();
     const buildTransitionTable = (title, rows, note) => {
       if (!rows || rows.length === 0) {
         return `
@@ -864,29 +1048,43 @@
         `;
       }
       const noteHtml = note ? `<div class="meta">${note}</div>` : '';
-      const bodyRows = rows.map((row) => `
-        <tr>
-          <td class="num">${row.fired == null ? 'N/A' : (row.fired ? 'Met' : 'Not met')}</td>
-          <td class="num">${formatDistance(row.distance, row.unit)}</td>
-          <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
-          <td class="num">${formatCurrent(row.current, row.unit)}</td>
-          <td class="num">${row.threshold}</td>
-        </tr>
-      `).join('');
+      const unmet = rows.filter((row) => row.fired === false && row.distance != null);
+      const weakest = unmet.sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance))[0];
+      const weakestHtml = weakest
+        ? `<div class="weakest-link"><strong>Closest to flipping:</strong> ${weakest.trigger} (${distanceDirectionText(weakest.distance, weakest.unit)})</div>`
+        : '<div class="weakest-link">All listed triggers are currently met.</div>';
+      const bodyRows = rows.map((row) => {
+        const progress = progressToTrigger(row);
+        return `
+          <tr>
+            <td>${row.trigger}${row.note ? contextTag(row.note) : ''}</td>
+            <td class="num">${formatCurrent(row.current, row.unit)}</td>
+            <td class="num">${row.threshold}</td>
+            <td class="num">${formatDistance(row.distance, row.unit)}</td>
+            <td>${distanceDirectionText(row.distance, row.unit)}</td>
+            <td>
+              <div class="meta">${progress.toFixed(0)}% to trigger</div>
+              <div class="trigger-progress"><div class="trigger-progress-bar" style="width:${progress.toFixed(0)}%"></div></div>
+            </td>
+          </tr>
+        `;
+      }).join('');
       return `
         <details class="expandable-card" data-expand-group="mechanics">
           <summary>${title}</summary>
-          <div class="expandable-body">
+          <div class="expandable-body control-panel-grid">
             ${noteHtml}
+            ${weakestHtml}
             <div class="table-container">
               <table>
                 <thead>
                   <tr>
-                    <th class="num">Status</th>
-                    <th class="num">Distance</th>
-                    <th>Trigger</th>
+                    <th>Metric</th>
                     <th class="num">Current</th>
-                    <th class="num">Threshold</th>
+                    <th class="num">Trigger</th>
+                    <th class="num">Distance</th>
+                    <th>Direction needed</th>
+                    <th>Progress</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1035,6 +1233,75 @@
         const cutDetails = (cut.explain && cut.explain.length)
           ? `<details><summary>Classifier details</summary>${cut.explain.map((item) => `<div class="context">${item}</div>`).join('')}</details>`
           : '';
+
+        const snapshot = {
+          updated_at: data.updated_at || new Date().toISOString(),
+          state,
+          drivers: {
+            extension_ret_pctile_90: horizons['3M']?.ret_pctile_5y,
+            extension_200dma_pctile_90: metrics.pct_above_200dma_pctile_5y,
+            extension_drawdown_pctile_70: horizons['3M']?.max_drawdown_pctile_5y,
+            deterioration_flow_divergence: flows.holdings_change_21d_pct_pctile_5y,
+            deterioration_macro_turn: macro.real_yield_change_1m_bp_pctile_5y,
+            deterioration_followthrough: macro.corr_gld_ret_vs_real_yield_chg_20d_pctile_5y,
+          },
+          spark: {
+            extension: horizons['3M']?.ret,
+            flows: flows.holdings_change_21d_pct,
+            macro: macro.real_yield_change_1m_bp,
+          },
+        };
+        const history = pushSnapshot(snapshot);
+        const previous = history.length > 1 ? history[history.length - 2] : null;
+        const regimeDelta = (() => {
+          if (!previous) return 'insufficient history';
+          const prevRank = STATE_RANK[previous.state] ?? 0;
+          const currentRank = STATE_RANK[state] ?? 0;
+          if (currentRank === prevRank) return 'unchanged';
+          return currentRank > prevRank ? 'upgraded' : 'downgraded';
+        })();
+        const driverMovers = Object.entries(snapshot.drivers)
+          .map(([key, value]) => ({
+            key,
+            label: REASON_LABELS[key] || key,
+            now: value,
+            prev: previous?.drivers?.[key],
+            delta: previous?.drivers?.[key] == null || value == null ? null : value - previous.drivers[key],
+          }))
+          .filter((item) => item.delta != null)
+          .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+          .slice(0, 3);
+        const moverText = driverMovers.length
+          ? driverMovers.map((item) => `${item.label} (${item.delta > 0 ? '+' : ''}${Math.round(item.delta)} pctile)`).join(' • ')
+          : 'Top movers will appear after one additional daily snapshot.';
+        const whyText = driverMovers.length
+          ? `Regime ${regimeDelta} as ${driverMovers[0].label.toLowerCase()} moved ${driverMovers[0].delta > 0 ? 'higher' : 'lower'} vs yesterday.`
+          : 'Why-changed sentence will populate once yesterday data is available in local history.';
+        dailyStripEl.innerHTML = `
+          <div class="daily-chip"><span class="daily-chip-title">Regime vs yesterday</span><strong>${regimeDelta}</strong></div>
+          <div class="daily-chip"><span class="daily-chip-title">Top 3 percentile movers</span>${moverText}</div>
+          <div class="daily-chip"><span class="daily-chip-title">Why changed</span>${whyText}</div>
+        `;
+
+        const sparkHistory = history.slice(-90);
+        renderSparkline(
+          extensionSparklineEl,
+          extensionSparklinePointsEl,
+          sparkHistory.filter((item) => item.spark.extension != null).map((item) => ({ date: item.updated_at, value: item.spark.extension })),
+          formatPercent
+        );
+        renderSparkline(
+          flowSparklineEl,
+          flowSparklinePointsEl,
+          sparkHistory.filter((item) => item.spark.flows != null).map((item) => ({ date: item.updated_at, value: item.spark.flows })),
+          formatPercent
+        );
+        renderSparkline(
+          macroSparklineEl,
+          macroSparklinePointsEl,
+          sparkHistory.filter((item) => item.spark.macro != null).map((item) => ({ date: item.updated_at, value: item.spark.macro })),
+          formatBp
+        );
         macroRows.innerHTML = `
           <tr>
             <td>Real yield today (DFII10)</td>
