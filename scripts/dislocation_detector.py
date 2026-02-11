@@ -184,12 +184,9 @@ def compute_signals(
     lookback: int = 252,
 ) -> tuple[List[SignalResult], RunMeta]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
-    if jgb_etf is not None:
-        idx = idx.intersection(jgb_etf.index)
     spy = spy.loc[idx]
     gld = gld.loc[idx]
     hyg = hyg.loc[idx]
-    jgb_etf = jgb_etf.loc[idx] if jgb_etf is not None else None
 
     equities_data_date = idx.max() if len(idx) else None
     session_date = equities_data_date.date().isoformat() if equities_data_date is not None else None
@@ -502,13 +499,40 @@ def compute_signals(
             jgb_5d = jgb_px.pct_change(5) * 100
             jgb_20d = jgb_px.pct_change(20) * 100
             jgb_5d_z = rolling_z(jgb_5d, 756)
-            trig_jgb = (jgb_5d <= -1.0) | (jgb_20d <= -2.0) | ((jgb_5d_z <= -2.5) & (jgb_5d <= -0.75))
+            th_jgb_5d = -1.0
+            th_jgb_20d = -2.5
+            th_jgb_z = -2.5
+            th_jgb_z_5d = -0.75
+
+            trig_jgb_5d = jgb_5d <= th_jgb_5d
+            trig_jgb_20d = jgb_20d <= th_jgb_20d
+            trig_jgb_z = (jgb_5d_z <= th_jgb_z) & (jgb_5d <= th_jgb_z_5d)
+            trig_jgb = trig_jgb_5d | trig_jgb_20d | trig_jgb_z
 
             last_jgb_px = safe_last(jgb_px)
             last_jgb_5d = safe_last(jgb_5d)
             last_jgb_20d = safe_last(jgb_20d)
             last_jgb_5d_z = safe_last(jgb_5d_z)
-            score_jgb, margin_jgb = score_le(last_jgb_5d, -1.0, 1.0)
+            score_jgb_5d, margin_jgb_5d = score_le(last_jgb_5d, th_jgb_5d, abs(th_jgb_5d))
+            score_jgb_20d, margin_jgb_20d = score_le(last_jgb_20d, th_jgb_20d, abs(th_jgb_20d))
+            score_jgb_z, _ = score_le(last_jgb_5d_z, th_jgb_z, abs(th_jgb_z))
+            score_jgb = combine_or(score_jgb_5d, score_jgb_20d, score_jgb_z)
+
+            winner = "5d"
+            if score_jgb_20d > score_jgb_5d and score_jgb_20d >= score_jgb_z:
+                winner = "20d"
+            elif score_jgb_z > score_jgb_5d and score_jgb_z > score_jgb_20d:
+                winner = "z"
+
+            if winner == "20d":
+                margin_jgb = margin_jgb_20d
+                margin_unit = "% (20D)"
+            elif winner == "z":
+                margin_jgb = None
+                margin_unit = "z (5D return)"
+            else:
+                margin_jgb = margin_jgb_5d
+                margin_unit = "% (5D)"
 
             results.append(SignalResult(
                 name="jgb_price_drop_fast",
@@ -518,9 +542,10 @@ def compute_signals(
                     "jgb_etf_5d_return_pct": last_jgb_5d,
                     "jgb_etf_20d_return_pct": last_jgb_20d,
                     "jgb_etf_5d_return_z": last_jgb_5d_z,
+                    "trigger_reason": winner,
                     "score_0_1": score_jgb,
                     "margin": margin_jgb,
-                    "margin_unit": "% (5D)",
+                    "margin_unit": margin_unit,
                 },
             ))
         else:
