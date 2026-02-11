@@ -202,7 +202,11 @@
       repo_rate_volume_dislocation: "Repo rate/volume dislocation",
       rates_volatility_shock: "Rates volatility shock",
       everything_sells_together: "Everything sells together",
-      forced_flow_proxy_combo: "Forced-flow combo (proxy)"
+      forced_flow_proxy_combo: "Forced-flow combo (proxy)",
+      yen_strengthening_fast: "JPY strengthening fast (carry unwind risk)",
+      jgb10_yield_spike: "Japan 10Y yield spike",
+      us_jp_spread_compression: "US–Japan 10Y spread compression",
+      carry_trade_unwind_combo: "Carry trade unwind (combo)"
     };
     return map[name] || name.replaceAll('_',' ');
   };
@@ -218,7 +222,11 @@
       repo_rate_volume_dislocation: "Watches for abnormal repo rates or volumes that may reflect stress in the system’s primary financing channel.",
       rates_volatility_shock: "Tracks sudden increases in Treasury yield volatility, which can force deleveraging across markets due to rising margin requirements.",
       everything_sells_together: "Flags moments when typically diversifying assets fall together, a hallmark of liquidity-driven, indiscriminate selling.",
-      forced_flow_proxy_combo: "Combines equity stress, credit weakness, and volatility pressure to confirm margin-driven or forced liquidation dynamics."
+      forced_flow_proxy_combo: "Combines equity stress, credit weakness, and volatility pressure to confirm margin-driven or forced liquidation dynamics.",
+      yen_strengthening_fast: "Flags rapid yen strengthening (USD/JPY falling), a classic signature of carry-trade unwinds and position deleveraging.",
+      jgb10_yield_spike: "Detects fast upward moves in Japan’s 10Y yield, which raises funding costs and can force investors to reduce carry exposure.",
+      us_jp_spread_compression: "Checks for rapid narrowing in the US–Japan 10Y yield gap, reducing carry profitability and increasing unwind pressure.",
+      carry_trade_unwind_combo: "Confirms carry-trade unwind risk when yen strengthening aligns with either a Japan yield spike or spread compression (2-of-3 confirmation)."
     };
     return map[name] || '';
   };
@@ -248,6 +256,17 @@
       case "forced_flow_proxy_combo":
         if (d.note) return d.note;
         return `SPY ${fmtPct(d.spy_1d_return_pct)} • HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • VIX ${fmtNum(d.vix_level)}`;
+      case "yen_strengthening_fast":
+        if (d.note) return d.note;
+        return `USD/JPY ${fmtNum(d.usdjpy)} • 5D ${fmtPct(d.usdjpy_5d_change_pct)} • 20D ${fmtPct(d.usdjpy_20d_change_pct)}`;
+      case "jgb10_yield_spike":
+        if (d.note) return d.note;
+        return `JGB10 ${fmtNum(d.jgb10_yield_pct)}% • 5D ${fmtNum(d.jgb10_5d_change_bp)}bp`;
+      case "us_jp_spread_compression":
+        if (d.note) return d.note;
+        return `US–JP ${fmtNum(d.us_jp_10y_spread_pct)}% • 20D ${fmtNum(d.us_jp_10y_spread_20d_change_bp)}bp`;
+      case "carry_trade_unwind_combo":
+        return `Yen ${d.yen_strengthening_fast ? '\u2713' : '\u2014'} • JGB ${d.jgb10_yield_spike ? '\u2713' : '\u2014'} • Spread ${d.us_jp_spread_compression ? '\u2713' : '\u2014'}`;
       default:
         return "—";
     }

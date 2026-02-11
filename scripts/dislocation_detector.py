@@ -29,6 +29,8 @@ DEFAULT_FRED_SERIES = {
     "tgcr_rate": "TGCRRATE",
     "tgcr_volume": "TGCRVOLUME",
     "dgs10": "DGS10",
+    "usdjpy": "DEXJPUS",
+    "jgb10": "IRLTLT01JPM156N",
 }
 
 
@@ -328,6 +330,11 @@ def compute_signals(
     ))
 
     if fred_map:
+        def col(df: Optional[pd.DataFrame], key: str) -> pd.Series:
+            if df is None or df.empty or key not in df.columns:
+                return pd.Series(dtype=float)
+            return df[key]
+
         hy = fred_map.get("hy_oas")
         if hy is not None and not hy.empty:
             oas = hy[DEFAULT_FRED_SERIES["hy_oas"]].reindex(idx, method="ffill")
@@ -446,6 +453,144 @@ def compute_signals(
                 },
             ))
 
+        usdjpy_df = fred_map.get("usdjpy")
+        jgb10_df = fred_map.get("jgb10")
+
+        if usdjpy_df is not None and not usdjpy_df.empty:
+            fx = col(usdjpy_df, DEFAULT_FRED_SERIES["usdjpy"]).reindex(idx, method="ffill")
+            fx_5d = fx.pct_change(5) * 100
+            fx_20d = fx.pct_change(20) * 100
+            fx_z = rolling_z(fx_5d, 756)
+            trig_fx = (fx_5d <= -2.0) | (fx_20d <= -4.0) | ((fx_z <= -2.5) & (fx_5d <= -1.5))
+
+            last_fx = safe_last(fx)
+            last_fx_5d = safe_last(fx_5d)
+            last_fx_20d = safe_last(fx_20d)
+            last_fx_z = safe_last(fx_z)
+            score_fx, margin_fx = score_le(last_fx_5d, -2.0, 2.0)
+
+            results.append(SignalResult(
+                name="yen_strengthening_fast",
+                triggered=safe_bool(trig_fx),
+                details={
+                    "usdjpy": last_fx,
+                    "usdjpy_5d_change_pct": last_fx_5d,
+                    "usdjpy_20d_change_pct": last_fx_20d,
+                    "usdjpy_5d_change_z": last_fx_z,
+                    "score_0_1": score_fx,
+                    "margin": margin_fx,
+                    "margin_unit": "% (5D)",
+                },
+            ))
+        else:
+            results.append(SignalResult(
+                name="yen_strengthening_fast",
+                triggered=False,
+                details={
+                    "note": "USD/JPY series unavailable (FRED usdjpy not loaded).",
+                    "score_0_1": 0.0,
+                },
+            ))
+
+        if jgb10_df is not None and not jgb10_df.empty:
+            jgb = col(jgb10_df, DEFAULT_FRED_SERIES["jgb10"]).reindex(idx, method="ffill")
+            jgb_5d_bp = jgb.diff(5) * 100
+            jgb_20d_bp = jgb.diff(20) * 100
+            jgb_z = rolling_z(jgb_5d_bp, 756)
+            trig_jgb = (jgb_5d_bp >= 20) | (jgb_20d_bp >= 35) | ((jgb_z >= 2.5) & (jgb_5d_bp >= 15))
+
+            last_jgb = safe_last(jgb)
+            last_jgb_5 = safe_last(jgb_5d_bp)
+            last_jgb_20 = safe_last(jgb_20d_bp)
+            last_jgb_z = safe_last(jgb_z)
+            score_jgb, margin_jgb = score_ge(last_jgb_5, 20.0, 20.0)
+
+            results.append(SignalResult(
+                name="jgb10_yield_spike",
+                triggered=safe_bool(trig_jgb),
+                details={
+                    "jgb10_yield_pct": last_jgb,
+                    "jgb10_5d_change_bp": last_jgb_5,
+                    "jgb10_20d_change_bp": last_jgb_20,
+                    "jgb10_5d_change_z": last_jgb_z,
+                    "score_0_1": score_jgb,
+                    "margin": margin_jgb,
+                    "margin_unit": "bp (5D)",
+                },
+            ))
+        else:
+            results.append(SignalResult(
+                name="jgb10_yield_spike",
+                triggered=False,
+                details={
+                    "note": "Japan 10Y yield series unavailable (FRED jgb10 not loaded).",
+                    "score_0_1": 0.0,
+                },
+            ))
+
+        if dgs10 is not None and not dgs10.empty and jgb10_df is not None and not jgb10_df.empty:
+            us10 = dgs10[DEFAULT_FRED_SERIES["dgs10"]].reindex(idx, method="ffill")
+            jgb = col(jgb10_df, DEFAULT_FRED_SERIES["jgb10"]).reindex(idx, method="ffill")
+            spread = us10 - jgb
+            spread_20d_bp = spread.diff(20) * 100
+            spread_z = rolling_z(spread_20d_bp, 756)
+            trig_spread = (spread_20d_bp <= -35) | ((spread_z <= -2.5) & (spread_20d_bp <= -25))
+
+            last_spread = safe_last(spread)
+            last_spread_20 = safe_last(spread_20d_bp)
+            last_spread_z = safe_last(spread_z)
+            score_spread, margin_spread = score_le(last_spread_20, -35.0, 35.0)
+
+            results.append(SignalResult(
+                name="us_jp_spread_compression",
+                triggered=safe_bool(trig_spread),
+                details={
+                    "us_jp_10y_spread_pct": last_spread,
+                    "us_jp_10y_spread_20d_change_bp": last_spread_20,
+                    "us_jp_10y_spread_20d_change_z": last_spread_z,
+                    "score_0_1": score_spread,
+                    "margin": margin_spread,
+                    "margin_unit": "bp (20D)",
+                },
+            ))
+        else:
+            results.append(SignalResult(
+                name="us_jp_spread_compression",
+                triggered=False,
+                details={
+                    "note": "US10/JGB10 spread unavailable (missing DGS10 or JGB10).",
+                    "score_0_1": 0.0,
+                },
+            ))
+
+        def trig_by_name(name: str) -> bool:
+            for signal in results:
+                if signal.name == name:
+                    return bool(signal.triggered)
+            return False
+
+        score_combo = combine_and(
+            next((s.details.get("score_0_1", 0.0) for s in results if s.name == "yen_strengthening_fast"), 0.0),
+            combine_or(
+                next((s.details.get("score_0_1", 0.0) for s in results if s.name == "jgb10_yield_spike"), 0.0),
+                next((s.details.get("score_0_1", 0.0) for s in results if s.name == "us_jp_spread_compression"), 0.0),
+            ),
+        )
+        combo = trig_by_name("yen_strengthening_fast") and (
+            trig_by_name("jgb10_yield_spike") or trig_by_name("us_jp_spread_compression")
+        )
+
+        results.append(SignalResult(
+            name="carry_trade_unwind_combo",
+            triggered=bool(combo),
+            details={
+                "yen_strengthening_fast": trig_by_name("yen_strengthening_fast"),
+                "jgb10_yield_spike": trig_by_name("jgb10_yield_spike"),
+                "us_jp_spread_compression": trig_by_name("us_jp_spread_compression"),
+                "score_0_1": score_combo,
+            },
+        ))
+
     results.append(SignalResult(
         name="everything_sells_together",
         triggered=safe_bool(everything_sells),
@@ -512,7 +657,7 @@ def summarize_dislocation(
     previous_summary: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
     stale_vix = bool(meta.vix_stale_days is not None and meta.vix_stale_days > 0)
-    excluded_from_threshold = ["forced_flow_proxy_combo"]
+    excluded_from_threshold = ["forced_flow_proxy_combo", "carry_trade_unwind_combo"]
     if stale_vix:
         excluded_from_threshold.append("volatility_spike")
 
