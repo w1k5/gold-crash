@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-02-11T16:20:25.659912+00:00",
+  "asof_utc": "2026-02-11T16:21:57.306548+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
   "signals_triggered_count": 0,
-  "signals_triggered_count_yesterday": 1,
+  "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
   "signal_counting": {
     "excluded_from_threshold": [
@@ -19,10 +19,10 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.04478992082298516,
-        "spy_intraday_range_pct": 1.1506049348809697,
-        "spy_range_z": -0.06543402497331623,
-        "score_0_1": 0.017915968329194065,
+        "spy_1d_return_pct": -0.06646246315668014,
+        "spy_intraday_range_pct": 1.1508544660671483,
+        "spy_range_z": -0.065390434961401,
+        "score_0_1": 0.026584985262672056,
         "counted_toward_threshold": true
       }
     },
@@ -30,8 +30,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.831687398149199,
-        "spy_range_z": -0.06543402497331623,
+        "spy_dollar_volume_z": -1.8236706358955181,
+        "spy_range_z": -0.065390434961401,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true
@@ -54,11 +54,11 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": -0.08671449777337692,
-        "spy_1d_return_pct": -0.04478992082298516,
-        "hyg_minus_spy_pct": -0.041924576950391756,
-        "score_0_1": 0.02794971796692784,
-        "margin": -1.4580754230496082,
+        "hyg_1d_return_pct": -0.09896091044037103,
+        "spy_1d_return_pct": -0.06646246315668014,
+        "hyg_minus_spy_pct": -0.03249844728369089,
+        "score_0_1": 0.021665631522460593,
+        "margin": -1.467501552716309,
         "margin_unit": "%",
         "counted_toward_threshold": true
       }
@@ -168,8 +168,8 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.04478992082298516,
-        "gld_1d_return_pct": 0.542820069204164,
+        "spy_1d_return_pct": -0.06646246315668014,
+        "gld_1d_return_pct": 0.47469723183393153,
         "score_0_1": 0.0,
         "counted_toward_threshold": true
       }
@@ -178,8 +178,8 @@
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.04478992082298516,
-        "hyg_minus_spy_pct": -0.041924576950391756,
+        "spy_1d_return_pct": -0.06646246315668014,
+        "hyg_minus_spy_pct": -0.03249844728369089,
         "vix_level": 17.79,
         "vix_1d_change_pct": 2.4769585253456183,
         "score_0_1": 0.0,
