@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-02-11T16:04:43.207097+00:00",
+  "asof_utc": "2026-02-11T16:09:17.942117+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
   "signals_triggered_count": 1,
-  "signals_triggered_count_yesterday": 0,
+  "signals_triggered_count_yesterday": 1,
   "signals_triggered": [
     "jgb_price_drop_fast"
   ],
