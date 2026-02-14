@@ -8,6 +8,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from io import StringIO
+from statistics import median
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -22,6 +23,7 @@ DEFAULT_TICKERS = {
     "credit_hy": "hyg.us",
     "vix": "vi.c",
     "jgb_etf": "2561.jp",
+    "equity_equal_weight": "rsp.us",
 }
 DEFAULT_FRED_SERIES = {
     "hy_oas": "BAMLH0A0HYM2",
@@ -125,6 +127,16 @@ def clamp_0_1(value: Optional[float]) -> float:
     return float(max(0.0, min(1.0, value)))
 
 
+def clamp_0_100(value: Optional[float]) -> float:
+    if value is None:
+        return 0.0
+    return float(max(0.0, min(100.0, value)))
+
+
+def score_to_severity(score: Optional[float]) -> float:
+    return clamp_0_100((score or 0.0) * 100.0)
+
+
 def score_ge(value: Optional[float], threshold: float, ramp: float) -> tuple[float, Optional[float]]:
     """Score how close value is to meeting a >= threshold rule."""
     if value is None or ramp <= 0:
@@ -178,6 +190,7 @@ def compute_signals(
     spy: pd.DataFrame,
     gld: pd.DataFrame,
     hyg: pd.DataFrame,
+    rsp: Optional[pd.DataFrame] = None,
     vix: Optional[pd.DataFrame] = None,
     jgb_etf: Optional[pd.DataFrame] = None,
     fred_map: Optional[Dict[str, pd.DataFrame]] = None,
@@ -655,6 +668,45 @@ def compute_signals(
             },
         ))
 
+    if rsp is not None and not rsp.empty:
+        rsp_close = rsp["Close"].reindex(idx, method="ffill")
+        spy_close = spy["Close"]
+        ratio = (rsp_close / spy_close).replace(0, pd.NA)
+        ratio_ret_20d = ratio.pct_change(20) * 100
+        ratio_ret_60d = ratio.pct_change(60) * 100
+        ratio_ret_20d_z = rolling_z(ratio_ret_20d, 756)
+        trig_breadth = (ratio_ret_20d <= -2.0) | (ratio_ret_60d <= -4.0) | ((ratio_ret_20d_z <= -2.0) & (ratio_ret_20d <= -1.5))
+
+        last_ratio = safe_last(ratio)
+        last_ratio_20d = safe_last(ratio_ret_20d)
+        last_ratio_60d = safe_last(ratio_ret_60d)
+        last_ratio_20d_z = safe_last(ratio_ret_20d_z)
+        score_breadth = combine_or(
+            score_le(last_ratio_20d, -2.0, 2.0)[0],
+            score_le(last_ratio_60d, -4.0, 4.0)[0],
+            combine_and(score_le(last_ratio_20d_z, -2.0, 2.0)[0], score_le(last_ratio_20d, -1.5, 1.5)[0]),
+        )
+
+        results.append(SignalResult(
+            name="breadth_deterioration_rsp_spy",
+            triggered=safe_bool(trig_breadth),
+            details={
+                "rsp_spy_ratio": last_ratio,
+                "rsp_spy_20d_return_pct": last_ratio_20d,
+                "rsp_spy_60d_return_pct": last_ratio_60d,
+                "rsp_spy_20d_return_z": last_ratio_20d_z,
+                "score_0_1": score_breadth,
+            },
+        ))
+    else:
+        results.append(SignalResult(
+            name="breadth_deterioration_rsp_spy",
+            triggered=False,
+            details={
+                "note": "RSP series unavailable from Stooq.",
+                "score_0_1": 0.0,
+            },
+        ))
     stale_reasons: List[str] = []
     if vix_stale_days is not None and vix_stale_days > 1:
         stale_reasons.append("vix_stale")
@@ -678,6 +730,102 @@ def derive_status(count: int, dislocation: bool, data_stale: bool = False) -> st
     if count >= 1:
         return "stress_building"
     return "normal"
+
+
+
+
+def compute_dashboard(signals: List[SignalResult], meta: RunMeta) -> Dict[str, object]:
+    pillar_map = {
+        "liquidity_funding": [
+            "liquidity_degraded_proxy",
+            "funding_stress_sofr_iorb",
+            "repo_rate_volume_dislocation",
+        ],
+        "credit_stress": [
+            "credit_stress_proxy",
+            "credit_spread_widening_fred",
+        ],
+        "volatility_convexity": [
+            "volatility_spike",
+            "rates_volatility_shock",
+        ],
+        "correlation_liquidation": [
+            "big_down_and_whipsaw",
+            "everything_sells_together",
+            "forced_flow_proxy_combo",
+            "carry_trade_unwind_combo",
+        ],
+        "structure_fragility": [
+            "breadth_deterioration_rsp_spy",
+        ],
+    }
+
+    severities: Dict[str, float] = {}
+    for signal in signals:
+        severities[signal.name] = score_to_severity(signal.details.get("score_0_1"))
+
+    pillar_scores: Dict[str, float] = {}
+    for pillar, names in pillar_map.items():
+        values = [severities.get(name, 0.0) for name in names]
+        pillar_scores[pillar] = clamp_0_100(median(values) if values else 0.0)
+
+    crash_base = (
+        0.30 * pillar_scores["liquidity_funding"]
+        + 0.25 * pillar_scores["credit_stress"]
+        + 0.25 * pillar_scores["volatility_convexity"]
+        + 0.20 * pillar_scores["correlation_liquidation"]
+    )
+
+    core_pillars = [
+        pillar_scores["liquidity_funding"],
+        pillar_scores["credit_stress"],
+        pillar_scores["volatility_convexity"],
+        pillar_scores["correlation_liquidation"],
+    ]
+
+    bonus = 0.0
+    if sum(1 for score in core_pillars if score > 70) >= 3:
+        bonus += 10.0
+    if pillar_scores["liquidity_funding"] > 80 and pillar_scores["credit_stress"] > 70:
+        bonus += 10.0
+
+    crash_risk = clamp_0_100(crash_base + bonus)
+
+    fragility = clamp_0_100(
+        0.45 * pillar_scores["structure_fragility"]
+        + 0.20 * pillar_scores["credit_stress"]
+        + 0.20 * pillar_scores["volatility_convexity"]
+        + 0.15 * pillar_scores["liquidity_funding"]
+    )
+
+    liq = pillar_scores["liquidity_funding"]
+    if liq >= 70:
+        liquidity_regime = "Stressed"
+    elif liq >= 40:
+        liquidity_regime = "Tightening"
+    else:
+        liquidity_regime = "Normal"
+
+    freshness_penalty = 0
+    if meta.vix_stale_days is not None:
+        freshness_penalty += min(meta.vix_stale_days * 20, 60)
+    freshness_penalty += max(0, len(meta.stale_reasons) - 1) * 20
+    confidence = clamp_0_100(100 - freshness_penalty)
+
+    top_drivers = sorted(
+        [{"name": signal.name, "severity_0_100": severities.get(signal.name, 0.0)} for signal in signals],
+        key=lambda x: x["severity_0_100"],
+        reverse=True,
+    )[:3]
+
+    return {
+        "crash_risk_score_1_5d": crash_risk,
+        "fragility_score_1_3m": fragility,
+        "liquidity_regime_label": liquidity_regime,
+        "confidence_score": confidence,
+        "pillar_scores": pillar_scores,
+        "top_drivers": top_drivers,
+    }
 
 
 def summarize_dislocation(
@@ -741,10 +889,12 @@ def summarize_dislocation(
                 "details": {
                     **signal.details,
                     "counted_toward_threshold": signal.name not in excluded_set,
+                    "severity_0_100": score_to_severity(signal.details.get("score_0_1")),
                 },
             }
             for signal in signals
         ],
+        "dashboard": compute_dashboard(signals, meta),
         "data_dates": {
             "equity_session_date": meta.equity_session_date,
             "equities_close_utc": meta.equities_data_date_utc,
@@ -794,6 +944,12 @@ def main() -> None:
     hyg = fetch_stooq_daily(args.hyg_symbol)
     jgb_etf = fetch_stooq_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True)
 
+    rsp = None
+    try:
+        rsp = fetch_stooq_daily(DEFAULT_TICKERS["equity_equal_weight"], require_volume=True)
+    except ValueError:
+        pass
+
     vix = None
     tried = []
     for candidate in [args.vix_symbol, "vi.c", "^vix", "vix"]:
@@ -827,6 +983,7 @@ def main() -> None:
         spy=spy,
         gld=gld,
         hyg=hyg,
+        rsp=rsp,
         vix=vix,
         jgb_etf=jgb_etf,
         fred_map=fred_map,

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫨</text></svg>">
-  <title>Dislocation Detector</title>
+  <title>Crash Probability Dashboard</title>
   <style>
     :root{
       color-scheme: light dark;
@@ -95,6 +95,18 @@
     .timeline{margin:0;padding-left:18px;color:var(--muted);font-size:13px;}
     .tiny{font-size:12px;color:var(--muted);margin:0;}
     .skeleton{opacity:.65}
+
+    .gaugeGrid{display:grid;gap:10px;grid-template-columns:1fr;}
+    @media (min-width:700px){.gaugeGrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    .gauge{border:1px solid var(--border);border-radius:14px;padding:10px;}
+    .gauge p{margin:0;}
+    .gaugeLabel{font-size:12px;color:var(--muted);}
+    .gaugeValue{font-size:24px;font-weight:700;letter-spacing:-.02em;}
+    .bar{height:8px;background:rgba(148,163,184,.25);border-radius:999px;overflow:hidden;margin-top:6px;}
+    .bar > span{display:block;height:100%;background:var(--info);}
+    .drivers{margin-top:10px;font-size:13px;color:var(--muted);}
+    .pillars{display:grid;gap:8px;margin-top:10px;}
+    .pillarRow{display:grid;grid-template-columns:170px 1fr 48px;gap:8px;align-items:center;font-size:12px;color:var(--muted);}
   </style>
 </head>
 
@@ -102,9 +114,9 @@
 <main>
   <header>
     <div>
-      <h1>Dislocation Detector</h1>
+      <h1>Crash Probability Dashboard</h1>
       <p class="sub">
-        A low-churn “market plumbing” monitor. It only flags a dislocation when multiple independent stress signals agree.
+        A low-churn market-plumbing monitor with continuous crash/fragility scoring, pillar decomposition, and confidence framing.
       </p>
       <p class="tiny"><a href="https://w1k5.github.io/gold-crash/">← Back to Gold Risk Monitor</a></p>
     </div>
@@ -115,6 +127,29 @@
     <p class="tiny" id="dataDatesVal">Data dates: Loading…</p>
     <p class="tiny" id="countingVal">Signal counting: Loading…</p>
   </header>
+
+
+  <section class="card" style="margin-top:14px;">
+    <div class="gaugeGrid">
+      <div class="gauge">
+        <p class="gaugeLabel">Crash Risk (1-5d)</p>
+        <p id="crashRiskVal" class="gaugeValue">—</p>
+        <div class="bar"><span id="crashRiskBar" style="width:0%"></span></div>
+      </div>
+      <div class="gauge">
+        <p class="gaugeLabel">Fragility Risk (1-3m)</p>
+        <p id="fragilityVal" class="gaugeValue">—</p>
+        <div class="bar"><span id="fragilityBar" style="width:0%"></span></div>
+      </div>
+      <div class="gauge">
+        <p class="gaugeLabel">Liquidity Regime</p>
+        <p id="liquidityVal" class="gaugeValue" style="font-size:20px;">—</p>
+        <p class="tiny">Confidence: <span id="confidenceVal">—</span></p>
+      </div>
+    </div>
+    <p class="drivers" id="driversVal">Top drivers: loading…</p>
+    <div class="pillars" id="pillarsVal"></div>
+  </section>
 
   <div class="grid">
     <section class="card">
@@ -206,7 +241,8 @@
       yen_strengthening_fast: "JPY strengthening fast (carry unwind risk)",
       jgb_price_drop_fast: "Japan bond ETF sells off (yield up proxy)",
       us_jp_spread_compression: "US–Japan 10Y spread compression",
-      carry_trade_unwind_combo: "Carry trade unwind (combo)"
+      carry_trade_unwind_combo: "Carry trade unwind (combo)",
+      breadth_deterioration_rsp_spy: "Breadth deterioration (RSP vs SPY)"
     };
     return map[name] || name.replaceAll('_',' ');
   };
@@ -307,6 +343,51 @@
     } catch (_) {
       return date.toLocaleDateString();
     }
+  };
+
+  const bucketLabel = (score) => {
+    if (!Number.isFinite(score)) return '—';
+    if (score < 25) return 'Low';
+    if (score < 50) return 'Guarded';
+    if (score < 70) return 'Elevated';
+    if (score < 85) return 'High';
+    return 'Acute';
+  };
+
+  const renderDashboard = (data) => {
+    const d = data.dashboard || {};
+    const crash = Number(d.crash_risk_score_1_5d);
+    const frag = Number(d.fragility_score_1_3m);
+    const conf = Number(d.confidence_score);
+    document.getElementById('crashRiskVal').textContent = Number.isFinite(crash) ? `${bucketLabel(crash)} (${crash.toFixed(0)}/100)` : '—';
+    document.getElementById('fragilityVal').textContent = Number.isFinite(frag) ? `${bucketLabel(frag)} (${frag.toFixed(0)}/100)` : '—';
+    document.getElementById('liquidityVal').textContent = d.liquidity_regime_label || '—';
+    document.getElementById('confidenceVal').textContent = Number.isFinite(conf) ? `${conf.toFixed(0)}/100` : '—';
+    document.getElementById('crashRiskBar').style.width = `${Math.max(0, Math.min(100, Number.isFinite(crash) ? crash : 0))}%`;
+    document.getElementById('fragilityBar').style.width = `${Math.max(0, Math.min(100, Number.isFinite(frag) ? frag : 0))}%`;
+
+    const drivers = Array.isArray(d.top_drivers) ? d.top_drivers : [];
+    document.getElementById('driversVal').textContent = drivers.length
+      ? `Top drivers: ${drivers.map(x => `${prettyName(x.name)} (${(x.severity_0_100 || 0).toFixed(0)})`).join(', ')}`
+      : 'Top drivers: unavailable';
+
+    const pillars = d.pillar_scores || {};
+    const pillarOrder = [
+      ['liquidity_funding', 'Liquidity & Funding'],
+      ['credit_stress', 'Credit Stress'],
+      ['volatility_convexity', 'Volatility & Convexity'],
+      ['correlation_liquidation', 'Correlation/Liquidation'],
+      ['structure_fragility', 'Structure Fragility'],
+    ];
+    const root = document.getElementById('pillarsVal');
+    root.innerHTML = '';
+    pillarOrder.forEach(([key, label]) => {
+      const score = Number(pillars[key]);
+      const row = document.createElement('div');
+      row.className = 'pillarRow';
+      row.innerHTML = `<span>${label}</span><div class="bar"><span style="width:${Math.max(0, Math.min(100, Number.isFinite(score) ? score : 0))}%"></span></div><span>${Number.isFinite(score) ? score.toFixed(0) : '—'}</span>`;
+      root.appendChild(row);
+    });
   };
 
   const setStatus = (data) => {
@@ -530,6 +611,7 @@
       pEl.textContent = '';
     }
 
+    renderDashboard(data);
     setStatus(data);
     renderSignals(data);
     renderTransitions(data);
