@@ -121,7 +121,7 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 31
+      "red_exit_streak": 32
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -300,5 +300,5 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-02-14T07:55:06.143488-05:00"
+  "updated_at": "2026-02-15T07:57:08.134928-05:00"
 }
