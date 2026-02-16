@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-15T13:13:39.420120+00:00",
+  "asof_utc": "2026-02-16T13:37:50.278801+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -137,13 +137,13 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 2086.0,
-        "jgb_etf_5d_return_pct": 0.968054211035807,
-        "jgb_etf_20d_return_pct": 0.04796163069544779,
-        "jgb_etf_5d_return_z": 1.4318102336573038,
+        "jgb_etf_close": 2092.0,
+        "jgb_etf_5d_return_pct": 1.1116481391976851,
+        "jgb_etf_20d_return_pct": 0.3357314148681123,
+        "jgb_etf_5d_return_z": 1.617194073537735,
         "trigger_reason": "5d",
         "score_0_1": 0.0,
-        "margin": -1.968054211035807,
+        "margin": -2.111648139197685,
         "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
