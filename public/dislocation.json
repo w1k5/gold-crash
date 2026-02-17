@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-02-16T13:37:50.278801+00:00",
+  "asof_utc": "2026-02-17T13:38:39.447578+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -83,23 +83,23 @@
       "name": "funding_stress_sofr_iorb",
       "triggered": false,
       "details": {
-        "sofr_iorb_spread_bp": 0.0,
-        "sofr_iorb_spread_5d_bp": 0.9999999999999787,
-        "sofr_iorb_spread_z": 1.0379884937647998,
-        "score_0_1": 0.09999999999999787,
+        "sofr_iorb_spread_bp": 1.000000000000023,
+        "sofr_iorb_spread_5d_bp": 2.0000000000000018,
+        "sofr_iorb_spread_z": 1.2145313636547141,
+        "score_0_1": 0.20000000000000018,
         "counted_toward_threshold": true,
-        "severity_0_100": 9.999999999999787
+        "severity_0_100": 20.000000000000018
       }
     },
     {
       "name": "repo_rate_volume_dislocation",
       "triggered": false,
       "details": {
-        "tgcr_rate": 3.63,
-        "tgcr_rate_5d_change_pct": 0.009999999999999787,
-        "tgcr_rate_z": -2.105715981218853,
-        "tgcr_volume_z": 2.0829803203507904,
-        "tgcr_volume_5d_change_pct": 1.3066871637202215,
+        "tgcr_rate": 3.64,
+        "tgcr_rate_5d_change_pct": 0.020000000000000018,
+        "tgcr_rate_z": -2.0870501665904957,
+        "tgcr_volume_z": 2.0543558093009886,
+        "tgcr_volume_5d_change_pct": 0.768639508070712,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -137,13 +137,13 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 2092.0,
-        "jgb_etf_5d_return_pct": 1.1116481391976851,
-        "jgb_etf_20d_return_pct": 0.3357314148681123,
-        "jgb_etf_5d_return_z": 1.617194073537735,
+        "jgb_etf_close": 2091.0,
+        "jgb_etf_5d_return_pct": 0.6256015399422443,
+        "jgb_etf_20d_return_pct": 0.4322766570605152,
+        "jgb_etf_5d_return_z": 0.969965587671637,
         "trigger_reason": "5d",
         "score_0_1": 0.0,
-        "margin": -2.111648139197685,
+        "margin": -1.6256015399422443,
         "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -153,9 +153,9 @@
       "name": "us_jp_spread_compression",
       "triggered": false,
       "details": {
-        "us_jp_10y_spread_pct": 2.03,
+        "us_jp_10y_spread_pct": 1.8499999999999996,
         "us_jp_10y_spread_20d_change_bp": -8.000000000000007,
-        "us_jp_10y_spread_20d_change_z": -0.25033768216243524,
+        "us_jp_10y_spread_20d_change_z": -0.22970176196247508,
         "score_0_1": 0.2285714285714288,
         "margin": -26.999999999999993,
         "margin_unit": "bp (20D)",
