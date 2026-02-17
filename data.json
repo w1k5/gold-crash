@@ -98,7 +98,7 @@
       "nominal_2y_change_3m_bp": -11.0,
       "nominal_2y_today": 3.47,
       "real_yield_change_1m_bp": -8.0,
-      "real_yield_change_1m_bp_pctile_5y": 32,
+      "real_yield_change_1m_bp_pctile_5y": 33,
       "real_yield_change_1m_bp_pctile_5y_explain": null,
       "real_yield_change_3m_bp": -4.0,
       "real_yield_change_3m_bp_pctile_5y": 36,
@@ -121,7 +121,7 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 33
+      "red_exit_streak": 34
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -280,7 +280,7 @@
           "unit": "pctile"
         },
         {
-          "current": 32.0,
+          "current": 33.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -300,5 +300,5 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-02-16T08:09:56.717900-05:00"
+  "updated_at": "2026-02-17T08:09:42.709008-05:00"
 }
