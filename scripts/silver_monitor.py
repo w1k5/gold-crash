@@ -98,6 +98,14 @@ def fmt_pct(v: float) -> str:
     return f"{v:+.2f}%"
 
 
+def ordinal(n: int) -> str:
+    if 10 <= (n % 100) <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
 def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, List[Tuple[datetime, float]]]) -> Dict:
     dates = [d for d, _ in slv_rows]
     closes = [c for _, c in slv_rows]
@@ -132,9 +140,11 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
     trend_score = round((dist_p + ret20_p + dd_p) / 3)
 
     rv_p = pct_rank(rv20[idx0:], rv20[latest])
-    drop_p = pct_rank([-x for x in ret1[idx0:]], -ret1[latest])
+    down_sev = [max(0.0, -r) for r in ret1]
+    drop_p = pct_rank(down_sev[idx0:], down_sev[latest])
     whipsaw = (ret1[latest] <= -2.5 and ret1[latest - 1] >= 2.0) if latest >= 1 else False
-    shock_score = round((rv_p + drop_p + (100 if whipsaw else 20)) / 3)
+    whipsaw_bonus = 20 if whipsaw else 0
+    shock_score = round(min(100, (rv_p + drop_p) / 2 + whipsaw_bonus))
 
     def fred_level_change(name: str) -> Tuple[float | None, float | None, int]:
         rows = fred_rows.get(name, [])
@@ -158,9 +168,23 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
     deterioration = shock_score >= 65 or risk_score >= 65 or macro_score >= 70
     severe = shock_score >= 80 or risk_score >= 80 or dd63[latest] <= -12
 
+    regime_triggers: List[str] = []
+    if dd63[latest] <= -12:
+        regime_triggers.append("deep_drawdown")
+    if shock_score >= 80:
+        regime_triggers.append("high_shock")
+    if risk_score >= 80:
+        regime_triggers.append("credit_stress")
+
     if severe:
         regime, action, conf = "RED", "Defensive", "High"
-        desc = "Breakdown / stress regime with high shock and deeper drawdown risk."
+        reason_labels = {
+            "deep_drawdown": "deep drawdown",
+            "high_shock": "high shock",
+            "credit_stress": "credit stress",
+        }
+        reasons = [reason_labels[r] for r in regime_triggers] or ["stress conditions"]
+        desc = f"Breakdown / stress regime driven by {', '.join(reasons)}."
     elif trend_score >= 70 and deterioration:
         regime, action, conf = "ORANGE", "Trim / tighten risk", "Medium"
         desc = "Extended + early deterioration: one or more stress pillars are active."
@@ -177,7 +201,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
         ("Distance above 200DMA", dist200, dist200[latest], dist_p),
         ("20D momentum", ret20, ret20[latest], ret20_p),
         ("20D realized volatility", rv20, rv20[latest], rv_p),
-        ("1D down move severity", [-x for x in ret1], -ret1[latest], drop_p),
+        ("1D down move severity", down_sev, down_sev[latest], drop_p),
     ]
     if dfii_ch is not None:
         sigs.append(("DFII10 1M change", [r[1] for r in fred_rows.get("dfii10", [])], dfii_ch, dfii_p))
@@ -193,7 +217,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
             "name": n,
             "state": state,
             "last": f"{last:+.2f}" + ("%" if "volatility" in n.lower() or "momentum" in n.lower() or "Distance" in n or "severity" in n.lower() else ""),
-            "percentile": f"{p}th",
+            "percentile": ordinal(p),
             "sparkline": spark(series[-7:]),
         })
 
@@ -212,9 +236,10 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
         "regime_description": desc,
         "top_drivers": [
             f"Trend/extension score is {trend_score}/100 (distance vs 200DMA: {fmt_pct(dist200[latest])})",
-            f"Vol/shock score is {shock_score}/100 (20D realized vol percentile: {rv_p}th)",
+            f"Vol/shock score is {shock_score}/100 (20D realized vol percentile: {ordinal(rv_p)})",
             f"Risk appetite score is {risk_score}/100" + (f" (HY spread level: {hy_lvl:.2f})" if hy_lvl is not None else ""),
         ],
+        "triggers": regime_triggers,
         "what_changes_next": {
             "escalate": [
                 "If extension stays high and shock flips to Triggered, BLUE can escalate to ORANGE.",
@@ -232,7 +257,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
         },
         "pillars": [
             {"name": "Trend / Extension", "score": trend_score, "metrics": [f"Distance vs 200DMA: {fmt_pct(dist200[latest])}", f"20D momentum: {fmt_pct(ret20[latest])}", f"63D drawdown: {dd63[latest]:.2f}%"]},
-            {"name": "Vol / Shock", "score": shock_score, "metrics": [f"Realized vol (20D): {rv20[latest]:.2f}%", f"1D drop percentile: {drop_p}th", f"Whipsaw flag: {'triggered' if whipsaw else 'quiet'}"]},
+            {"name": "Vol / Shock", "score": shock_score, "metrics": [f"Realized vol (20D): {rv20[latest]:.2f}%", f"1D drop percentile: {ordinal(drop_p)}", f"Whipsaw flag: {'triggered' if whipsaw else 'quiet'}"]},
             {"name": "Macro (rates + inflation)", "score": macro_score, "metrics": [f"DFII10: {dfii_lvl:.2f}" if dfii_lvl is not None else "DFII10: n/a", f"DFII10 1M change: {dfii_ch:+.2f}" if dfii_ch is not None else "DFII10 1M change: n/a", f"T10YIE 1M change: {t10_ch:+.2f}" if t10_ch is not None else "T10YIE 1M change: n/a"]},
             {"name": "Risk appetite", "score": risk_score, "metrics": [f"HY spread level: {hy_lvl:.2f}" if hy_lvl is not None else "HY spread level: n/a", f"HY spread 1M change: {hy_ch:+.2f}" if hy_ch is not None else "HY spread 1M change: n/a", f"Regime: {risk_appetite}"]},
         ],
@@ -241,7 +266,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
             {"regime": "GREEN", "definition": "Trend positive-to-neutral, shock low, credit stress quiet.", "action_bias": "Accumulate on dips / hold core", "escalation": "Extension score rises above ~70th percentile while shock stays quiet.", "deescalation": "N/A"},
             {"regime": "BLUE", "definition": "Extended above trend, but no confirmed deterioration.", "action_bias": "Hold / add only on pullbacks", "escalation": "Extension high + shock Watch/Triggered or credit starts widening.", "deescalation": "Extension cools and deterioration flags remain off."},
             {"regime": "ORANGE", "definition": "Extended + at least one deterioration pillar active.", "action_bias": "Stop adding, trim rips, tighten risk", "escalation": "Breakdown pattern appears (vol spike + drawdown / credit jump).", "deescalation": "Shock clears and price stabilizes above key moving averages."},
-            {"regime": "RED", "definition": "Breakdown / stress regime with high shock and deeper drawdown.", "action_bias": "Defensive posture", "escalation": "N/A", "deescalation": "Shock flags turn off and trend repair persists for multiple sessions."},
+            {"regime": "RED", "definition": "Breakdown / stress regime (triggered by deep drawdown, high shock, or credit stress).", "action_bias": "Defensive posture", "escalation": "N/A", "deescalation": "Shock flags turn off and trend repair persists for multiple sessions."},
         ],
         "sources": {
             "slv": "https://stooq.com/q/d/l/?s=slv.us&i=d",

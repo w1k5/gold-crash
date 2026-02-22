@@ -6,11 +6,15 @@
   "regime": "RED",
   "action_bias": "Defensive",
   "confidence": "High",
-  "regime_description": "Breakdown / stress regime with high shock and deeper drawdown risk.",
+  "regime_description": "Breakdown / stress regime driven by deep drawdown, credit stress.",
   "top_drivers": [
     "Trend/extension score is 66/100 (distance vs 200DMA: +63.54%)",
-    "Vol/shock score is 40/100 (20D realized vol percentile: 100th)",
+    "Vol/shock score is 76/100 (20D realized vol percentile: 100th)",
     "Risk appetite score is 80/100 (HY spread level: 2.88)"
+  ],
+  "triggers": [
+    "deep_drawdown",
+    "credit_stress"
   ],
   "what_changes_next": {
     "escalate": [
@@ -23,8 +27,8 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 40,
-    "fragility_1_3m": 52,
+    "event_risk_1_5d": 76,
+    "fragility_1_3m": 61,
     "liquidity_regime": "Risk-off"
   },
   "pillars": [
@@ -39,10 +43,10 @@
     },
     {
       "name": "Vol / Shock",
-      "score": 40,
+      "score": 76,
       "metrics": [
         "Realized vol (20D): 142.79%",
-        "1D drop percentile: 0th",
+        "1D drop percentile: 52nd",
         "Whipsaw flag: quiet"
       ]
     },
@@ -77,7 +81,7 @@
       "name": "20D momentum",
       "state": "Quiet",
       "last": "-12.06%",
-      "percentile": "3th",
+      "percentile": "3rd",
       "sparkline": "\u2587\u2581\u2582\u2581\u2581\u2582\u2583"
     },
     {
@@ -90,9 +94,9 @@
     {
       "name": "1D down move severity",
       "state": "Quiet",
-      "last": "-7.90%",
-      "percentile": "0th",
-      "sparkline": "\u2582\u2587\u2582\u2584\u2581\u2583\u2581"
+      "last": "+0.00%",
+      "percentile": "52nd",
+      "sparkline": "\u2581\u2587\u2581\u2583\u2581\u2581\u2581"
     },
     {
       "name": "DFII10 1M change",
@@ -140,7 +144,7 @@
     },
     {
       "regime": "RED",
-      "definition": "Breakdown / stress regime with high shock and deeper drawdown.",
+      "definition": "Breakdown / stress regime (triggered by deep drawdown, high shock, or credit stress).",
       "action_bias": "Defensive posture",
       "escalation": "N/A",
       "deescalation": "Shock flags turn off and trend repair persists for multiple sessions."
