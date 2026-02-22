@@ -402,8 +402,22 @@
     };
     const lastFivePoints = (series, formatter) => series.slice(-5).map((point) => `${point.date.slice(5)} ${formatter(point.value)}`).join(' • ');
     const formatDateTick = (isoDate) => {
-      const date = new Date(`${isoDate}T00:00:00`);
+      const date = new Date(isoDate);
+      if (Number.isNaN(date.getTime())) {
+        const fallback = new Date(`${isoDate}T00:00:00`);
+        if (Number.isNaN(fallback.getTime())) return isoDate;
+        return fallback.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    const formatDateTickWithYear = (isoDate) => {
+      const date = new Date(isoDate);
+      if (Number.isNaN(date.getTime())) {
+        const fallback = new Date(`${isoDate}T00:00:00`);
+        if (Number.isNaN(fallback.getTime())) return isoDate;
+        return fallback.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
     const renderSparkline = (svgEl, pointsEl, series, formatter, axisLabels) => {
       if (!series.length) {
@@ -446,7 +460,9 @@
       );
       const xTicks = xTickCandidates.map((tick) => {
         const x = padding.left + (tick.index / Math.max(1, series.length - 1)) * plotWidth;
-        const label = duplicateShortLabels.has(tick.shortLabel) ? series[tick.index].date : tick.shortLabel;
+        const label = duplicateShortLabels.has(tick.shortLabel)
+          ? formatDateTickWithYear(series[tick.index].date)
+          : tick.shortLabel;
         return `
           <line class="sparkline-tick" x1="${x.toFixed(1)}" y1="${xAxisY}" x2="${x.toFixed(1)}" y2="${(xAxisY - 4).toFixed(1)}"></line>
           <text class="sparkline-axis-label" x="${x.toFixed(1)}" y="${(height - 14).toFixed(1)}" text-anchor="middle">${label}</text>
