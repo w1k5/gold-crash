@@ -141,9 +141,13 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
 
     rv_p = pct_rank(rv20[idx0:], rv20[latest])
     down_sev = [max(0.0, -r) for r in ret1]
-    drop_p = pct_rank(down_sev[idx0:], down_sev[latest])
+    down_hist = [x for x in down_sev[idx0:] if x > 0]
+    if down_sev[latest] > 0 and down_hist:
+        drop_p = pct_rank(down_hist, down_sev[latest])
+    else:
+        drop_p = 50
     whipsaw = (ret1[latest] <= -2.5 and ret1[latest - 1] >= 2.0) if latest >= 1 else False
-    whipsaw_bonus = 20 if whipsaw else 0
+    whipsaw_bonus = 15 if whipsaw else 0
     shock_score = round(min(100, (rv_p + drop_p) / 2 + whipsaw_bonus))
 
     def fred_level_change(name: str) -> Tuple[float | None, float | None, int]:
@@ -161,7 +165,8 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
     t10_lvl, t10_ch, t10_p = fred_level_change("t10yie")
     hy_lvl, hy_ch, hy_p = fred_level_change("hy_spread")
 
-    macro_score = round((dfii_p + t10_p) / 2)
+    dfii_headwind_p = 100 - dfii_p
+    macro_score = round((dfii_headwind_p + t10_p) / 2)
     risk_score = hy_p
     fragility = round((trend_score + shock_score + macro_score + risk_score) / 4)
 
@@ -169,12 +174,16 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
     severe = shock_score >= 80 or risk_score >= 80 or dd63[latest] <= -12
 
     regime_triggers: List[str] = []
+    if trend_score >= 70:
+        regime_triggers.append("high_extension")
     if dd63[latest] <= -12:
         regime_triggers.append("deep_drawdown")
     if shock_score >= 80:
         regime_triggers.append("high_shock")
     if risk_score >= 80:
         regime_triggers.append("credit_stress")
+    if macro_score >= 70:
+        regime_triggers.append("macro_headwind")
 
     if severe:
         regime, action, conf = "RED", "Defensive", "High"
@@ -182,8 +191,10 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
             "deep_drawdown": "deep drawdown",
             "high_shock": "high shock",
             "credit_stress": "credit stress",
+            "macro_headwind": "macro headwinds",
+            "high_extension": "high extension",
         }
-        reasons = [reason_labels[r] for r in regime_triggers] or ["stress conditions"]
+        reasons = [reason_labels[r] for r in regime_triggers if r in {"deep_drawdown", "high_shock", "credit_stress", "macro_headwind"}] or ["stress conditions"]
         desc = f"Breakdown / stress regime driven by {', '.join(reasons)}."
     elif trend_score >= 70 and deterioration:
         regime, action, conf = "ORANGE", "Trim / tighten risk", "Medium"
@@ -212,11 +223,20 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
 
     cards = []
     for n, series, last, p in sigs:
-        state = "Triggered" if p >= 80 else "Watch" if p >= 65 else "Quiet"
+        if n == "1D down move severity" and last <= 0:
+            state = "Quiet"
+        else:
+            state = "Triggered" if p >= 80 else "Watch" if p >= 65 else "Quiet"
+
+        if n == "1D down move severity":
+            last_str = f"{last:.2f}%"
+        else:
+            last_str = f"{last:+.2f}" + ("%" if "volatility" in n.lower() or "momentum" in n.lower() or "Distance" in n or "severity" in n.lower() else "")
+
         cards.append({
             "name": n,
             "state": state,
-            "last": f"{last:+.2f}" + ("%" if "volatility" in n.lower() or "momentum" in n.lower() or "Distance" in n or "severity" in n.lower() else ""),
+            "last": last_str,
             "percentile": ordinal(p),
             "sparkline": spark(series[-7:]),
         })
@@ -258,7 +278,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
         "pillars": [
             {"name": "Trend / Extension", "score": trend_score, "metrics": [f"Distance vs 200DMA: {fmt_pct(dist200[latest])}", f"20D momentum: {fmt_pct(ret20[latest])}", f"63D drawdown: {dd63[latest]:.2f}%"]},
             {"name": "Vol / Shock", "score": shock_score, "metrics": [f"Realized vol (20D): {rv20[latest]:.2f}%", f"1D drop percentile: {ordinal(drop_p)}", f"Whipsaw flag: {'triggered' if whipsaw else 'quiet'}"]},
-            {"name": "Macro (rates + inflation)", "score": macro_score, "metrics": [f"DFII10: {dfii_lvl:.2f}" if dfii_lvl is not None else "DFII10: n/a", f"DFII10 1M change: {dfii_ch:+.2f}" if dfii_ch is not None else "DFII10 1M change: n/a", f"T10YIE 1M change: {t10_ch:+.2f}" if t10_ch is not None else "T10YIE 1M change: n/a"]},
+            {"name": "Macro (headwinds)", "score": macro_score, "metrics": [f"DFII10: {dfii_lvl:.2f}" if dfii_lvl is not None else "DFII10: n/a", f"DFII10 1M change: {dfii_ch:+.2f}" if dfii_ch is not None else "DFII10 1M change: n/a", f"T10YIE 1M change: {t10_ch:+.2f}" if t10_ch is not None else "T10YIE 1M change: n/a"]},
             {"name": "Risk appetite", "score": risk_score, "metrics": [f"HY spread level: {hy_lvl:.2f}" if hy_lvl is not None else "HY spread level: n/a", f"HY spread 1M change: {hy_ch:+.2f}" if hy_ch is not None else "HY spread 1M change: n/a", f"Regime: {risk_appetite}"]},
         ],
         "signals": cards,

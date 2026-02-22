@@ -9,7 +9,7 @@
   "regime_description": "Breakdown / stress regime driven by deep drawdown, credit stress.",
   "top_drivers": [
     "Trend/extension score is 66/100 (distance vs 200DMA: +63.54%)",
-    "Vol/shock score is 76/100 (20D realized vol percentile: 100th)",
+    "Vol/shock score is 75/100 (20D realized vol percentile: 100th)",
     "Risk appetite score is 80/100 (HY spread level: 2.88)"
   ],
   "triggers": [
@@ -27,8 +27,8 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 76,
-    "fragility_1_3m": 61,
+    "event_risk_1_5d": 75,
+    "fragility_1_3m": 69,
     "liquidity_regime": "Risk-off"
   },
   "pillars": [
@@ -43,16 +43,16 @@
     },
     {
       "name": "Vol / Shock",
-      "score": 76,
+      "score": 75,
       "metrics": [
         "Realized vol (20D): 142.79%",
-        "1D drop percentile: 52nd",
+        "1D drop percentile: 50th",
         "Whipsaw flag: quiet"
       ]
     },
     {
-      "name": "Macro (rates + inflation)",
-      "score": 22,
+      "name": "Macro (headwinds)",
+      "score": 56,
       "metrics": [
         "DFII10: 1.79",
         "DFII10 1M change: -0.18",
@@ -94,8 +94,8 @@
     {
       "name": "1D down move severity",
       "state": "Quiet",
-      "last": "+0.00%",
-      "percentile": "52nd",
+      "last": "0.00%",
+      "percentile": "50th",
       "sparkline": "\u2581\u2587\u2581\u2583\u2581\u2581\u2581"
     },
     {
