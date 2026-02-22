@@ -89,10 +89,11 @@
     th { font-size:12px; color:var(--muted2); text-transform:uppercase; }
     td.num,th.num { text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
     .table-container { overflow-x:auto; }
-    .sparkline { width:100%; height:56px; border:1px solid var(--border); border-radius:8px; background:var(--chip); display:block; }
+    .sparkline { width:100%; height:96px; border:1px solid var(--border); border-radius:8px; background:var(--chip); display:block; }
     .sparkline-polyline { fill:none; stroke:var(--blue); stroke-width:2; }
     .sparkline-axis { stroke:var(--border); stroke-width:1; }
-    .sparkline-axis-label,.sparkline-points { color:var(--muted2); fill:var(--muted2); font-size:11px; }
+    .sparkline-tick { stroke:var(--muted2); stroke-width:1; stroke-linecap:round; opacity:.85; }
+    .sparkline-axis-label,.sparkline-points { color:var(--muted2); fill:var(--muted2); font-size:10px; }
     .note { margin-top:10px; border:1px solid var(--border); border-radius:12px; padding:10px 12px; background: var(--chip); }
     .metric-label { display:inline-flex; align-items:center; gap:8px; font-weight:600; }
     .metric-indicator { width:10px; height:10px; border-radius:50%; background:#94a3b8; display:inline-block; }
@@ -156,21 +157,21 @@
       <details class="expandable-card" data-expand-group="mechanics">
         <summary>Extension</summary>
         <div class="expandable-body">
-          <div class="sparkline-wrap"><svg id="extensionSparkline" class="sparkline" viewBox="0 0 240 56" preserveAspectRatio="none"></svg><div id="extensionSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="sparkline-wrap"><svg id="extensionSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="extensionSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
           <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="extensionRows"><tr><td colspan="3">Loading extension data...</td></tr></tbody></table></div>
         </div>
       </details>
       <details class="expandable-card" data-expand-group="mechanics">
         <summary>Flow (short-term)</summary>
         <div class="expandable-body">
-          <div class="sparkline-wrap"><svg id="flowSparkline" class="sparkline" viewBox="0 0 240 56" preserveAspectRatio="none"></svg><div id="flowSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="sparkline-wrap"><svg id="flowSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="flowSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
           <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="flowRows"><tr><td colspan="3">Loading flow data...</td></tr></tbody></table></div>
         </div>
       </details>
       <details class="expandable-card" data-expand-group="mechanics">
         <summary>Macro (short-term)</summary>
         <div class="expandable-body">
-          <div class="sparkline-wrap"><svg id="macroSparkline" class="sparkline" viewBox="0 0 240 56" preserveAspectRatio="none"></svg><div id="macroSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="sparkline-wrap"><svg id="macroSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="macroSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
           <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="macroRows"><tr><td colspan="3">Loading macro data...</td></tr></tbody></table></div>
         </div>
       </details>
@@ -410,9 +411,10 @@
       const min = Math.min(...values);
       const max = Math.max(...values);
       const span = max - min || 1;
-      const width = 240;
-      const height = 56;
-      const padding = { top: 8, right: 8, bottom: 14, left: 22 };
+      const height = 96;
+      const width = Math.max(240, Math.round(svgEl.clientWidth || 240));
+      svgEl.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      const padding = { top: 10, right: 10, bottom: 24, left: 34 };
       const plotWidth = width - padding.left - padding.right;
       const plotHeight = height - padding.top - padding.bottom;
       const path = series.map((point, idx) => {
@@ -422,12 +424,24 @@
       }).join(' ');
       const xLabel = axisLabels?.x || 'Time';
       const yLabel = axisLabels?.y || 'Value';
+      const xAxisY = height - padding.bottom + 0.5;
+      const yAxisX = padding.left + 0.5;
+      const xTicks = Array.from({ length: 5 }, (_, i) => {
+        const x = padding.left + (i / 4) * plotWidth;
+        return `<line class="sparkline-tick" x1="${x.toFixed(1)}" y1="${xAxisY}" x2="${x.toFixed(1)}" y2="${(xAxisY - 4).toFixed(1)}"></line>`;
+      }).join('');
+      const yTicks = Array.from({ length: 4 }, (_, i) => {
+        const y = padding.top + (i / 3) * plotHeight;
+        return `<line class="sparkline-tick" x1="${yAxisX}" y1="${y.toFixed(1)}" x2="${(yAxisX + 4).toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+      }).join('');
       const axes = `
         <g class="sparkline-axes">
-          <line class="sparkline-axis" x1="${padding.left}" y1="${height - padding.bottom + 0.5}" x2="${width - padding.right}" y2="${height - padding.bottom + 0.5}"></line>
-          <line class="sparkline-axis" x1="${padding.left + 0.5}" y1="${padding.top}" x2="${padding.left + 0.5}" y2="${height - padding.bottom}"></line>
-          <text class="sparkline-axis-label" x="${padding.left + plotWidth / 2}" y="${height - 2}">${xLabel}</text>
-          <text class="sparkline-axis-label" x="10" y="${padding.top + plotHeight / 2}" transform="rotate(-90 10 ${padding.top + plotHeight / 2})">${yLabel}</text>
+          <line class="sparkline-axis" x1="${padding.left}" y1="${xAxisY}" x2="${width - padding.right}" y2="${xAxisY}"></line>
+          <line class="sparkline-axis" x1="${yAxisX}" y1="${padding.top}" x2="${yAxisX}" y2="${height - padding.bottom}"></line>
+          ${xTicks}
+          ${yTicks}
+          <text class="sparkline-axis-label" x="${padding.left + plotWidth / 2}" y="${height - 8}" text-anchor="middle">${xLabel}</text>
+          <text class="sparkline-axis-label" x="13" y="${padding.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 13 ${padding.top + plotHeight / 2})">${yLabel}</text>
         </g>
       `;
       svgEl.innerHTML = `${axes}<polyline class="sparkline-polyline" points="${path}"></polyline>`;
@@ -691,21 +705,21 @@
           extensionSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.extension != null).map((item) => ({ date: item.updated_at, value: item.spark.extension })),
           formatPercent,
-          { x: 'Date', y: '3M return (%)' }
+          { x: 'Date', y: 'Return %' }
         );
         renderSparkline(
           flowSparklineEl,
           flowSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.flows != null).map((item) => ({ date: item.updated_at, value: item.spark.flows })),
           formatPercent,
-          { x: 'Date', y: 'Holdings change (21D, %)' }
+          { x: 'Date', y: 'Flow %' }
         );
         renderSparkline(
           macroSparklineEl,
           macroSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.macro != null).map((item) => ({ date: item.updated_at, value: item.spark.macro })),
           formatBp,
-          { x: 'Date', y: 'Real yield change (1M, bp)' }
+          { x: 'Date', y: 'Real yld bp' }
         );
         macroRows.innerHTML = `
           <tr>
