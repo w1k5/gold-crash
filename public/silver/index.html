@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Silver Risk Monitor</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg:#0b0f14;--panel:rgba(255,255,255,.06);--panel-soft:rgba(255,255,255,.03);--border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.52);
+      --green:#34d399;--blue:#60a5fa;--orange:#fb923c;--red:#f87171;--radius:16px;--max:1100px;
+    }
+    @media (prefers-color-scheme: light){:root{--bg:#f3f6fb;--panel:#fff;--panel-soft:#fff;--border:#dbe3ef;--text:#0f172a;--muted:#475569;--muted2:#64748b;--green:#166534;--blue:#2563eb;--orange:#c2410c;--red:#b91c1c;}}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    main{max-width:var(--max);margin:0 auto;padding:22px 16px 54px}.card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:linear-gradient(180deg,var(--panel),var(--panel-soft))}
+    .top{position:sticky;top:0;z-index:10;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(8px);padding:10px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em} h2{margin:0 0 8px;font-size:17px} .subtitle{margin:4px 0 0;color:var(--muted)} .tiny{font-size:12px;color:var(--muted2)}
+    .status-strip{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:14px 0}
+    .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2)} .v{font-size:20px;font-weight:700}
+    .badge{display:inline-block;padding:8px 12px;border-radius:999px;font-weight:800;border:1px solid var(--border)}
+    .GREEN{color:var(--green);background:rgba(52,211,153,.17)} .BLUE{color:var(--blue);background:rgba(96,165,250,.17)} .ORANGE{color:var(--orange);background:rgba(251,146,60,.17)} .RED{color:var(--red);background:rgba(248,113,113,.17)}
+    .grid{display:grid;gap:12px}.now{grid-template-columns:1.4fr repeat(3,1fr)} .pillars{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .signals{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .drivers li{margin:6px 0}.two-col{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .sig-state{font-weight:700}.sig-Triggered{color:var(--red)}.sig-Watch{color:var(--orange)}.sig-Quiet{color:var(--green)}
+    table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden} th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top} th{font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
+    @media(max-width:900px){.now{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <h1 id="title">Silver Risk Monitor (SLV)</h1>
+    <p class="subtitle" id="subtitle">Outcome first: regime, drivers, and what changes next.</p>
+    <p class="tiny" id="meta">As of —</p>
+  </section>
+
+  <section class="card">
+    <div class="status-strip">
+      <div><div class="k">Regime</div><div class="v"><span id="regimeBadge" class="badge BLUE">BLUE</span></div></div>
+      <div><div class="k">Action bias</div><div class="v" id="actionBias">—</div></div>
+      <div><div class="k">Confidence</div><div class="v" id="confidence">—</div></div>
+      <div><div class="k">Data dates</div><div class="tiny" id="dataDates">—</div></div>
+    </div>
+    <p id="regimeDescription" class="subtitle" style="margin-top:2px;">—</p>
+  </section>
+
+  <section class="grid now" style="margin-top:12px;">
+    <article class="card">
+      <h2>Regime now</h2>
+      <p class="tiny">Why this regime</p>
+      <ul class="drivers" id="driverList"><li>Loading…</li></ul>
+    </article>
+    <article class="card"><div class="k">1–5 day event risk</div><div class="v" id="eventRisk">—</div><p class="tiny">0–100 composite shock score</p></article>
+    <article class="card"><div class="k">1–3 month fragility</div><div class="v" id="fragility">—</div><p class="tiny">0–100 trend deterioration score</p></article>
+    <article class="card"><div class="k">Liquidity / risk appetite</div><div class="v" id="liq">—</div><p class="tiny">Credit + vol regime lens</p></article>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <h2>Pillars</h2>
+    <div class="grid pillars" id="pillars"></div>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <h2>What changes next</h2>
+    <div class="two-col">
+      <div><p class="k">Escalation conditions</p><ul id="upList"></ul></div>
+      <div><p class="k">De-escalation conditions</p><ul id="downList"></ul></div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <h2>Signals</h2>
+    <p class="tiny" style="margin-top:-2px;">Independent checks that flip between Triggered / Watch / Quiet.</p>
+    <div class="grid signals" id="signals"></div>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <h2>Rules that define regimes</h2>
+    <table>
+      <thead><tr><th>Regime</th><th>Definition</th><th>Action bias</th><th>Escalation</th><th>De-escalation</th></tr></thead>
+      <tbody id="rules"></tbody>
+    </table>
+  </section>
+</main>
+<script>
+const fallback = {"title":"Silver Risk Monitor (SLV)","subtitle":"Outcome first: regime, drivers, and what changes next.","as_of":"n/a","data_dates":"n/a","regime":"BLUE","action_bias":"Hold","confidence":"Medium","regime_description":"Extended, but intact.","top_drivers":["Data unavailable"],"what_changes_next":{"escalate":["Awaiting data"],"deescalate":["Awaiting data"]},"now_cards":{"event_risk_1_5d":null,"fragility_1_3m":null,"liquidity_regime":"—"},"pillars":[],"signals":[],"rules":[]};
+const el = (id) => document.getElementById(id);
+function render(d){
+  el('title').textContent = d.title || fallback.title;
+  el('subtitle').textContent = d.subtitle || fallback.subtitle;
+  el('meta').textContent = `As of ${d.as_of || '—'}`;
+  el('dataDates').textContent = d.data_dates || '—';
+  const regime = (d.regime || 'BLUE').toUpperCase();
+  const badge = el('regimeBadge'); badge.textContent = regime; badge.className = `badge ${regime}`;
+  el('actionBias').textContent = d.action_bias || '—'; el('confidence').textContent = d.confidence || '—';
+  el('regimeDescription').textContent = d.regime_description || '—';
+  const drivers = el('driverList'); drivers.innerHTML = (d.top_drivers || []).map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+  el('eventRisk').textContent = Number.isFinite(d.now_cards?.event_risk_1_5d) ? `${d.now_cards.event_risk_1_5d}/100` : '—';
+  el('fragility').textContent = Number.isFinite(d.now_cards?.fragility_1_3m) ? `${d.now_cards.fragility_1_3m}/100` : '—';
+  el('liq').textContent = d.now_cards?.liquidity_regime || '—';
+  const pillars = el('pillars'); pillars.innerHTML = (d.pillars||[]).map(p=>`<article class="card"><div class="k">${p.name}</div><div class="v">${p.score}/100</div><ul class="tiny">${(p.metrics||[]).map(m=>`<li>${m}</li>`).join('')}</ul></article>`).join('');
+  const up = el('upList'); up.innerHTML = (d.what_changes_next?.escalate||[]).map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+  const down = el('downList'); down.innerHTML = (d.what_changes_next?.deescalate||[]).map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+  const signals = el('signals'); signals.innerHTML = (d.signals||[]).map(s=>`<article class="card"><div class="k">${s.name}</div><p class="sig-state sig-${s.state}" style="margin:6px 0;">${s.state}</p><p class="tiny" style="margin:0;">Last: ${s.last}</p><p class="tiny" style="margin:0;">Percentile: ${s.percentile}</p><p style="margin:8px 0 0;font-family:ui-monospace,monospace">${s.sparkline || '—'}</p></article>`).join('');
+  const rules = el('rules'); rules.innerHTML = (d.rules||[]).map(r=>`<tr><td><span class="badge ${r.regime}">${r.regime}</span></td><td>${r.definition}</td><td>${r.action_bias}</td><td>${r.escalation}</td><td>${r.deescalation}</td></tr>`).join('');
+}
+fetch('../silver.json').then(r=>r.ok?r.json():Promise.reject()).then(render).catch(()=>render(fallback));
+</script>
+</body>
+</html>

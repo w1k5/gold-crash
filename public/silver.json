@@ -1,0 +1,162 @@
+{
+  "title": "Silver Risk Monitor (SLV)",
+  "subtitle": "Outcome first: regime, drivers, and what changes next.",
+  "as_of": "2026-02-22",
+  "data_dates": "SLV through 2026-02-21 · FRED through 2026-02-21",
+  "regime": "BLUE",
+  "action_bias": "Hold / add on pullbacks",
+  "confidence": "Medium",
+  "regime_description": "Extended, but intact: upside trend is still in place, but extension is elevated.",
+  "top_drivers": [
+    "SLV remains materially above its 200D trend (extension elevated)",
+    "Shock conditions are still mostly quiet (no broad breakdown pattern)",
+    "Credit stress is stable, but not fully benign"
+  ],
+  "what_changes_next": {
+    "escalate": [
+      "If extension stays high and a shock trigger flips, BLUE can escalate to ORANGE",
+      "If HY spreads widen rapidly with weak SLV breadth, ORANGE/RED risk rises"
+    ],
+    "deescalate": [
+      "If extension cools while shock and credit remain quiet, BLUE can normalize to GREEN",
+      "If deterioration flags clear for multiple sessions, ORANGE can step back to BLUE"
+    ]
+  },
+  "now_cards": {
+    "event_risk_1_5d": 34,
+    "fragility_1_3m": 56,
+    "liquidity_regime": "Mixed"
+  },
+  "pillars": [
+    {
+      "name": "Trend / Extension",
+      "score": 73,
+      "metrics": [
+        "Distance vs 200DMA: +8.4%",
+        "20D momentum: +4.1%",
+        "63D drawdown: -4.3%"
+      ]
+    },
+    {
+      "name": "Vol / Shock",
+      "score": 38,
+      "metrics": [
+        "Realized vol (20D): 21.6%",
+        "Worst 1D drop percentile: 61st",
+        "Whipsaw flag: quiet"
+      ]
+    },
+    {
+      "name": "Macro (rates + inflation)",
+      "score": 46,
+      "metrics": [
+        "DFII10 (10Y real): 1.79",
+        "DFII10 1M change: -18 bps",
+        "T10YIE 1M change: +6 bps"
+      ]
+    },
+    {
+      "name": "Risk appetite",
+      "score": 52,
+      "metrics": [
+        "HY spread (BAMLH0A0HYM2): 2.88",
+        "5D change: -0.04",
+        "Regime: mixed"
+      ]
+    }
+  ],
+  "signals": [
+    {
+      "name": "Distance above 200DMA",
+      "state": "Watch",
+      "last": "+8.4%",
+      "percentile": "91st",
+      "sparkline": "▁▂▃▄▅▆▇"
+    },
+    {
+      "name": "20D realized volatility",
+      "state": "Quiet",
+      "last": "21.6%",
+      "percentile": "54th",
+      "sparkline": "▃▃▄▃▂▂▃"
+    },
+    {
+      "name": "1D down move severity",
+      "state": "Quiet",
+      "last": "-1.2%",
+      "percentile": "61st",
+      "sparkline": "▁▂▁▃▂▁▂"
+    },
+    {
+      "name": "Whipsaw detector (3D)",
+      "state": "Quiet",
+      "last": "No trigger",
+      "percentile": "—",
+      "sparkline": "▁▁▁▁▁▁▁"
+    },
+    {
+      "name": "DFII10 1M change",
+      "state": "Watch",
+      "last": "-18 bps",
+      "percentile": "34th",
+      "sparkline": "▇▆▅▄▃▂▂"
+    },
+    {
+      "name": "T10YIE 1M change",
+      "state": "Quiet",
+      "last": "+6 bps",
+      "percentile": "58th",
+      "sparkline": "▃▃▄▅▅▄▃"
+    },
+    {
+      "name": "HY spread level",
+      "state": "Watch",
+      "last": "2.88",
+      "percentile": "42nd",
+      "sparkline": "▂▂▃▄▅▄▃"
+    },
+    {
+      "name": "HY spread 10D widening",
+      "state": "Quiet",
+      "last": "-0.09",
+      "percentile": "29th",
+      "sparkline": "▆▅▄▃▂▂▁"
+    }
+  ],
+  "rules": [
+    {
+      "regime": "GREEN",
+      "definition": "Trend positive-to-neutral, shock low, credit stress quiet.",
+      "action_bias": "Accumulate on dips / hold core",
+      "escalation": "Extension score rises above ~70th percentile while other pillars remain stable.",
+      "deescalation": "N/A"
+    },
+    {
+      "regime": "BLUE",
+      "definition": "Extended above trend, but no confirmed deterioration.",
+      "action_bias": "Hold / add only on pullbacks",
+      "escalation": "Extension high + shock flips Watch OR credit starts widening.",
+      "deescalation": "Extension cools and deterioration flags remain off."
+    },
+    {
+      "regime": "ORANGE",
+      "definition": "Extended + at least one deterioration pillar active.",
+      "action_bias": "Stop adding, trim rips, tighten risk",
+      "escalation": "Breakdown pattern: vol spike + down day cluster, drawdown breach, or credit stress jump.",
+      "deescalation": "Shock flags clear and price stabilizes across key moving averages."
+    },
+    {
+      "regime": "RED",
+      "definition": "Breakdown / stress regime with high shock and deeper drawdown.",
+      "action_bias": "Defensive posture",
+      "escalation": "N/A",
+      "deescalation": "Shock turns off and trend repair persists for multiple sessions."
+    }
+  ],
+  "sources": {
+    "slv": "https://stooq.com/q/d/l/?s=slv.us&i=d",
+    "dfii10": "https://fred.stlouisfed.org/series/DFII10",
+    "t10yie": "https://fred.stlouisfed.org/series/T10YIE",
+    "hy_spread": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"
+  }
+}
