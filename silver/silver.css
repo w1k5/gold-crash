@@ -43,6 +43,7 @@ h1{ margin:0 0 6px; font-size:28px; letter-spacing:.2px; }
 
 .tiles{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:18px; }
 .tile{ background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--border); border-radius:var(--r); padding:14px; box-shadow:var(--shadow); }
+.tile-sub{ margin-top:4px; color:var(--muted); font-size:12px; }
 .big{ font-size:34px; margin-top:8px; font-family:var(--mono); letter-spacing:.4px; }
 
 .section{ margin:18px 0; }
