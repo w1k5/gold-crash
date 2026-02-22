@@ -115,6 +115,18 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .sparkline-axis {
+      stroke: var(--border);
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+    .sparkline-axis-label {
+      fill: var(--muted);
+      font-size: 8px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
     .sparkline-points {
       font-size: 11px;
       color: var(--muted);
@@ -1013,7 +1025,7 @@
       return next;
     };
     const lastFivePoints = (series, formatter) => series.slice(-5).map((point) => `${point.date.slice(5)} ${formatter(point.value)}`).join(' • ');
-    const renderSparkline = (svgEl, pointsEl, series, formatter) => {
+    const renderSparkline = (svgEl, pointsEl, series, formatter, axisLabels) => {
       if (!series.length) {
         svgEl.innerHTML = '';
         pointsEl.textContent = 'History builds as daily snapshots are saved.';
@@ -1028,7 +1040,17 @@
         const y = 36 - ((point.value - min) / span) * 32;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(' ');
-      svgEl.innerHTML = `<polyline class="sparkline-polyline" points="${path}"></polyline>`;
+      const xLabel = axisLabels?.x || 'Time';
+      const yLabel = axisLabels?.y || 'Value';
+      const axes = `
+        <g class="sparkline-axes">
+          <line class="sparkline-axis" x1="0.5" y1="36.5" x2="219.5" y2="36.5"></line>
+          <line class="sparkline-axis" x1="0.5" y1="4.5" x2="0.5" y2="36.5"></line>
+          <text class="sparkline-axis-label" x="110" y="39">${xLabel}</text>
+          <text class="sparkline-axis-label" x="8" y="20" transform="rotate(-90 8 20)">${yLabel}</text>
+        </g>
+      `;
+      svgEl.innerHTML = `${axes}<polyline class="sparkline-polyline" points="${path}"></polyline>`;
       const hoverText = `Last 5 points: ${lastFivePoints(series, formatter)}`;
       svgEl.onmouseenter = () => { pointsEl.textContent = hoverText; };
       svgEl.onmouseleave = () => { pointsEl.textContent = 'Hover to see last 5 points.'; };
@@ -1288,19 +1310,22 @@
           extensionSparklineEl,
           extensionSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.extension != null).map((item) => ({ date: item.updated_at, value: item.spark.extension })),
-          formatPercent
+          formatPercent,
+          { x: 'Date', y: '3M return (%)' }
         );
         renderSparkline(
           flowSparklineEl,
           flowSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.flows != null).map((item) => ({ date: item.updated_at, value: item.spark.flows })),
-          formatPercent
+          formatPercent,
+          { x: 'Date', y: 'Holdings change (21D, %)' }
         );
         renderSparkline(
           macroSparklineEl,
           macroSparklinePointsEl,
           sparkHistory.filter((item) => item.spark.macro != null).map((item) => ({ date: item.updated_at, value: item.spark.macro })),
-          formatBp
+          formatBp,
+          { x: 'Date', y: 'Real yield change (1M, bp)' }
         );
         macroRows.innerHTML = `
           <tr>
