@@ -401,6 +401,10 @@
       return next;
     };
     const lastFivePoints = (series, formatter) => series.slice(-5).map((point) => `${point.date.slice(5)} ${formatter(point.value)}`).join(' • ');
+    const formatDateTick = (isoDate) => {
+      const date = new Date(`${isoDate}T00:00:00`);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
     const renderSparkline = (svgEl, pointsEl, series, formatter, axisLabels) => {
       if (!series.length) {
         svgEl.innerHTML = '';
@@ -414,7 +418,7 @@
       const height = 96;
       const width = Math.max(240, Math.round(svgEl.clientWidth || 240));
       svgEl.setAttribute('viewBox', `0 0 ${width} ${height}`);
-      const padding = { top: 10, right: 10, bottom: 24, left: 34 };
+      const padding = { top: 10, right: 10, bottom: 34, left: 52 };
       const plotWidth = width - padding.left - padding.right;
       const plotHeight = height - padding.top - padding.bottom;
       const path = series.map((point, idx) => {
@@ -426,13 +430,37 @@
       const yLabel = axisLabels?.y || 'Value';
       const xAxisY = height - padding.bottom + 0.5;
       const yAxisX = padding.left + 0.5;
-      const xTicks = Array.from({ length: 5 }, (_, i) => {
-        const x = padding.left + (i / 4) * plotWidth;
-        return `<line class="sparkline-tick" x1="${x.toFixed(1)}" y1="${xAxisY}" x2="${x.toFixed(1)}" y2="${(xAxisY - 4).toFixed(1)}"></line>`;
+      const xTickTarget = Math.min(5, series.length);
+      const xTickIndices = Array.from({ length: xTickTarget }, (_, i) => {
+        if (xTickTarget === 1) return series.length - 1;
+        return Math.round((i / (xTickTarget - 1)) * (series.length - 1));
+      }).filter((index, position, arr) => arr.indexOf(index) === position);
+      const xTickCandidates = xTickIndices.map((index) => ({
+        index,
+        shortLabel: formatDateTick(series[index].date),
+      }));
+      const duplicateShortLabels = new Set(
+        xTickCandidates
+          .map((tick) => tick.shortLabel)
+          .filter((label, position, arr) => arr.indexOf(label) !== position)
+      );
+      const xTicks = xTickCandidates.map((tick) => {
+        const x = padding.left + (tick.index / Math.max(1, series.length - 1)) * plotWidth;
+        const label = duplicateShortLabels.has(tick.shortLabel) ? series[tick.index].date : tick.shortLabel;
+        return `
+          <line class="sparkline-tick" x1="${x.toFixed(1)}" y1="${xAxisY}" x2="${x.toFixed(1)}" y2="${(xAxisY - 4).toFixed(1)}"></line>
+          <text class="sparkline-axis-label" x="${x.toFixed(1)}" y="${(height - 14).toFixed(1)}" text-anchor="middle">${label}</text>
+        `;
       }).join('');
-      const yTicks = Array.from({ length: 4 }, (_, i) => {
-        const y = padding.top + (i / 3) * plotHeight;
-        return `<line class="sparkline-tick" x1="${yAxisX}" y1="${y.toFixed(1)}" x2="${(yAxisX + 4).toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+      const yTickTarget = 4;
+      const yTicks = Array.from({ length: yTickTarget }, (_, i) => {
+        const ratio = i / Math.max(1, yTickTarget - 1);
+        const y = padding.top + ratio * plotHeight;
+        const value = max - ratio * span;
+        return `
+          <line class="sparkline-tick" x1="${yAxisX}" y1="${y.toFixed(1)}" x2="${(yAxisX + 4).toFixed(1)}" y2="${y.toFixed(1)}"></line>
+          <text class="sparkline-axis-label" x="${(yAxisX - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end">${formatter(value)}</text>
+        `;
       }).join('');
       const axes = `
         <g class="sparkline-axes">
@@ -440,7 +468,7 @@
           <line class="sparkline-axis" x1="${yAxisX}" y1="${padding.top}" x2="${yAxisX}" y2="${height - padding.bottom}"></line>
           ${xTicks}
           ${yTicks}
-          <text class="sparkline-axis-label" x="${padding.left + plotWidth / 2}" y="${height - 8}" text-anchor="middle">${xLabel}</text>
+          <text class="sparkline-axis-label" x="${padding.left + plotWidth / 2}" y="${height - 2}" text-anchor="middle">${xLabel}</text>
           <text class="sparkline-axis-label" x="13" y="${padding.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 13 ${padding.top + plotHeight / 2})">${yLabel}</text>
         </g>
       `;
