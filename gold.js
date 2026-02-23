@@ -22,7 +22,7 @@
     const dataDatesEl = document.getElementById('data_dates');
     const confidenceEl = document.getElementById('confidence');
     const reasonLeadEl = document.getElementById('reasonLead');
-    const reasonsEl = document.getElementById('reasons');
+    const reasonsEl = document.getElementById('drivers');
     const glanceCardsEl = document.getElementById('glanceCards');
     const escalationEl = document.getElementById('escalation');
     const horizonSummaryEl = document.getElementById('horizonSummary');
@@ -32,6 +32,12 @@
     const flowRows = document.getElementById('flowRows');
     const macroRows = document.getElementById('macroRows');
     const dailyStripEl = document.getElementById('dailyStrip');
+    const signalCountEl = document.getElementById('signal_count');
+    const escalateListEl = document.getElementById('escalate');
+    const deescalateListEl = document.getElementById('deescalate');
+    const tileReturn3mEl = document.getElementById('tile_return_3m');
+    const tileFlows21dEl = document.getElementById('tile_flows_21d');
+    const tileRealYield1mEl = document.getElementById('tile_real_yield_1m');
     const portfolioLensEl = document.getElementById('portfolioLens');
     const lensTextEl = document.getElementById('lensText');
     const extensionSparklineEl = document.getElementById('extensionSparkline');
@@ -426,6 +432,23 @@
           }).join('')
           : '<li>No active triggers.</li>';
 
+        const transitions = regime.transitions || {};
+        const summarizeRows = (rows, fallback) => {
+          if (!rows || rows.length === 0) return [fallback];
+          return rows.slice(0, 3).map((row) => {
+            const threshold = row.threshold || row.thresholdLabel || 'watch threshold';
+            return `${row.trigger}: ${threshold}`;
+          });
+        };
+        const escalateSummary = [
+          ...summarizeRows(transitions.escalate_to_red_primary, 'Primary stress trigger fires'),
+          ...summarizeRows(transitions.escalate_to_red_composite, 'Two composite stress triggers fire').slice(0, 1),
+        ];
+        const deescalateSummary = summarizeRows(transitions.deescalate_to_blue, 'Deterioration triggers clear');
+        escalateListEl.innerHTML = escalateSummary.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+        deescalateListEl.innerHTML = deescalateSummary.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+        signalCountEl.textContent = `Signals today: ${reasons.length} active`; 
+
         const metrics = data.metrics || {};
         const horizons = metrics.horizons || {};
         const horizonOrder = ['3M', '6M', '1Y', '3Y', '5Y'];
@@ -485,6 +508,9 @@
         `;
 
         const flows = metrics.flows || {};
+        tileReturn3mEl.textContent = valueOrNA(horizons['3M']?.ret, formatPercent);
+        tileFlows21dEl.textContent = valueOrNA(flows.holdings_change_21d_pct, formatPercent);
+        tileRealYield1mEl.textContent = valueOrNA(metrics.macro?.real_yield_change_1m_bp, formatBp);
         flowRows.innerHTML = `
           <tr>
             <td>Holdings today (tonnes)</td>
@@ -701,7 +727,6 @@
         ];
         glanceCardsEl.innerHTML = glanceCards.join('');
 
-        const transitions = regime.transitions || {};
         const deescalateRows = transitions.deescalate_to_blue || [];
         const redPrimaryRows = transitions.escalate_to_red_primary || [];
         const redCompositeRows = transitions.escalate_to_red_composite || [];
