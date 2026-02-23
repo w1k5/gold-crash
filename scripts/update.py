@@ -194,6 +194,16 @@ def compute_max_drawdown(prices: List[Decimal]) -> Decimal | None:
     return max_drawdown
 
 
+def compute_rolling_drawdown(prices: List[Decimal], window: int) -> List[Decimal]:
+    if window <= 0 or len(prices) < window:
+        return []
+    rolling: List[Decimal] = []
+    for idx in range(window - 1, len(prices)):
+        value = compute_max_drawdown(prices[idx - window + 1 : idx + 1])
+        rolling.append(value if value is not None else Decimal("0"))
+    return rolling
+
+
 def compute_simple_moving_average(prices: List[Decimal], window: int) -> Decimal | None:
     if len(prices) < window:
         return None
@@ -346,17 +356,17 @@ def compute_stability_gold(
         range_contracting = pstdev(abs_recent) < pstdev(abs_prior)
 
     higher_low = False
-    if len(prices) >= 20:
-        recent_low = min(prices[-10:])
-        prior_low = min(prices[-20:-10])
+    if len(prices) >= 30:
+        recent_low = min(prices[-15:])
+        prior_low = min(prices[-30:-15])
         higher_low = recent_low > prior_low
 
     drawdown_improving = False
-    if len(prices) >= 20:
-        recent_drawdown = compute_max_drawdown(prices[-10:])
-        prior_drawdown = compute_max_drawdown(prices[-20:-10])
-        if recent_drawdown is not None and prior_drawdown is not None:
-            drawdown_improving = recent_drawdown > prior_drawdown
+    dd63 = compute_rolling_drawdown(prices, 63)
+    if len(dd63) >= 10:
+        recent_dd_floor = min(dd63[-5:])
+        prior_dd_floor = min(dd63[-10:-5])
+        drawdown_improving = recent_dd_floor >= prior_dd_floor
 
     short_ma_repair = False
     if len(prices) >= 20:
@@ -369,8 +379,6 @@ def compute_stability_gold(
     macro_turn = transitions_flags.get("macro_turn")
     flow_divergence = transitions_flags.get("flow_divergence")
     macro_followthrough = transitions_flags.get("macro_followthrough")
-    stress_cooling = all(flag is False for flag in [price_crack, macro_turn, flow_divergence, macro_followthrough])
-
     score = 0
     reasons: List[str] = []
     if vol_contracting:
@@ -388,9 +396,31 @@ def compute_stability_gold(
     if short_ma_repair:
         score += 10
         reasons.append("short_ma_repair")
-    if stress_cooling:
-        score += 15
-        reasons.append("stress_flags_cooling")
+    if price_crack is False:
+        score += 6
+        reasons.append("price_crack_cooling")
+    if macro_turn is False:
+        score += 3
+        reasons.append("macro_turn_cooling")
+    if flow_divergence is False:
+        score += 3
+        reasons.append("flow_divergence_cooling")
+    if macro_followthrough is False:
+        score += 3
+        reasons.append("macro_followthrough_cooling")
+
+    candidates = {
+        "volatility_contracting": vol_contracting,
+        "range_contracting": range_contracting,
+        "higher_low": higher_low,
+        "drawdown_improving": drawdown_improving,
+        "short_ma_repair": short_ma_repair,
+        "price_crack_cooling": price_crack is False,
+        "macro_turn_cooling": macro_turn is False,
+        "flow_divergence_cooling": flow_divergence is False,
+        "macro_followthrough_cooling": macro_followthrough is False,
+    }
+    missing = [name for name, fired in candidates.items() if not fired]
 
     is_stabilizing_today = score >= 60
     streak = previous_stability_streak + 1 if is_stabilizing_today else 0
@@ -401,6 +431,7 @@ def compute_stability_gold(
         "label": compute_stability_label(streak, score),
         "streak": streak,
         "reasons": reasons,
+        "missing": missing,
     }
 
 
@@ -547,9 +578,12 @@ def classify_regime(
     )
     if policy_conflict:
         deterioration_triggers.append("deterioration_policy_conflict")
-    price_crack = ret_1m_nonpositive or primary_drawdown <= Decimal("-0.08")
-    if price_crack:
+    drawdown_breach = primary_drawdown is not None and primary_drawdown <= Decimal("-0.08")
+    trend_crack = drawdown_breach and ret_1m_nonpositive
+    if trend_crack:
         deterioration_triggers.append("deterioration_price_crack")
+    if drawdown_breach:
+        deterioration_triggers.append("deterioration_drawdown_breach")
     follow_through = (
         corr20 is not None
         and corr20 <= -0.40
@@ -559,7 +593,7 @@ def classify_regime(
     if follow_through:
         deterioration_triggers.append("deterioration_followthrough")
 
-    deterioration_present = any([flow_divergence, macro_turn, price_crack, policy_conflict, follow_through])
+    deterioration_present = any([flow_divergence, macro_turn, trend_crack, drawdown_breach, policy_conflict, follow_through])
 
     red_primary_triggers: List[str] = []
     red_primary = False
@@ -708,9 +742,8 @@ def build_regime_transitions(
         and ret_1m_positive
     )
     macro_turn = real_yield_change_1m_bp is not None and real_yield_change_1m_bp >= macro_threshold
-    price_crack = ret_1m_nonpositive or (
-        primary_drawdown is not None and primary_drawdown <= price_crack_drawdown_threshold
-    )
+    drawdown_breach = primary_drawdown is not None and primary_drawdown <= price_crack_drawdown_threshold
+    trend_crack = drawdown_breach and ret_1m_nonpositive
     follow_through = (
         corr20 is not None
         and corr20 <= follow_through_corr_threshold
@@ -720,20 +753,20 @@ def build_regime_transitions(
 
     deescalate_to_blue = [
         build_transition_row(
-            name="Price crack clears (1M return)",
+            name="Trend crack clears (1M return)",
             threshold_label="1M return > 0%",
             current=ret_1m,
             threshold_value=price_crack_return_threshold,
             fired=True if ret_1m is None else ret_1m > price_crack_return_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
-            name="Price crack clears (3M drawdown)",
+            name="Drawdown breach clears (3M drawdown)",
             threshold_label="3M drawdown > -8%",
             current=primary_drawdown,
             threshold_value=price_crack_drawdown_threshold,
-            fired=primary_drawdown is not None and primary_drawdown > price_crack_drawdown_threshold,
-            unit="percent",
+            fired=not drawdown_breach,
+            unit="fraction",
         ),
         build_transition_row(
             name="Flow divergence clears",
@@ -741,7 +774,7 @@ def build_regime_transitions(
             current=holdings_change_21d_pct,
             threshold_value=flow_threshold,
             fired=not flow_divergence,
-            unit="percent",
+            unit="fraction",
             note="Flow divergence only evaluated when 3M return > 0 and 1M return > 0.",
         ),
         build_transition_row(
@@ -761,7 +794,7 @@ def build_regime_transitions(
             current=primary_ret,
             threshold_value=red_primary_return_threshold,
             fired=primary_ret is not None and primary_ret <= red_primary_return_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
             name="RED primary: 3M drawdown",
@@ -769,7 +802,7 @@ def build_regime_transitions(
             current=primary_drawdown,
             threshold_value=red_primary_drawdown_threshold,
             fired=primary_drawdown is not None and primary_drawdown <= red_primary_drawdown_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
             name="RED primary: real yield 1M",
@@ -788,7 +821,7 @@ def build_regime_transitions(
             current=primary_ret,
             threshold_value=composite_return_threshold,
             fired=primary_ret is not None and primary_ret <= composite_return_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
             name="RED composite: holdings 21D",
@@ -796,7 +829,7 @@ def build_regime_transitions(
             current=holdings_change_21d_pct,
             threshold_value=composite_holdings_21d_threshold,
             fired=holdings_change_21d_pct is not None and holdings_change_21d_pct <= composite_holdings_21d_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
             name="RED composite: holdings 5D",
@@ -804,7 +837,7 @@ def build_regime_transitions(
             current=holdings_change_5d_pct,
             threshold_value=composite_holdings_5d_threshold,
             fired=holdings_change_5d_pct is not None and holdings_change_5d_pct <= composite_holdings_5d_threshold,
-            unit="percent",
+            unit="fraction",
         ),
         build_transition_row(
             name="RED composite: real yield 1M",
@@ -868,7 +901,8 @@ def build_regime_transitions(
         "flags": {
             "flow_divergence": flow_divergence,
             "macro_turn": macro_turn,
-            "price_crack": price_crack,
+            "price_crack": trend_crack,
+            "drawdown_breach": drawdown_breach,
             "macro_followthrough": follow_through,
         },
     }

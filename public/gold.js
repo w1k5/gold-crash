@@ -103,7 +103,8 @@
       deterioration_flow_divergence: 'Holdings falling while price rising (flow divergence)',
       deterioration_macro_turn: 'Real yields rising quickly (macro headwind)',
       deterioration_policy_conflict: 'Cuts priced + real yields rising (credibility headwind)',
-      deterioration_price_crack: 'Short-term weakness / drawdown worsening (price crack)',
+      deterioration_price_crack: 'Trend crack: drawdown breach + non-positive 1M return',
+      deterioration_drawdown_breach: '3M drawdown breached -8% (risk warning)',
       deterioration_followthrough: 'Macro follow-through (rates driving price)',
       composite_followthrough: 'Macro follow-through (rates driving price)'
     };
@@ -165,14 +166,14 @@
     };
     const formatDistance = (value, unit) => {
       if (value == null) return '—';
-      if (unit === 'percent') return signedValue(value, (val) => `${(val * 100).toFixed(2)}%`);
+      if (unit === 'percent' || unit === 'fraction') return signedValue(value, (val) => `${(val * 100).toFixed(2)}%`);
       if (unit === 'bp') return signedValue(value, (val) => `${val.toFixed(0)} bp`);
       if (unit === 'pctile') return signedValue(value, (val) => `${Math.round(val)} pctile`);
       return signedValue(value, (val) => `${val}`);
     };
     const formatCurrent = (value, unit) => {
       if (value == null) return 'N/A';
-      if (unit === 'percent') return formatPercent(value);
+      if (unit === 'percent' || unit === 'fraction') return formatPercent(value);
       if (unit === 'bp') return formatBp(value);
       if (unit === 'pctile') return `${formatOrdinal(value)} percentile`;
       return `${value}`;
