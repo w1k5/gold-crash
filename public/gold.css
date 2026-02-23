@@ -55,6 +55,10 @@
     .badge.blue{ background:rgba(96,165,250,.18); color:var(--blue); }
     .badge.orange{ background:rgba(251,146,60,.18); color:var(--orange); }
     .badge.red{ background:rgba(248,113,113,.18); color:var(--red); }
+.badge.unstable{ background:rgba(248,113,113,.18); color:var(--red); }
+.badge.early-stabilizing{ background:rgba(251,146,60,.18); color:var(--orange); }
+.badge.stabilizing{ background:rgba(96,165,250,.18); color:var(--blue); }
+.badge.stabilized{ background:rgba(52,211,153,.18); color:var(--green); }
     .status-row { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
     .status-summary { font-size:16px; font-weight:600; }
     .daily-strip, .card-grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); margin-top:10px; }

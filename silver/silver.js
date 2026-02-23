@@ -92,6 +92,13 @@ function renderRules(tbody, rules) {
     if (j.regime) pill.classList.add(j.regime);
 
     setText("action_bias", j.action_bias);
+    const stability = j.stability || {};
+    const stabilityLabel = String(stability.label || "unstable").replaceAll("_", " ");
+    setText("stability_state", `${stabilityLabel} (${scoreToLabel(stability.score_0_100)}/100)`);
+    const stabilityReasons = Array.isArray(stability.reasons) && stability.reasons.length
+      ? `Reasons: ${stability.reasons.join(", ")}`
+      : "Reasons: none";
+    setText("stability_reasons", stabilityReasons);
     setText("regime_desc", j.regime_description);
 
     setText("event_risk", scoreToLabel(j.now_cards?.event_risk_1_5d));
