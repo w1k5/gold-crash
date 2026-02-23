@@ -6,9 +6,9 @@
   "regime": "RED",
   "stability": {
     "score_0_100": 65,
-    "is_stabilizing": false,
-    "label": "early_stabilizing",
-    "streak": 1,
+    "is_stabilizing": true,
+    "label": "stabilizing",
+    "streak": 2,
     "reasons": [
       "drawdown_stabilizing",
       "range_contracting",
@@ -22,7 +22,7 @@
   "confidence": "High",
   "regime_description": "Breakdown / stress regime driven by deep drawdown.",
   "top_drivers": [
-    "Trend/extension score is 66/100 (distance vs 200DMA: +68.51%)",
+    "Trend/extension score is 66/100 (distance vs 200DMA: +68.84%)",
     "Vol/shock score is 75/100 (20D realized vol percentile: 100th)",
     "Risk appetite score is 75/100 (HY spread level: 2.86)"
   ],
@@ -49,16 +49,16 @@
       "name": "Trend / Extension",
       "score": 66,
       "metrics": [
-        "Distance vs 200DMA: +68.51%",
-        "20D momentum: -14.58%",
-        "63D drawdown: -24.84%"
+        "Distance vs 200DMA: +68.84%",
+        "20D momentum: -14.41%",
+        "63D drawdown: -24.70%"
       ]
     },
     {
       "name": "Vol / Shock",
       "score": 75,
       "metrics": [
-        "Realized vol (20D): 141.34%",
+        "Realized vol (20D): 141.41%",
         "1D drop percentile: 50th",
         "Whipsaw flag: quiet"
       ]
@@ -86,21 +86,21 @@
     {
       "name": "Distance above 200DMA",
       "state": "Triggered",
-      "last": "+68.51%",
+      "last": "+68.84%",
       "percentile": "98th",
-      "sparkline": "\u2582\u2582\u2581\u2582\u2583\u2585\u2587"
+      "sparkline": "\u2581\u2582\u2581\u2582\u2583\u2585\u2587"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-14.58%",
+      "last": "-14.41%",
       "percentile": "1st",
       "sparkline": "\u2581\u2583\u2582\u2582\u2584\u2587\u2585"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+141.34%",
+      "last": "+141.41%",
       "percentile": "100th",
       "sparkline": "\u2581\u2581\u2582\u2583\u2583\u2587\u2584"
     },
