@@ -3,420 +3,121 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
   <title>Gold Risk Monitor</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --green: #2d6a4f;
-      --blue: #2563eb;
-      --orange: #f97316;
-      --red: #b91c1c;
-      --gray: #334155;
-      --bg: #f8fafc;
-    }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color: #0f172a;
-    }
-    main {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 32px 20px 64px;
-    }
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 18px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 20px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: white;
-      background: var(--gray);
-      width: fit-content;
-    }
-    .badge.green { background: var(--green); }
-    .badge.blue { background: var(--blue); }
-    .badge.orange { background: var(--orange); }
-    .badge.red { background: var(--red); }
-    .meta {
-      font-size: 14px;
-      color: #475569;
-    }
-    .section {
-      margin-top: 28px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    }
-    th, td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #e2e8f0;
-      text-align: left;
-      font-size: 15px;
-      vertical-align: top;
-    }
-    th {
-      background: #e2e8f0;
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-    }
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-    .context {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: #64748b;
-    }
-    .note {
-      margin-top: 12px;
-      padding: 12px 16px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      font-size: 14px;
-      color: #334155;
-    }
-    .metric-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-    }
-    .metric-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      display: inline-block;
-      background: #94a3b8;
-    }
-    .metric-indicator.green { background: var(--green); }
-    .metric-indicator.orange { background: var(--orange); }
-    .metric-indicator.red { background: var(--red); }
-    footer {
-      margin-top: 32px;
-      font-size: 13px;
-      color: #64748b;
-    }
-    a { color: inherit; }
-  </style>
+      <link rel="stylesheet" href="gold.css">
 </head>
 <body>
-  <main>
-    <header>
-      <h1>Gold Risk Monitor</h1>
-      <div class="meta"><a href="/silver/">Silver dashboard →</a> | <a href="/dislocation/">Dislocation detector →</a></div>
-      <div id="status" class="badge">Loading...</div>
-      <div class="meta" id="timestamps">Waiting for data...</div>
-      <div class="meta">Status describes market regime only; it does not imply actions.</div>
-    </header>
+    <main>
+    <div class="topbar">
+      <div>
+        <h1>Gold Risk Monitor</h1>
+        <p class="subtitle">Outcome first: current regime, drivers, and what would change next.</p>
+        <nav class="nav-row">
+          <a href="silver/">Silver dashboard →</a>
+          <span class="dot">•</span>
+          <a href="dislocation/">Dislocation detector →</a>
+        </nav>
+      </div>
+      <div class="meta-block">
+        <div><span class="meta-label">As of</span> <span id="as_of">Loading…</span></div>
+        <div><span class="meta-label">Data dates</span> <span id="data_dates">Loading…</span></div>
+        <div><span class="meta-label">Confidence</span> <span id="confidence">Medium</span></div>
+      </div>
+    </div>
 
-    <section class="section">
-      <h2>Regime drivers</h2>
-      <ul id="reasons" class="note">
-        <li>Loading regime drivers...</li>
-      </ul>
+    <section class="grid cols-2">
+      <div class="card">
+        <h2>Today</h2>
+        <div class="small" id="timestamps">Waiting for data...</div>
+        <div class="status-row" style="margin-top:8px;">
+          <div id="status" class="badge">Loading...</div>
+          <div id="statusSummary" class="status-summary">Loading status summary...</div>
+        </div>
+        <p class="section-explainer" id="macroFollowThrough">Loading macro follow-through...</p>
+        <div class="card-grid" id="glanceCards"><div class="metric-card">Loading key metrics...</div></div>
+      </div>
     </section>
 
-    <section class="section">
-      <h2>Horizon Snapshot</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Horizon</th>
-            <th>Return</th>
-            <th>Return Percentile</th>
-            <th>Max Drawdown</th>
-            <th>Drawdown Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="horizonRows">
-          <tr><td colspan="5">Loading horizon metrics...</td></tr>
-        </tbody>
-      </table>
-      <div class="note" id="percentileNotes"></div>
+    <section class="card" style="margin-top:14px;">
+      <h2>Drivers</h2>
+      <p class="section-explainer" id="reasonLead">Loading regime drivers...</p>
+      <ul id="reasons"><li>Loading regime drivers...</li></ul>
+      <div class="daily-strip" id="dailyStrip"><div class="daily-chip">Loading daily changes...</div></div>
+      <div class="lens-panel">
+        <label class="meta" for="portfolioLens"><strong>Portfolio lens</strong></label>
+        <select id="portfolioLens" class="lens-select">
+          <option value="conservative">Conservative</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="hardAsset">Hard-asset heavy</option>
+        </select>
+        <span class="meta" id="lensText">Balanced lens: watch whether extension cools before deterioration broadens.</span>
+      </div>
     </section>
 
-    <section class="section">
-      <h2>Extension</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-            <th>Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="extensionRows">
-          <tr><td colspan="3">Loading extension data...</td></tr>
-        </tbody>
-      </table>
+    <section class="card" style="margin-top:14px;">
+      <h2>What changes next?</h2>
+      <p class="section-explainer"><strong>Regime ladder:</strong> GREEN → BLUE → ORANGE → RED</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+        <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="expand">Show trigger thresholds</button>
+        <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="collapse">Hide trigger thresholds</button>
+      </div>
+      <div id="escalation"><p>Loading escalation conditions...</p></div>
     </section>
 
-    <section class="section">
-      <h2>Flow (short-term)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-            <th>Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="flowRows">
-          <tr><td colspan="3">Loading flow data...</td></tr>
-        </tbody>
-      </table>
+    <section class="card" style="margin-top:14px;">
+      <h2>Advanced diagnostics</h2>
+      <p class="section-explainer">Optional deep dive: use these panels for trigger-level diagnostics and signal details.</p>
+      <details class="expandable-card" data-expand-group="mechanics">
+        <summary>Extension</summary>
+        <div class="expandable-body">
+          <div class="sparkline-wrap"><svg id="extensionSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="extensionSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="extensionRows"><tr><td colspan="3">Loading extension data...</td></tr></tbody></table></div>
+        </div>
+      </details>
+      <details class="expandable-card" data-expand-group="mechanics">
+        <summary>Flow (short-term)</summary>
+        <div class="expandable-body">
+          <div class="sparkline-wrap"><svg id="flowSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="flowSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="flowRows"><tr><td colspan="3">Loading flow data...</td></tr></tbody></table></div>
+        </div>
+      </details>
+      <details class="expandable-card" data-expand-group="mechanics">
+        <summary>Macro (short-term)</summary>
+        <div class="expandable-body">
+          <div class="sparkline-wrap"><svg id="macroSparkline" class="sparkline" viewBox="0 0 240 96" preserveAspectRatio="none"></svg><div id="macroSparklinePoints" class="sparkline-points">Hover to see last 5 points.</div></div>
+          <div class="table-container"><table><thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Percentile</th></tr></thead><tbody id="macroRows"><tr><td colspan="3">Loading macro data...</td></tr></tbody></table></div>
+        </div>
+      </details>
     </section>
 
-    <section class="section">
-      <h2>Macro (short-term)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-            <th>Percentile</th>
-          </tr>
-        </thead>
-        <tbody id="macroRows">
-          <tr><td colspan="3">Loading macro data...</td></tr>
-        </tbody>
-      </table>
+    <section class="card" style="margin-top:14px;">
+      <h2>Context</h2>
+      <details class="expandable-card" data-expand-group="context">
+        <summary>Horizon snapshot</summary>
+        <div class="expandable-body">
+          <p class="section-explainer" id="horizonSummary">Horizon snapshot loading...</p>
+          <div class="table-container"><table><thead><tr><th>Horizon</th><th class="num">Return</th><th class="num">Return Percentile</th><th class="num">Max Drawdown</th><th class="num">Drawdown Percentile</th><th>Context</th></tr></thead><tbody id="horizonRows"><tr><td colspan="6">Loading horizon metrics...</td></tr></tbody></table></div>
+          <div class="note" id="percentileNotes"></div>
+        </div>
+      </details>
     </section>
 
-    <footer>
-      <p>
-        Data is refreshed daily by GitHub Actions. View the repository on
-        <a id="repoLink" href="https://github.com/">GitHub</a>.
-        <span id="issueLink"></span>
-      </p>
-    </footer>
+    <section class="card" style="margin-top:14px;">
+      <h2>Status colors & notes</h2>
+      <div style="display:grid; gap:8px;">
+        <div><span class="badge green">GREEN</span> <span class="muted">Typical conditions.</span></div>
+        <div><span class="badge blue">BLUE</span> <span class="muted">Extended rally; no confirmed deterioration.</span></div>
+        <div><span class="badge orange">ORANGE</span> <span class="muted">Extended + early deterioration signals.</span></div>
+        <div><span class="badge red">RED</span> <span class="muted">Breakdown-style stress signals present.</span></div>
+      </div>
+      <p class="small" style="margin-top:10px;">Percentiles compare current values with historical distributions to provide context, not absolute judgments.</p>
+      <footer>
+        <p>Data is refreshed daily by GitHub Actions. View the repository on <a id="repoLink" href="https://github.com/">GitHub</a>. <span id="issueLink"></span></p>
+      </footer>
+    </section>
   </main>
 
-  <script>
-    const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
-    const formatBp = (value) => `${value.toFixed(0)} bp`;
-    const formatTonnes = (value) => `${value.toFixed(1)} t`;
-    const formatTimestamp = (isoString) => {
-      const date = new Date(isoString);
-      const month = date.toLocaleString('en-US', { month: 'short' });
-      const day = date.getDate();
-      const year = date.getFullYear();
-      const time = date.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-      return `${month} ${day}, ${year} ${time}`;
-    };
-
-    const statusEl = document.getElementById('status');
-    const timestampsEl = document.getElementById('timestamps');
-    const reasonsEl = document.getElementById('reasons');
-    const horizonRows = document.getElementById('horizonRows');
-    const percentileNotesEl = document.getElementById('percentileNotes');
-    const extensionRows = document.getElementById('extensionRows');
-    const flowRows = document.getElementById('flowRows');
-    const macroRows = document.getElementById('macroRows');
-    const repoLink = document.getElementById('repoLink');
-    const issueLink = document.getElementById('issueLink');
-
-    const contextTag = (text) => (text ? `<span class="context">${text}</span>` : '');
-    const formatOrdinal = (value) => {
-      const rounded = Math.round(value);
-      const mod10 = rounded % 10;
-      const mod100 = rounded % 100;
-      if (mod10 === 1 && mod100 !== 11) return `${rounded}st`;
-      if (mod10 === 2 && mod100 !== 12) return `${rounded}nd`;
-      if (mod10 === 3 && mod100 !== 13) return `${rounded}rd`;
-      return `${rounded}th`;
-    };
-    const percentileLabel = (basis, count) => {
-      if (!basis || basis === 'none') return 'N/A';
-      const label = basis === 'available' ? 'available history' : '5y window';
-      const suffix = typeof count === 'number' ? ` (n=${count})` : '';
-      return `${label}${suffix}`;
-    };
-    const percentileText = (value, explain, basis, count) => {
-      if (value == null) {
-        return `N/A${contextTag(explain || 'insufficient history')}`;
-      }
-      const basisLabel = percentileLabel(basis, count);
-      return `${formatOrdinal(value)} percentile${contextTag(explain ? `Note: ${explain}` : basisLabel)}`;
-    };
-    const valueOrNA = (value, formatter, explain) => {
-      if (value == null) {
-        return `N/A${contextTag(explain || 'insufficient history')}`;
-      }
-      return `${formatter(value)}${contextTag(explain)}`;
-    };
-
-    fetch('data.json', { cache: 'no-store' })
-      .then((response) => response.json())
-      .then((data) => {
-        const regime = data.regime || {};
-        const state = regime.state || data.flag || 'UNKNOWN';
-        statusEl.textContent = state;
-        statusEl.classList.add(state.toLowerCase());
-
-        if (data.updated_at) {
-          const etFormatted = formatTimestamp(data.updated_at);
-          timestampsEl.textContent = `Updated ${etFormatted}`;
-        }
-
-        const reasons = regime.reasons || data.flag_triggers || [];
-        reasonsEl.innerHTML = reasons.length
-          ? reasons.map((item) => `<li>${item}</li>`).join('')
-          : '<li>No active triggers.</li>';
-
-        const metrics = data.metrics || {};
-        const horizons = metrics.horizons || {};
-        const horizonOrder = ['3M', '6M', '1Y', '3Y', '5Y'];
-        horizonRows.innerHTML = horizonOrder.map((label) => {
-          const horizon = horizons[label] || {};
-          const available = horizon.available !== false && horizon.ret != null;
-          const returnCell = available
-            ? formatPercent(horizon.ret)
-            : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
-          const returnPctCell = available
-            ? percentileText(
-              horizon.ret_pctile_5y,
-              horizon.ret_pctile_5y_explain,
-              horizon.ret_pctile_basis,
-              horizon.ret_pctile_n
-            )
-            : `N/A${contextTag(horizon.ret_pctile_5y_explain || 'insufficient history')}`;
-          const drawdownCell = available
-            ? formatPercent(horizon.max_drawdown)
-            : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
-          const drawdownPctCell = available
-            ? percentileText(
-              horizon.max_drawdown_pctile_5y,
-              horizon.max_drawdown_pctile_5y_explain,
-              horizon.max_drawdown_pctile_basis,
-              horizon.max_drawdown_pctile_n
-            )
-            : `N/A${contextTag(horizon.max_drawdown_pctile_5y_explain || 'insufficient history')}`;
-          const labelNote = (data.notes && data.notes.percentile_notes && data.notes.percentile_notes[label])
-            ? contextTag(data.notes.percentile_notes[label])
-            : '';
-          return `
-            <tr>
-              <td>${label}${labelNote}</td>
-              <td>${returnCell}</td>
-              <td>${returnPctCell}</td>
-              <td>${drawdownCell}</td>
-              <td>${drawdownPctCell}</td>
-            </tr>
-          `;
-        }).join('');
-
-        const percentileNotes = data.notes?.percentile_notes || {};
-        const notesList = Object.keys(percentileNotes).length
-          ? `<strong>Percentile notes:</strong> ${Object.entries(percentileNotes)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(' | ')}`
-          : 'Percentile notes: none.';
-        percentileNotesEl.innerHTML = notesList;
-
-        extensionRows.innerHTML = `
-          <tr>
-            <td>GLD % above 200DMA</td>
-            <td>${valueOrNA(metrics.pct_above_200dma, formatPercent)}</td>
-            <td>${percentileText(
-              metrics.pct_above_200dma_pctile_5y,
-              metrics.pct_above_200dma_pctile_5y_explain,
-              metrics.pct_above_200dma_pctile_basis,
-              metrics.pct_above_200dma_pctile_n
-            )}</td>
-          </tr>
-        `;
-
-        const flows = metrics.flows || {};
-        flowRows.innerHTML = `
-          <tr>
-            <td>Holdings today (tonnes)</td>
-            <td>${valueOrNA(flows.holdings_today_tonnes, formatTonnes)}</td>
-            <td>N/A</td>
-          </tr>
-          <tr>
-            <td>Holdings change (5D)</td>
-            <td>${valueOrNA(flows.holdings_change_5d_pct, formatPercent)}</td>
-            <td>${percentileText(
-              flows.holdings_change_5d_pct_pctile_5y,
-              flows.holdings_change_5d_pct_pctile_5y_explain,
-              flows.holdings_change_5d_pctile_basis,
-              flows.holdings_change_5d_pctile_n
-            )}</td>
-          </tr>
-          <tr>
-            <td>Holdings change (21D)</td>
-            <td>${valueOrNA(flows.holdings_change_21d_pct, formatPercent)}</td>
-            <td>${percentileText(
-              flows.holdings_change_21d_pct_pctile_5y,
-              flows.holdings_change_21d_pct_pctile_5y_explain,
-              flows.holdings_change_21d_pctile_basis,
-              flows.holdings_change_21d_pctile_n
-            )}</td>
-          </tr>
-        `;
-
-        const macro = metrics.macro || {};
-        macroRows.innerHTML = `
-          <tr>
-            <td>Real yield today (DFII10)</td>
-            <td>${valueOrNA(macro.real_yield_today, (value) => `${value.toFixed(2)}%`)}</td>
-            <td>N/A</td>
-          </tr>
-          <tr>
-            <td>Real yield change (1M)</td>
-            <td>${valueOrNA(macro.real_yield_change_1m_bp, formatBp)}</td>
-            <td>${percentileText(
-              macro.real_yield_change_1m_bp_pctile_5y,
-              macro.real_yield_change_1m_bp_pctile_5y_explain,
-              macro.real_yield_change_1m_bp_pctile_basis,
-              macro.real_yield_change_1m_bp_pctile_n
-            )}</td>
-          </tr>
-          <tr>
-            <td>Real yield change (3M)</td>
-            <td>${valueOrNA(macro.real_yield_change_3m_bp, formatBp)}</td>
-            <td>${percentileText(
-              macro.real_yield_change_3m_bp_pctile_5y,
-              macro.real_yield_change_3m_bp_pctile_5y_explain,
-              macro.real_yield_change_3m_bp_pctile_basis,
-              macro.real_yield_change_3m_bp_pctile_n
-            )}</td>
-          </tr>
-        `;
-
-        const repo = data.repository || 'https://github.com/';
-        repoLink.href = repo;
-
-        if (data.latest_issue_url) {
-          issueLink.innerHTML = ` Latest issue: <a href="${data.latest_issue_url}">${data.latest_issue_url}</a>`;
-        }
-      })
-      .catch((error) => {
-        statusEl.textContent = 'DATA ERROR';
-        statusEl.classList.add('red');
-        horizonRows.innerHTML = `<tr><td colspan="5">Failed to load data.json: ${error}</td></tr>`;
-      });
-  </script>
+  <script src="gold.js"></script>
 </body>
 </html>
