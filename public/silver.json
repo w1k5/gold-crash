@@ -17,7 +17,7 @@
   "confidence": "High",
   "regime_description": "Breakdown / stress regime driven by deep drawdown.",
   "top_drivers": [
-    "Trend/extension score is 66/100 (distance vs 200DMA: +67.22%)",
+    "Trend/extension score is 66/100 (distance vs 200DMA: +67.21%)",
     "Vol/shock score is 75/100 (20D realized vol percentile: 100th)",
     "Risk appetite score is 75/100 (HY spread level: 2.86)"
   ],
@@ -44,7 +44,7 @@
       "name": "Trend / Extension",
       "score": 66,
       "metrics": [
-        "Distance vs 200DMA: +67.22%",
+        "Distance vs 200DMA: +67.21%",
         "20D momentum: -15.24%",
         "63D drawdown: -25.43%"
       ]
@@ -81,7 +81,7 @@
     {
       "name": "Distance above 200DMA",
       "state": "Triggered",
-      "last": "+67.22%",
+      "last": "+67.21%",
       "percentile": "98th",
       "sparkline": "\u2582\u2582\u2581\u2582\u2583\u2586\u2587"
     },
