@@ -7,6 +7,7 @@
   <title>Crash Probability Dashboard</title>
   <style>
     :root{
+      color-scheme:dark;
       --bg:#0b0d10;
       --panel:#10141a;
       --panel2:#0f1318;
@@ -19,9 +20,33 @@
       --bad:#f87171;
       --info:#60a5fa;
       --pill-bg:#0d1218;
+      --surface:#0d1218;
+      --strong-text:#dbe6f4;
+      --body-copy:#cfd8e3;
       --r:14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    @media (prefers-color-scheme: light){
+      :root{
+        color-scheme:light;
+        --bg:#f3f6fb;
+        --panel:#fff;
+        --panel2:#f8fbff;
+        --text:#0f172a;
+        --muted:#475569;
+        --border:#dbe3ef;
+        --shadow:0 8px 24px rgba(15,23,42,.08);
+        --good:#166534;
+        --warn:#c2410c;
+        --bad:#b91c1c;
+        --info:#2563eb;
+        --pill-bg:#ffffff;
+        --surface:#ffffff;
+        --strong-text:#1e293b;
+        --body-copy:#334155;
+      }
     }
 
     *{box-sizing:border-box;}
@@ -37,7 +62,7 @@
     @media (min-width:900px){.grid{grid-template-columns:1.15fr .85fr;}}
 
     .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;}
-    .card h2{margin:0 0 10px;font-size:16px;color:#dbe6f4;letter-spacing:.2px;}
+    .card h2{margin:0 0 10px;font-size:16px;color:var(--strong-text);letter-spacing:.2px;}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--border);background:var(--pill-bg);padding:8px 10px;border-radius:999px;font-size:13px;color:var(--muted);}
     .pill strong{color:var(--text);font-weight:600;}
@@ -54,27 +79,27 @@
 
     .signalsGrid{display:grid;gap:10px;grid-template-columns:1fr;}
     @media (min-width:650px){.signalsGrid{grid-template-columns:1fr 1fr;}}
-    .sig{border:1px solid var(--border);border-radius:12px;padding:12px;background:#0d1218;display:flex;flex-direction:column;gap:8px;}
+    .sig{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:8px;}
     .sigTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
     .sigName{font-weight:650;font-size:14px;margin:0;}
     .sigHint{margin:0;color:var(--muted);font-size:12px;}
     .thermoWrap{display:flex;flex-direction:column;gap:6px;}
     .thermoTrack{position:relative;height:8px;border-radius:999px;background:rgba(148,163,184,.22);overflow:visible;}
     .thermoFill{position:absolute;left:0;top:0;height:100%;border-radius:inherit;background:var(--info);transition:width .2s ease;}
-    .thermoMarker{position:absolute;top:50%;width:10px;height:10px;border-radius:999px;background:#0d1218;border:2px solid var(--info);transform:translate(-50%,-50%);transition:left .2s ease;box-sizing:border-box;}
+    .thermoMarker{position:absolute;top:50%;width:10px;height:10px;border-radius:999px;background:var(--surface);border:2px solid var(--info);transform:translate(-50%,-50%);transition:left .2s ease;box-sizing:border-box;}
     .thermoLabels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;}
     .thermoMuted{opacity:.5;}
     .thermoCaption{margin:0;color:var(--muted);font-size:11px;}
     details{border-top:1px dashed var(--border);padding-top:10px;}
     summary{cursor:pointer;color:#95c5ff;font-size:13px;user-select:none;}
     .kv{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;margin:8px 0 0;}
-    .timeline{margin:0;padding-left:18px;color:#cfd8e3;font-size:13px;}
+    .timeline{margin:0;padding-left:18px;color:var(--body-copy);font-size:13px;}
     .tiny{font-size:12px;color:var(--muted);margin:0;}
     .skeleton{opacity:.65;}
 
     .gaugeGrid{display:grid;gap:10px;grid-template-columns:1fr;}
     @media (min-width:700px){.gaugeGrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-    .gauge{border:1px solid var(--border);border-radius:12px;padding:10px;background:#0d1218;}
+    .gauge{border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--surface);}
     .gauge p{margin:0;}
     .gaugeLabel{font-size:12px;color:var(--muted);font-family:var(--mono);}
     .gaugeValue{font-size:24px;font-weight:700;letter-spacing:-.02em;font-family:var(--mono);}
