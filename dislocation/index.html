@@ -7,103 +7,79 @@
   <title>Crash Probability Dashboard</title>
   <style>
     :root{
-      color-scheme: light dark;
-      --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --good:#16a34a; --warn:#f97316; --bad:#dc2626; --info:#2563eb;
-      --pill-bg:rgba(2,6,23,.04);
+      --bg:#0b0d10;
+      --panel:#10141a;
+      --panel2:#0f1318;
+      --text:#e7edf5;
+      --muted:#9aa7b6;
+      --border:#1b2330;
+      --shadow:0 6px 20px rgba(0,0,0,.25);
+      --good:#34d399;
+      --warn:#fb923c;
+      --bad:#f87171;
+      --info:#60a5fa;
+      --pill-bg:#0d1218;
+      --r:14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2a44;
-        --shadow:0 10px 30px rgba(0,0,0,.35);
-        --pill-bg:rgba(148,163,184,.10);
-      }
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;}
-    main{max-width:1040px;margin:0 auto;padding:28px 18px 60px;}
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.5;}
+    main{max-width:1050px;margin:0 auto;padding:28px 18px 60px;}
     header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;}
-    h1{margin:0;font-size:28px;letter-spacing:-.02em;}
+    h1{margin:0;font-size:28px;letter-spacing:.2px;}
     .sub{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:64ch;}
-    a{color:var(--info);text-decoration:none;}
-    a:hover{text-decoration:underline;}
+    a{color:var(--text);text-decoration:none;opacity:.9;}
+    a:hover{opacity:1;text-decoration:underline;}
 
     .grid{display:grid;gap:14px;margin-top:16px;}
-    @media (min-width: 900px){
-      .grid{grid-template-columns: 1.15fr .85fr;}
-    }
+    @media (min-width:900px){.grid{grid-template-columns:1.15fr .85fr;}}
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:var(--shadow);
-      padding:16px 16px;
-    }
-    .card h2{margin:0 0 10px;font-size:16px;}
+    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;}
+    .card h2{margin:0 0 10px;font-size:16px;color:#dbe6f4;letter-spacing:.2px;}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-    .pill{
-      display:inline-flex;gap:8px;align-items:center;
-      border:1px solid var(--border);
-      background:var(--pill-bg);
-      padding:8px 10px;border-radius:999px;font-size:13px;color:var(--muted);
-    }
+    .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--border);background:var(--pill-bg);padding:8px 10px;border-radius:999px;font-size:13px;color:var(--muted);}
     .pill strong{color:var(--text);font-weight:600;}
-    .statusBig{
-      display:flex;flex-direction:column;gap:10px;
-      padding:18px;border-radius:18px;border:1px solid var(--border);
-      background:linear-gradient(180deg, rgba(37,99,235,.08), transparent 60%);
-    }
+    .statusBig{display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:var(--r);border:1px solid var(--border);background:linear-gradient(180deg,rgba(96,165,250,.12),rgba(15,19,24,.6) 60%);}
     .statusLine{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;font-size:13px;font-weight:600;
-      border:1px solid transparent;
-    }
-    .b-good{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.25);color:var(--good);}
-    .b-warn{background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.25);color:var(--warn);}
-    .b-bad{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:var(--bad);}
-    .b-muted{background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20);color:var(--muted);}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid transparent;}
+    .b-good{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:#8ce4bb;}
+    .b-warn{background:rgba(251,146,60,.12);border-color:rgba(251,146,60,.3);color:#ffc28f;}
+    .b-bad{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.28);color:#ffb0b0;}
+    .b-muted{background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.22);color:var(--muted);}
 
-    .bigNumber{font-size:38px;letter-spacing:-.03em;font-weight:700;margin:0;}
+    .bigNumber{font-size:38px;letter-spacing:-.02em;font-weight:700;margin:0;font-family:var(--mono);}
     .help{color:var(--muted);font-size:14px;margin:0;}
 
-    .signalsGrid{
-      display:grid;gap:10px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 650px){ .signalsGrid{grid-template-columns: 1fr 1fr;} }
-    .sig{
-      border:1px solid var(--border);border-radius:14px;padding:12px;
-      display:flex;flex-direction:column;gap:8px;
-    }
+    .signalsGrid{display:grid;gap:10px;grid-template-columns:1fr;}
+    @media (min-width:650px){.signalsGrid{grid-template-columns:1fr 1fr;}}
+    .sig{border:1px solid var(--border);border-radius:12px;padding:12px;background:#0d1218;display:flex;flex-direction:column;gap:8px;}
     .sigTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
     .sigName{font-weight:650;font-size:14px;margin:0;}
     .sigHint{margin:0;color:var(--muted);font-size:12px;}
     .thermoWrap{display:flex;flex-direction:column;gap:6px;}
-    .thermoTrack{position:relative;height:8px;border-radius:999px;background:rgba(148,163,184,.25);overflow:visible;}
+    .thermoTrack{position:relative;height:8px;border-radius:999px;background:rgba(148,163,184,.22);overflow:visible;}
     .thermoFill{position:absolute;left:0;top:0;height:100%;border-radius:inherit;background:var(--info);transition:width .2s ease;}
-    .thermoMarker{position:absolute;top:50%;width:10px;height:10px;border-radius:999px;background:var(--card);border:2px solid var(--info);transform:translate(-50%,-50%);transition:left .2s ease;box-sizing:border-box;}
+    .thermoMarker{position:absolute;top:50%;width:10px;height:10px;border-radius:999px;background:#0d1218;border:2px solid var(--info);transform:translate(-50%,-50%);transition:left .2s ease;box-sizing:border-box;}
     .thermoLabels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;}
     .thermoMuted{opacity:.5;}
     .thermoCaption{margin:0;color:var(--muted);font-size:11px;}
     details{border-top:1px dashed var(--border);padding-top:10px;}
-    summary{cursor:pointer;color:var(--info);font-size:13px;user-select:none;}
+    summary{cursor:pointer;color:#95c5ff;font-size:13px;user-select:none;}
     .kv{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;margin:8px 0 0;}
-    .timeline{margin:0;padding-left:18px;color:var(--muted);font-size:13px;}
+    .timeline{margin:0;padding-left:18px;color:#cfd8e3;font-size:13px;}
     .tiny{font-size:12px;color:var(--muted);margin:0;}
-    .skeleton{opacity:.65}
+    .skeleton{opacity:.65;}
 
     .gaugeGrid{display:grid;gap:10px;grid-template-columns:1fr;}
     @media (min-width:700px){.gaugeGrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-    .gauge{border:1px solid var(--border);border-radius:14px;padding:10px;}
+    .gauge{border:1px solid var(--border);border-radius:12px;padding:10px;background:#0d1218;}
     .gauge p{margin:0;}
-    .gaugeLabel{font-size:12px;color:var(--muted);}
-    .gaugeValue{font-size:24px;font-weight:700;letter-spacing:-.02em;}
+    .gaugeLabel{font-size:12px;color:var(--muted);font-family:var(--mono);}
+    .gaugeValue{font-size:24px;font-weight:700;letter-spacing:-.02em;font-family:var(--mono);}
     .bar{height:8px;background:rgba(148,163,184,.25);border-radius:999px;overflow:hidden;margin-top:6px;}
-    .bar > span{display:block;height:100%;background:var(--info);}
+    .bar>span{display:block;height:100%;background:var(--info);}
     .drivers{margin-top:10px;font-size:13px;color:var(--muted);}
     .pillars{display:grid;gap:8px;margin-top:10px;}
     .pillarRow{display:grid;grid-template-columns:170px 1fr 48px;gap:8px;align-items:center;font-size:12px;color:var(--muted);}
