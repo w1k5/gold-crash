@@ -7,6 +7,7 @@ import csv
 import json
 import math
 import os
+from statistics import pstdev
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -313,6 +314,94 @@ def compute_daily_change_bp_series(values: List[Decimal]) -> List[Decimal]:
     for idx in range(1, len(values)):
         out.append((values[idx] - values[idx - 1]) * Decimal("100"))
     return out
+
+
+def compute_stability_label(streak: int, score: int) -> str:
+    if streak >= 3:
+        return "stabilized"
+    if streak == 2:
+        return "stabilizing"
+    if streak == 1 and score >= 60:
+        return "early_stabilizing"
+    return "unstable"
+
+
+def compute_stability_gold(
+    *,
+    prices: List[Decimal],
+    daily_rets: List[Decimal],
+    transitions_flags: Dict[str, bool],
+    previous_stability_streak: int,
+) -> dict:
+    vol_contracting = False
+    if len(daily_rets) >= 25:
+        vol20 = pstdev(float(v) for v in daily_rets[-20:])
+        vol20_prev = pstdev(float(v) for v in daily_rets[-25:-5])
+        vol_contracting = vol20 < vol20_prev
+
+    range_contracting = False
+    if len(daily_rets) >= 25:
+        abs_recent = [float(abs(v)) for v in daily_rets[-10:]]
+        abs_prior = [float(abs(v)) for v in daily_rets[-20:-10]]
+        range_contracting = pstdev(abs_recent) < pstdev(abs_prior)
+
+    higher_low = False
+    if len(prices) >= 20:
+        recent_low = min(prices[-10:])
+        prior_low = min(prices[-20:-10])
+        higher_low = recent_low > prior_low
+
+    drawdown_improving = False
+    if len(prices) >= 20:
+        recent_drawdown = compute_max_drawdown(prices[-10:])
+        prior_drawdown = compute_max_drawdown(prices[-20:-10])
+        if recent_drawdown is not None and prior_drawdown is not None:
+            drawdown_improving = recent_drawdown > prior_drawdown
+
+    short_ma_repair = False
+    if len(prices) >= 20:
+        ma10 = compute_simple_moving_average(prices, 10)
+        if ma10 is not None:
+            above_count = sum(1 for p in prices[-10:] if p >= ma10)
+            short_ma_repair = above_count >= 6
+
+    price_crack = transitions_flags.get("price_crack")
+    macro_turn = transitions_flags.get("macro_turn")
+    flow_divergence = transitions_flags.get("flow_divergence")
+    macro_followthrough = transitions_flags.get("macro_followthrough")
+    stress_cooling = all(flag is False for flag in [price_crack, macro_turn, flow_divergence, macro_followthrough])
+
+    score = 0
+    reasons: List[str] = []
+    if vol_contracting:
+        score += 20
+        reasons.append("volatility_contracting")
+    if range_contracting:
+        score += 15
+        reasons.append("range_contracting")
+    if higher_low:
+        score += 25
+        reasons.append("higher_low")
+    if drawdown_improving:
+        score += 15
+        reasons.append("drawdown_improving")
+    if short_ma_repair:
+        score += 10
+        reasons.append("short_ma_repair")
+    if stress_cooling:
+        score += 15
+        reasons.append("stress_flags_cooling")
+
+    is_stabilizing_today = score >= 60
+    streak = previous_stability_streak + 1 if is_stabilizing_today else 0
+
+    return {
+        "score_0_100": score,
+        "is_stabilizing": streak >= 2,
+        "label": compute_stability_label(streak, score),
+        "streak": streak,
+        "reasons": reasons,
+    }
 
 
 def pearson_corr(x: List[float], y: List[float]) -> Optional[float]:
@@ -1184,6 +1273,8 @@ def main() -> int:
         red_exit_streak = int(
             persistence.get("red_exit_streak", previous_state.get("no_red_streak", 0) or 0) or 0
         )
+        prior_stability = previous_regime.get("stability", {}) if isinstance(previous_regime, dict) else {}
+        stability_streak = int(prior_stability.get("streak", persistence.get("stability_streak", 0) or 0) or 0)
 
         primary_horizon = horizons.get("3M", {})
         primary_ret_value = (
@@ -1226,6 +1317,13 @@ def main() -> int:
             real_yield_change_1m_bp_pctile=real_yield_change_1m_pctile_5y,
             corr20=corr20_today,
             cut_label=cut_classifier.get("label"),
+        )
+        gld_daily_rets = compute_daily_return_series(gld_prices)
+        stability = compute_stability_gold(
+            prices=gld_prices,
+            daily_rets=gld_daily_rets,
+            transitions_flags=transitions.get("flags", {}),
+            previous_stability_streak=stability_streak,
         )
 
         repository = None
@@ -1302,8 +1400,10 @@ def main() -> int:
                 "persistence": {
                     "red_enter_streak": red_enter_streak,
                     "red_exit_streak": red_exit_streak,
+                    "stability_streak": stability.get("streak", 0),
                 },
                 "flags": transitions.get("flags", {}),
+                "stability": stability,
                 "transitions": transitions,
             },
             "metrics": metrics,

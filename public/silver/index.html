@@ -41,6 +41,7 @@
     <div class="status-strip">
       <div><div class="k">Regime</div><div class="v"><span id="regimeBadge" class="badge BLUE">BLUE</span></div></div>
       <div><div class="k">Action bias</div><div class="v" id="actionBias">—</div></div>
+      <div><div class="k">Stability</div><div class="v" id="stabilityState">—</div><div class="tiny" id="stabilityReasons">—</div></div>
       <div><div class="k">Confidence</div><div class="v" id="confidence">—</div></div>
       <div><div class="k">Data dates</div><div class="tiny" id="dataDates">—</div></div>
     </div>
@@ -86,7 +87,7 @@
   </section>
 </main>
 <script>
-const fallback = {"title":"Silver Risk Monitor (SLV)","subtitle":"Outcome first: regime, drivers, and what changes next.","as_of":"n/a","data_dates":"n/a","regime":"BLUE","action_bias":"Hold","confidence":"Medium","regime_description":"Extended, but intact.","top_drivers":["Data unavailable"],"what_changes_next":{"escalate":["Awaiting data"],"deescalate":["Awaiting data"]},"now_cards":{"event_risk_1_5d":null,"fragility_1_3m":null,"liquidity_regime":"—"},"pillars":[],"signals":[],"rules":[]};
+const fallback = {"title":"Silver Risk Monitor (SLV)","subtitle":"Outcome first: regime, drivers, and what changes next.","as_of":"n/a","data_dates":"n/a","regime":"BLUE","stability":{"score_0_100":0,"is_stabilizing":false,"label":"unstable","streak":0,"reasons":["insufficient_data"]},"action_bias":"Hold","confidence":"Medium","regime_description":"Extended, but intact.","top_drivers":["Data unavailable"],"what_changes_next":{"escalate":["Awaiting data"],"deescalate":["Awaiting data"]},"now_cards":{"event_risk_1_5d":null,"fragility_1_3m":null,"liquidity_regime":"—"},"pillars":[],"signals":[],"rules":[]};
 const el = (id) => document.getElementById(id);
 function render(d){
   el('title').textContent = d.title || fallback.title;
@@ -96,6 +97,10 @@ function render(d){
   const regime = (d.regime || 'BLUE').toUpperCase();
   const badge = el('regimeBadge'); badge.textContent = regime; badge.className = `badge ${regime}`;
   el('actionBias').textContent = d.action_bias || '—'; el('confidence').textContent = d.confidence || '—';
+  const stability = d.stability || {};
+  const stabilityLabel = (stability.label || 'unstable').replaceAll('_', ' ');
+  el('stabilityState').textContent = `${stabilityLabel} (${Number.isFinite(stability.score_0_100) ? stability.score_0_100 : 0}/100)`;
+  el('stabilityReasons').textContent = (stability.reasons || []).length ? `Reasons: ${(stability.reasons || []).join(', ')}` : 'Reasons: none';
   el('regimeDescription').textContent = d.regime_description || '—';
   const drivers = el('driverList'); drivers.innerHTML = (d.top_drivers || []).map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
   el('eventRisk').textContent = Number.isFinite(d.now_cards?.event_risk_1_5d) ? `${d.now_cards.event_risk_1_5d}/100` : '—';

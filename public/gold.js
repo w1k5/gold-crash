@@ -14,6 +14,8 @@
 
     const statusEl = document.getElementById('status');
     const statusSummaryEl = document.getElementById('statusSummary');
+    const stabilityBadgeEl = document.getElementById('stabilityBadge');
+    const stabilitySummaryEl = document.getElementById('stabilitySummary');
     const macroFollowThroughEl = document.getElementById('macroFollowThrough');
     const timestampsEl = document.getElementById('timestamps');
     const asOfEl = document.getElementById('as_of');
@@ -60,6 +62,12 @@
       BLUE: 'Extended rally; no confirmed deterioration.',
       ORANGE: 'Extended + early deterioration signals.',
       RED: 'Breakdown-style stress signals present.'
+    };
+    const STABILITY_DESCRIPTIONS = {
+      unstable: 'No broad repair cluster yet.',
+      early_stabilizing: 'Initial stabilization signs detected (needs persistence).',
+      stabilizing: 'Repair cluster confirmed across consecutive updates.',
+      stabilized: 'Stabilization has persisted and stress is cooling.'
     };
     const CUT_LABELS = {
       CREDIBILITY_CUT: 'Credibility cut',
@@ -369,6 +377,19 @@
         statusEl.classList.remove('green', 'blue', 'orange', 'red');
         statusEl.classList.add(state.toLowerCase());
         statusSummaryEl.textContent = badgeDescriptions[state] || 'Status summary unavailable.';
+
+        const stability = regime.stability || {};
+        const stabilityLabel = String(stability.label || 'unstable').toLowerCase();
+        const stabilityClass = stabilityLabel.replace('_', '-');
+        const stabilityScore = stability.score_0_100;
+        stabilityBadgeEl.textContent = stabilityLabel.replace('_', ' ');
+        stabilityBadgeEl.classList.remove('green', 'blue', 'orange', 'red', 'unstable', 'early-stabilizing', 'stabilizing', 'stabilized');
+        stabilityBadgeEl.classList.add(stabilityClass);
+        const stabilityReasons = Array.isArray(stability.reasons) && stability.reasons.length
+          ? `Reasons: ${stability.reasons.join(', ')}`
+          : '';
+        stabilitySummaryEl.textContent = `${STABILITY_DESCRIPTIONS[stabilityLabel] || 'Stability summary unavailable.'}${stabilityScore != null ? ` Score: ${stabilityScore}/100.` : ''}${stabilityReasons ? ` ${stabilityReasons}` : ''}`;
+
         const macroFollowThrough = regime.flags?.macro_followthrough;
         macroFollowThroughEl.textContent = macroFollowThrough
           ? 'Macro shock is sticking (rates are driving price).'

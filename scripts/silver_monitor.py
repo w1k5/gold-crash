@@ -106,7 +106,56 @@ def ordinal(n: int) -> str:
     return f"{n}{suffix}"
 
 
-def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, List[Tuple[datetime, float]]]) -> Dict:
+
+
+def compute_stability_label(streak: int, score: int) -> str:
+    if streak >= 3:
+        return "stabilized"
+    if streak == 2:
+        return "stabilizing"
+    if streak == 1 and score >= 60:
+        return "early_stabilizing"
+    return "unstable"
+
+
+def compute_stability_silver(
+    *,
+    shock_hist: List[int],
+    risk_hist: List[int],
+    dd_hist: List[float],
+    prev_streak: int,
+) -> Dict:
+    shock_falling = len(shock_hist) >= 6 and shock_hist[-1] < shock_hist[-6]
+    dd_not_worsening = len(dd_hist) >= 10 and min(dd_hist[-5:]) >= min(dd_hist[-10:-5])
+    risk_cooling = len(risk_hist) >= 6 and risk_hist[-1] < risk_hist[-6]
+
+    score = 0
+    reasons: List[str] = []
+    if shock_falling:
+        score += 40
+        reasons.append("shock_falling")
+    if dd_not_worsening:
+        score += 35
+        reasons.append("drawdown_stabilizing")
+    if risk_cooling:
+        score += 25
+        reasons.append("credit_stress_cooling")
+
+    is_stabilizing_today = score >= 60
+    streak = prev_streak + 1 if is_stabilizing_today else 0
+    return {
+        "score_0_100": score,
+        "is_stabilizing": streak >= 2,
+        "label": compute_stability_label(streak, score),
+        "streak": streak,
+        "reasons": reasons,
+    }
+
+def build_payload(
+    slv_rows: List[Tuple[datetime, float]],
+    fred_rows: Dict[str, List[Tuple[datetime, float]]],
+    previous_stability_streak: int = 0,
+) -> Dict:
     dates = [d for d, _ in slv_rows]
     closes = [c for _, c in slv_rows]
     ma200 = rolling_mean(closes, 200)
@@ -241,6 +290,23 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
             "sparkline": spark(series[-7:]),
         })
 
+    shock_hist = [
+        round(min(100, (pct_rank(rv20[idx0: idx + 1], rv20[idx]) + pct_rank([x for x in down_sev[idx0: idx + 1] if x > 0] or [0.0], down_sev[idx])) / 2))
+        for idx in range(idx0, latest + 1)
+    ]
+    risk_hist = [
+        pct_rank([r[1] for r in fred_rows.get("hy_spread", [])][:i + 1], [r[1] for r in fred_rows.get("hy_spread", [])][i])
+        for i in range(max(0, len(fred_rows.get("hy_spread", [])) - len(shock_hist)), len(fred_rows.get("hy_spread", [])))
+    ]
+    if len(risk_hist) < len(shock_hist):
+        risk_hist = [risk_score] * len(shock_hist)
+    stability = compute_stability_silver(
+        shock_hist=shock_hist,
+        risk_hist=risk_hist,
+        dd_hist=dd63[idx0:],
+        prev_streak=previous_stability_streak,
+    )
+
     last_slv = dates[-1].date().isoformat()
     fred_last_dates = [rows[-1][0].date().isoformat() for rows in fred_rows.values() if rows]
     fred_last = max(fred_last_dates) if fred_last_dates else "n/a"
@@ -251,6 +317,7 @@ def build_payload(slv_rows: List[Tuple[datetime, float]], fred_rows: Dict[str, L
         "as_of": datetime.now(timezone.utc).date().isoformat(),
         "data_dates": f"SLV through {last_slv} · FRED through {fred_last}",
         "regime": regime,
+        "stability": stability,
         "action_bias": action,
         "confidence": conf,
         "regime_description": desc,
@@ -302,6 +369,16 @@ def main() -> None:
     parser.add_argument("--output", default="silver.json")
     args = parser.parse_args()
 
+    prev_stability_streak = 0
+    if os.path.exists(args.output):
+        try:
+            with open(args.output, "r", encoding="utf-8") as f:
+                previous = json.load(f)
+            if isinstance(previous, dict):
+                prev_stability_streak = int((previous.get("stability") or {}).get("streak", 0) or 0)
+        except (OSError, json.JSONDecodeError, ValueError, TypeError):
+            prev_stability_streak = 0
+
     try:
         slv = fetch_stooq_slv()
         api_key = os.getenv("FRED_API_KEY", "").strip()
@@ -314,7 +391,7 @@ def main() -> None:
                 fred[k] = fetch_fred(series, api_key)
             except Exception:
                 fred[k] = []
-        payload = build_payload(slv, fred)
+        payload = build_payload(slv, fred, previous_stability_streak=prev_stability_streak)
     except Exception as exc:
         payload = {
             "title": "Silver Risk Monitor (SLV)",
@@ -322,6 +399,13 @@ def main() -> None:
             "as_of": datetime.now(timezone.utc).date().isoformat(),
             "data_dates": "Data fetch unavailable in current environment",
             "regime": "BLUE",
+            "stability": {
+                "score_0_100": 0,
+                "is_stabilizing": False,
+                "label": "unstable",
+                "streak": 0,
+                "reasons": ["insufficient_data"],
+            },
             "action_bias": "Hold / add on pullbacks",
             "confidence": "Low",
             "regime_description": "Fallback payload due to data-fetch failure.",
