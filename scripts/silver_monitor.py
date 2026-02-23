@@ -84,6 +84,11 @@ def pct_rank(history: List[float], value: float) -> int:
     return max(0, min(100, round((le / len(history)) * 100)))
 
 
+def pct_rank_window(series: List[float], i: int, w: int) -> int:
+    lo = max(0, i - w + 1)
+    return pct_rank(series[lo:i + 1], series[i])
+
+
 def spark(vals: List[float]) -> str:
     if not vals:
         return "—"
@@ -123,22 +128,31 @@ def compute_stability_silver(
     shock_hist: List[int],
     risk_hist: List[int],
     dd_hist: List[float],
+    absret_hist: List[float],
     prev_streak: int,
 ) -> Dict:
     shock_falling = len(shock_hist) >= 6 and shock_hist[-1] < shock_hist[-6]
     dd_not_worsening = len(dd_hist) >= 10 and min(dd_hist[-5:]) >= min(dd_hist[-10:-5])
+    dd_improving = len(dd_hist) >= 6 and dd_hist[-1] > dd_hist[-6]
     risk_cooling = len(risk_hist) >= 6 and risk_hist[-1] < risk_hist[-6]
+
+    range_contracting = False
+    if len(absret_hist) >= 20:
+        range_contracting = pstdev(absret_hist[-10:]) < pstdev(absret_hist[-20:-10])
 
     score = 0
     reasons: List[str] = []
     if shock_falling:
-        score += 40
-        reasons.append("shock_falling")
-    if dd_not_worsening:
         score += 35
+        reasons.append("shock_falling")
+    if dd_not_worsening or dd_improving:
+        score += 30
         reasons.append("drawdown_stabilizing")
+    if range_contracting:
+        score += 20
+        reasons.append("range_contracting")
     if risk_cooling:
-        score += 25
+        score += 15
         reasons.append("credit_stress_cooling")
 
     is_stabilizing_today = score >= 60
@@ -181,6 +195,7 @@ def build_payload(
 
     lookback = min(1260, len(closes))
     idx0 = len(closes) - lookback
+    stability_lookback = min(756, len(closes))
 
     latest = len(closes) - 1
     dist_p = pct_rank(dist200[idx0:], dist200[latest])
@@ -290,22 +305,47 @@ def build_payload(
             "sparkline": spark(series[-7:]),
         })
 
-    shock_hist = [
-        round(min(100, (pct_rank(rv20[idx0: idx + 1], rv20[idx]) + pct_rank([x for x in down_sev[idx0: idx + 1] if x > 0] or [0.0], down_sev[idx])) / 2))
-        for idx in range(idx0, latest + 1)
-    ]
-    risk_hist = [
-        pct_rank([r[1] for r in fred_rows.get("hy_spread", [])][:i + 1], [r[1] for r in fred_rows.get("hy_spread", [])][i])
-        for i in range(max(0, len(fred_rows.get("hy_spread", [])) - len(shock_hist)), len(fred_rows.get("hy_spread", [])))
-    ]
-    if len(risk_hist) < len(shock_hist):
-        risk_hist = [risk_score] * len(shock_hist)
+    shock_hist: List[int] = []
+    for i in range(idx0, latest + 1):
+        rv_pi = pct_rank_window(rv20, i, stability_lookback)
+        lo = max(0, i - stability_lookback + 1)
+        down_win = [x for x in down_sev[lo:i + 1] if x > 0] or [0.0]
+        drop_pi = pct_rank(down_win, down_sev[i])
+        whipsaw_i = (ret1[i] <= -2.5 and ret1[i - 1] >= 2.0) if i >= 1 else False
+        whipsaw_bonus_i = 15 if whipsaw_i else 0
+        shock_hist.append(round(min(100, (rv_pi + drop_pi) / 2 + whipsaw_bonus_i)))
+
+    hy_vals = [v for _, v in fred_rows.get("hy_spread", [])]
+    risk_hist: List[int] = []
+    for i in range(len(hy_vals)):
+        if i < 22:
+            risk_hist.append(50)
+            continue
+        hy_ch = hy_vals[i] - hy_vals[i - 22]
+        lo = max(22, i - stability_lookback + 1)
+        changes = [hy_vals[j] - hy_vals[j - 22] for j in range(lo, i + 1)]
+        risk_hist.append(pct_rank(changes, hy_ch))
+
+    if len(risk_hist) >= len(shock_hist):
+        risk_hist_tail = risk_hist[-len(shock_hist):]
+    else:
+        risk_hist_tail = [risk_score] * len(shock_hist)
+
     stability = compute_stability_silver(
         shock_hist=shock_hist,
-        risk_hist=risk_hist,
+        risk_hist=risk_hist_tail,
         dd_hist=dd63[idx0:],
+        absret_hist=[abs(x) for x in ret1[idx0:]],
         prev_streak=previous_stability_streak,
     )
+
+    stability_candidates = {
+        "shock_falling": len(shock_hist) >= 6 and shock_hist[-1] < shock_hist[-6],
+        "drawdown_stabilizing": (len(dd63[idx0:]) >= 10 and min(dd63[idx0:][-5:]) >= min(dd63[idx0:][-10:-5])) or (len(dd63[idx0:]) >= 6 and dd63[idx0:][-1] > dd63[idx0:][-6]),
+        "range_contracting": len(ret1[idx0:]) >= 20 and pstdev([abs(x) for x in ret1[idx0:]][-10:]) < pstdev([abs(x) for x in ret1[idx0:]][-20:-10]),
+        "credit_stress_cooling": len(risk_hist_tail) >= 6 and risk_hist_tail[-1] < risk_hist_tail[-6],
+    }
+    stability["missing"] = [k for k, ok in stability_candidates.items() if not ok]
 
     last_slv = dates[-1].date().isoformat()
     fred_last_dates = [rows[-1][0].date().isoformat() for rows in fred_rows.values() if rows]
