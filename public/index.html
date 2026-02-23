@@ -3,75 +3,115 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
   <title>Gold Risk Monitor</title>
-      <link rel="stylesheet" href="gold.css">
+  <link rel="stylesheet" href="gold.css">
 </head>
 <body>
-    <main>
-    <div class="topbar">
+  <main class="wrap">
+    <header class="top">
       <div>
         <h1>Gold Risk Monitor</h1>
-        <p class="subtitle">Outcome first: current regime, drivers, and what would change next.</p>
-        <nav class="nav-row">
-          <a href="silver/">Silver dashboard →</a>
+        <p class="sub">Outcome first: regime, drivers, and what changes next.</p>
+        <nav class="nav">
+          <a href="silver/">← Silver Risk Monitor</a>
           <span class="dot">•</span>
           <a href="dislocation/">Dislocation detector →</a>
         </nav>
       </div>
       <div class="meta-block">
-        <div><span class="meta-label">As of</span> <span id="as_of">Loading…</span></div>
-        <div><span class="meta-label">Data dates</span> <span id="data_dates">Loading…</span></div>
-        <div><span class="meta-label">Confidence</span> <span id="confidence">Medium</span></div>
+        <div><span class="k">As of</span> <span id="as_of">Loading…</span></div>
+        <div><span class="k">Data dates</span> <span id="data_dates">Loading…</span></div>
+        <div><span class="k">Confidence</span> <span id="confidence">—</span></div>
       </div>
-    </div>
+    </header>
 
-    <section class="grid cols-2">
-      <div class="card">
-        <h2>Today</h2>
-        <div class="small" id="timestamps">Waiting for data...</div>
-        <div class="status-row" style="margin-top:8px;">
-          <div id="status" class="badge">Loading...</div>
-          <div id="statusSummary" class="status-summary">Loading status summary...</div>
+    <section class="regime">
+      <div class="regime-left">
+        <span id="status" class="pill">—</span>
+        <div class="regime-text">
+          <div class="row">
+            <div class="label">Action bias</div>
+            <div id="statusSummary" class="value">Loading…</div>
+          </div>
+          <div class="row">
+            <div class="label">Stability</div>
+            <div id="stabilityBadge" class="value">Loading…</div>
+          </div>
+          <div id="stabilitySummary" class="desc">Loading stability…</div>
+          <div id="macroFollowThrough" class="desc">Loading macro follow-through…</div>
+          <div id="timestamps" class="meta-inline">Waiting for data…</div>
         </div>
-        <div class="status-row" style="margin-top:8px;">
-          <div id="stabilityBadge" class="badge">Loading...</div>
-          <div id="stabilitySummary" class="status-summary">Loading stability status...</div>
-        </div>
-        <p class="section-explainer" id="macroFollowThrough">Loading macro follow-through...</p>
-        <div class="card-grid" id="glanceCards"><div class="metric-card">Loading key metrics...</div></div>
       </div>
     </section>
 
-    <section class="card" style="margin-top:14px;">
-      <h2>Drivers</h2>
-      <p class="section-explainer" id="reasonLead">Loading regime drivers...</p>
-      <ul id="reasons"><li>Loading regime drivers...</li></ul>
-      <div class="daily-strip" id="dailyStrip"><div class="daily-chip">Loading daily changes...</div></div>
-      <div class="lens-panel">
-        <label class="meta" for="portfolioLens"><strong>Portfolio lens</strong></label>
-        <select id="portfolioLens" class="lens-select">
-          <option value="conservative">Conservative</option>
-          <option value="balanced" selected>Balanced</option>
-          <option value="hardAsset">Hard-asset heavy</option>
-        </select>
-        <span class="meta" id="lensText">Balanced lens: watch whether extension cools before deterioration broadens.</span>
+    <section class="tiles">
+      <div class="tile">
+        <div class="label">3M Total Return</div>
+        <div class="tile-sub">Primary regime horizon</div>
+        <div id="tile_return_3m" class="big">—</div>
+      </div>
+      <div class="tile">
+        <div class="label">21D Flows</div>
+        <div class="tile-sub">Holdings change percentile context</div>
+        <div id="tile_flows_21d" class="big">—</div>
+      </div>
+      <div class="tile">
+        <div class="label">Real Yield (1M)</div>
+        <div class="tile-sub">Macro pressure proxy</div>
+        <div id="tile_real_yield_1m" class="big">—</div>
       </div>
     </section>
 
-    <section class="card" style="margin-top:14px;">
-      <h2>What changes next?</h2>
-      <p class="section-explainer"><strong>Regime ladder:</strong> GREEN → BLUE → ORANGE → RED</p>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+    <section class="section">
+      <h2>Top drivers</h2>
+      <p class="section-explainer" id="reasonLead">Loading regime drivers…</p>
+      <ul id="drivers"><li>Loading…</li></ul>
+      <div class="daily-strip" id="dailyStrip"><div class="daily-chip">Loading daily changes…</div></div>
+    </section>
+
+    <section class="section two-col">
+      <div class="col">
+        <h2>What changes next?</h2>
+        <h3>Escalate</h3>
+        <ul id="escalate"><li>Loading…</li></ul>
+      </div>
+      <div class="col">
+        <h2 class="ghost">.</h2>
+        <h3>De-escalate</h3>
+        <ul id="deescalate"><li>Loading…</li></ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Pillars</h2>
+        <div class="lens-panel">
+          <label for="portfolioLens" class="label-inline">Portfolio lens</label>
+          <select id="portfolioLens" class="lens-select">
+            <option value="conservative">Conservative</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="hardAsset">Hard-asset heavy</option>
+          </select>
+          <span id="lensText" class="muted">Balanced lens: watch whether extension cools before deterioration broadens.</span>
+        </div>
+      </div>
+      <div id="glanceCards" class="grid-4"><div class="card">Loading key metrics…</div></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Signals</h2>
+        <div id="signal_count" class="muted">Loading…</div>
+      </div>
+      <div class="controls-row">
         <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="expand">Show trigger thresholds</button>
         <button class="toggle-btn" type="button" data-toggle-scope="mechanics" data-toggle-action="collapse">Hide trigger thresholds</button>
       </div>
-      <div id="escalation"><p>Loading escalation conditions...</p></div>
+      <div id="escalation"><p>Loading trigger thresholds…</p></div>
     </section>
 
-    <section class="card" style="margin-top:14px;">
+    <section class="section">
       <h2>Advanced diagnostics</h2>
-      <p class="section-explainer">Optional deep dive: use these panels for trigger-level diagnostics and signal details.</p>
       <details class="expandable-card" data-expand-group="mechanics">
         <summary>Extension</summary>
         <div class="expandable-body">
@@ -95,8 +135,8 @@
       </details>
     </section>
 
-    <section class="card" style="margin-top:14px;">
-      <h2>Context</h2>
+    <section class="section">
+      <h2>Rules</h2>
       <details class="expandable-card" data-expand-group="context">
         <summary>Horizon snapshot</summary>
         <div class="expandable-body">
@@ -105,19 +145,52 @@
           <div class="note" id="percentileNotes"></div>
         </div>
       </details>
-    </section>
-
-    <section class="card" style="margin-top:14px;">
-      <h2>Status colors & notes</h2>
-      <div style="display:grid; gap:8px;">
-        <div><span class="badge green">GREEN</span> <span class="muted">Typical conditions.</span></div>
-        <div><span class="badge blue">BLUE</span> <span class="muted">Extended rally; no confirmed deterioration.</span></div>
-        <div><span class="badge orange">ORANGE</span> <span class="muted">Extended + early deterioration signals.</span></div>
-        <div><span class="badge red">RED</span> <span class="muted">Breakdown-style stress signals present.</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Regime</th>
+              <th>Definition</th>
+              <th>Action bias</th>
+              <th>Escalation</th>
+              <th>De-escalation</th>
+            </tr>
+          </thead>
+          <tbody id="rules_body">
+            <tr>
+              <td class="reg">GREEN</td>
+              <td>Typical conditions</td>
+              <td>Stay with base exposure</td>
+              <td>2 of 3 extension signals</td>
+              <td>Already baseline</td>
+            </tr>
+            <tr>
+              <td class="reg">BLUE</td>
+              <td>Extended rally without deterioration</td>
+              <td>Hold but watch for cracks</td>
+              <td>Any deterioration trigger</td>
+              <td>Clear extension signals</td>
+            </tr>
+            <tr>
+              <td class="reg">ORANGE</td>
+              <td>Extended + early deterioration</td>
+              <td>Reduce risk and monitor</td>
+              <td>Primary stress or 2/5 composite</td>
+              <td>Remove deterioration signals</td>
+            </tr>
+            <tr>
+              <td class="reg">RED</td>
+              <td>Breakdown-style stress</td>
+              <td>Defensive posture</td>
+              <td>Persistence confirms</td>
+              <td>Consecutive clear runs</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <p class="small" style="margin-top:10px;">Percentiles compare current values with historical distributions to provide context, not absolute judgments.</p>
+      <p class="foot muted">Percentiles compare current values with historical distributions to provide context, not certainty. Data refreshes daily via GitHub Actions.</p>
       <footer>
-        <p>Data is refreshed daily by GitHub Actions. View the repository on <a id="repoLink" href="https://github.com/">GitHub</a>. <span id="issueLink"></span></p>
+        <p>View the repository on <a id="repoLink" href="https://github.com/">GitHub</a>.<span id="issueLink"></span></p>
       </footer>
     </section>
   </main>
