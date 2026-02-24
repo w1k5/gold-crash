@@ -2,13 +2,31 @@
   --bg:#0b0d10;
   --panel:#10141a;
   --panel2:#0f1318;
+  --surface:#0d1218;
   --text:#e7edf5;
+  --text-soft:#cfd8e3;
+  --heading:#dbe6f4;
   --muted:#9aa7b6;
   --border:#1b2330;
   --shadow: 0 6px 20px rgba(0,0,0,.25);
   --r:14px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --panel2:#f7f9fd;
+    --surface:#f4f7fc;
+    --text:#10243c;
+    --text-soft:#2c3f57;
+    --heading:#0b1f36;
+    --muted:#5f7288;
+    --border:#d2deec;
+    --shadow: 0 6px 20px rgba(16,36,60,.08);
+  }
 }
 
 *{ box-sizing:border-box; }
@@ -29,7 +47,7 @@ h1{ margin:0 0 6px; font-size:28px; letter-spacing:.2px; }
 
 .regime{ display:flex; background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--border); border-radius:var(--r); padding:14px; box-shadow:var(--shadow); margin:14px 0 18px; }
 .regime-left{ display:flex; gap:14px; align-items:flex-start; width:100%; }
-.pill{ font-family:var(--mono); letter-spacing:.6px; font-weight:700; padding:10px 12px; border-radius:999px; border:1px solid var(--border); background:#0c1117; min-width:86px; text-align:center; }
+.pill{ font-family:var(--mono); letter-spacing:.6px; font-weight:700; padding:10px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); min-width:86px; text-align:center; }
 .pill.GREEN{ border-color:#1f5d3d; }
 .pill.BLUE{ border-color:#245a9a; }
 .pill.ORANGE{ border-color:#7a4c19; }
@@ -39,7 +57,7 @@ h1{ margin:0 0 6px; font-size:28px; letter-spacing:.2px; }
 .regime-text .row{ display:flex; gap:10px; align-items:baseline; margin:2px 0 6px; }
 .label{ color:var(--muted); font-size:12px; font-family:var(--mono); }
 .value{ font-size:14px; }
-.desc{ color:#cfd8e3; }
+.desc{ color:var(--text-soft); }
 
 .tiles{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:18px; }
 .tile{ background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--border); border-radius:var(--r); padding:14px; box-shadow:var(--shadow); }
@@ -47,21 +65,21 @@ h1{ margin:0 0 6px; font-size:28px; letter-spacing:.2px; }
 .big{ font-size:34px; margin-top:8px; font-family:var(--mono); letter-spacing:.4px; }
 
 .section{ margin:18px 0; }
-.section h2{ font-size:16px; margin:0 0 10px; color:#dbe6f4; letter-spacing:.2px; }
+.section h2{ font-size:16px; margin:0 0 10px; color:var(--heading); letter-spacing:.2px; }
 .section h3{ font-size:13px; margin:10px 0 8px; color:var(--muted); font-family:var(--mono); font-weight:600; }
 .ghost{ visibility:hidden; }
 
 .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
 .col{ background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--border); border-radius:var(--r); padding:14px; box-shadow:var(--shadow); }
 
-ul{ margin:0; padding-left:18px; color:#cfd8e3; }
+ul{ margin:0; padding-left:18px; color:var(--text-soft); }
 li{ margin:6px 0; }
 
 .grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
 .grid-4{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
 
 .card{ background:linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--border); border-radius:var(--r); padding:12px; box-shadow:var(--shadow); }
-.card .name{ font-size:13px; margin:0 0 10px; color:#dbe6f4; }
+.card .name{ font-size:13px; margin:0 0 10px; color:var(--heading); }
 .card .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
 .card .state{ font-family:var(--mono); font-size:12px; color:var(--muted); }
 .card .last{ font-family:var(--mono); font-size:16px; }
@@ -76,7 +94,7 @@ li{ margin:6px 0; }
 table{ width:100%; border-collapse:collapse; min-width:860px; }
 th, td{ padding:12px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
 th{ text-align:left; color:var(--muted); font-family:var(--mono); font-size:12px; font-weight:600; }
-td{ color:#d8e2ef; font-size:13px; }
+td{ color:var(--text-soft); font-size:13px; }
 td.reg{ font-family:var(--mono); font-weight:700; }
 
 @media (max-width: 960px){
