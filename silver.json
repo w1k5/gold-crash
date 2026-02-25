@@ -1,47 +1,174 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-02-24",
-  "data_dates": "Data fetch unavailable in current environment",
-  "regime": "BLUE",
+  "as_of": "2026-02-25",
+  "data_dates": "SLV through 2026-02-24 \u00b7 FRED through 2026-02-24",
+  "regime": "RED",
   "stability": {
-    "score_0_100": 0,
+    "score_0_100": 85,
     "is_stabilizing": false,
-    "label": "unstable",
-    "streak": 0,
+    "label": "early_stabilizing",
+    "streak": 1,
     "reasons": [
-      "insufficient_data"
+      "shock_falling",
+      "drawdown_stabilizing",
+      "range_contracting"
+    ],
+    "missing": [
+      "credit_stress_cooling"
     ]
   },
-  "action_bias": "Hold / add on pullbacks",
-  "confidence": "Low",
-  "regime_description": "Fallback payload due to data-fetch failure.",
+  "action_bias": "Defensive",
+  "confidence": "High",
+  "regime_description": "Breakdown / stress regime driven by deep drawdown, high shock, credit stress.",
   "top_drivers": [
-    "Data fetch error: Insufficient SLV history"
+    "Trend/extension score is 65/100 (distance vs 200DMA: +67.00%)",
+    "Vol/shock score is 88/100 (20D realized vol percentile: 100th)",
+    "Risk appetite score is 81/100 (HY spread level: 2.95)"
+  ],
+  "triggers": [
+    "deep_drawdown",
+    "high_shock",
+    "credit_stress"
   ],
   "what_changes_next": {
     "escalate": [
-      "Awaiting live data"
+      "If extension stays high and shock flips to Triggered, BLUE can escalate to ORANGE.",
+      "If drawdown deepens and credit stress jumps, ORANGE can escalate to RED."
     ],
     "deescalate": [
-      "Awaiting live data"
+      "If shock and credit flags turn off while extension cools, BLUE can normalize to GREEN.",
+      "If breakdown flags clear and trend stabilizes for multiple sessions, RED can step back to ORANGE."
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 50,
-    "fragility_1_3m": 50,
-    "liquidity_regime": "Mixed"
+    "event_risk_1_5d": 88,
+    "fragility_1_3m": 72,
+    "liquidity_regime": "Risk-off"
   },
-  "pillars": [],
-  "signals": [],
-  "rules": [],
+  "pillars": [
+    {
+      "name": "Trend / Extension",
+      "score": 65,
+      "metrics": [
+        "Distance vs 200DMA: +67.00%",
+        "20D momentum: -19.59%",
+        "63D drawdown: -25.11%"
+      ]
+    },
+    {
+      "name": "Vol / Shock",
+      "score": 88,
+      "metrics": [
+        "Realized vol (20D): 140.31%",
+        "1D drop percentile: 75th",
+        "Whipsaw flag: quiet"
+      ]
+    },
+    {
+      "name": "Macro (headwinds)",
+      "score": 56,
+      "metrics": [
+        "DFII10: 1.77",
+        "DFII10 1M change: -0.18",
+        "T10YIE 1M change: -0.06"
+      ]
+    },
+    {
+      "name": "Risk appetite",
+      "score": 81,
+      "metrics": [
+        "HY spread level: 2.95",
+        "HY spread 1M change: +0.27",
+        "Regime: Risk-off"
+      ]
+    }
+  ],
+  "signals": [
+    {
+      "name": "Distance above 200DMA",
+      "state": "Triggered",
+      "last": "+67.00%",
+      "percentile": "98th",
+      "sparkline": "\u2582\u2581\u2582\u2582\u2585\u2587\u2586"
+    },
+    {
+      "name": "20D momentum",
+      "state": "Quiet",
+      "last": "-19.59%",
+      "percentile": "0th",
+      "sparkline": "\u2583\u2582\u2582\u2584\u2587\u2586\u2581"
+    },
+    {
+      "name": "20D realized volatility",
+      "state": "Triggered",
+      "last": "+140.31%",
+      "percentile": "100th",
+      "sparkline": "\u2581\u2582\u2582\u2582\u2587\u2585\u2582"
+    },
+    {
+      "name": "1D down move severity",
+      "state": "Watch",
+      "last": "1.85%",
+      "percentile": "75th",
+      "sparkline": "\u2581\u2587\u2581\u2581\u2581\u2581\u2583"
+    },
+    {
+      "name": "DFII10 1M change",
+      "state": "Quiet",
+      "last": "-0.18",
+      "percentile": "17th",
+      "sparkline": "\u2587\u2581\u2585\u2587\u2585\u2587\u2581"
+    },
+    {
+      "name": "T10YIE 1M change",
+      "state": "Quiet",
+      "last": "-0.06",
+      "percentile": "28th",
+      "sparkline": "\u2583\u2581\u2587\u2587\u2584\u2581\u2581"
+    },
+    {
+      "name": "HY spread level",
+      "state": "Triggered",
+      "last": "+2.95",
+      "percentile": "81st",
+      "sparkline": "\u2587\u2586\u2586\u2581\u2582\u2581\u2587"
+    }
+  ],
+  "rules": [
+    {
+      "regime": "GREEN",
+      "definition": "Trend positive-to-neutral, shock low, credit stress quiet.",
+      "action_bias": "Accumulate on dips / hold core",
+      "escalation": "Extension score rises above ~70th percentile while shock stays quiet.",
+      "deescalation": "N/A"
+    },
+    {
+      "regime": "BLUE",
+      "definition": "Extended above trend, but no confirmed deterioration.",
+      "action_bias": "Hold / add only on pullbacks",
+      "escalation": "Extension high + shock Watch/Triggered or credit starts widening.",
+      "deescalation": "Extension cools and deterioration flags remain off."
+    },
+    {
+      "regime": "ORANGE",
+      "definition": "Extended + at least one deterioration pillar active.",
+      "action_bias": "Stop adding, trim rips, tighten risk",
+      "escalation": "Breakdown pattern appears (vol spike + drawdown / credit jump).",
+      "deescalation": "Shock clears and price stabilizes above key moving averages."
+    },
+    {
+      "regime": "RED",
+      "definition": "Breakdown / stress regime (triggered by deep drawdown, high shock, or credit stress).",
+      "action_bias": "Defensive posture",
+      "escalation": "N/A",
+      "deescalation": "Shock flags turn off and trend repair persists for multiple sessions."
+    }
+  ],
   "sources": {
     "slv": "https://stooq.com/q/d/l/?s=slv.us&i=d",
     "dfii10": "https://fred.stlouisfed.org/series/DFII10",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE",
     "hy_spread": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"
-  },
-  "notes": {
-    "fetch_ok": false
   }
 }
