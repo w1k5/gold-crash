@@ -4,16 +4,42 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.error
 import urllib.request
+
+
+def decode_response(headers: object, raw: bytes) -> str:
+    """Decode HTTP payload for diagnostics; prefer UTF-8 then latin-1."""
+    charset_getter = getattr(headers, "get_content_charset", None)
+    charset = charset_getter() if callable(charset_getter) else None
+    for encoding in (charset, "utf-8", "latin-1"):
+        if not encoding:
+            continue
+        try:
+            return raw.decode(encoding)
+        except (LookupError, UnicodeDecodeError):
+            continue
+    return raw.decode("utf-8", errors="replace")
 
 
 def request(url: str, method: str = "GET", payload: dict | None = None, headers: dict | None = None) -> dict:
     data = None
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
+
     req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
-    with urllib.request.urlopen(req) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req) as response:
+            raw = response.read()
+            content_type = response.headers.get("Content-Type", "")
+            if "json" not in content_type.lower():
+                preview = decode_response(response.headers, raw)[:300]
+                raise RuntimeError(f"Expected JSON but received {content_type!r}: {preview}")
+            return json.loads(raw)
+    except urllib.error.HTTPError as error:
+        raw = error.read()
+        preview = decode_response(error.headers, raw)[:300]
+        raise RuntimeError(f"GitHub API request failed ({error.code} {error.reason}): {preview}") from error
 
 
 def main() -> int:
@@ -26,6 +52,7 @@ def main() -> int:
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
         "User-Agent": "gold-risk-monitor",
+        "X-GitHub-Api-Version": "2022-11-28",
     }
 
     issues_url = f"https://api.github.com/repos/{repo}/issues?state=open&per_page=100"
