@@ -1,14 +1,14 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-03-11",
-  "data_dates": "SLV through 2026-03-11 \u00b7 FRED through 2026-03-10",
+  "as_of": "2026-03-12",
+  "data_dates": "SLV through 2026-03-11 \u00b7 FRED through 2026-03-11",
   "regime": "RED",
   "stability": {
     "score_0_100": 65,
     "is_stabilizing": true,
     "label": "stabilized",
-    "streak": 6,
+    "streak": 7,
     "reasons": [
       "drawdown_stabilizing",
       "range_contracting",
@@ -22,9 +22,9 @@
   "confidence": "High",
   "regime_description": "Breakdown / stress regime driven by deep drawdown, high shock.",
   "top_drivers": [
-    "Trend/extension score is 87/100 (distance vs 200DMA: +54.17%)",
+    "Trend/extension score is 89/100 (distance vs 200DMA: +55.71%)",
     "Vol/shock score is 100/100 (20D realized vol percentile: 98th)",
-    "Risk appetite score is 77/100 (HY spread level: 3.06)"
+    "Risk appetite score is 78/100 (HY spread level: 3.06)"
   ],
   "triggers": [
     "high_extension",
@@ -49,34 +49,34 @@
   "pillars": [
     {
       "name": "Trend / Extension",
-      "score": 87,
+      "score": 89,
       "metrics": [
-        "Distance vs 200DMA: +54.17%",
-        "20D momentum: +5.07%",
-        "63D drawdown: -26.96%"
+        "Distance vs 200DMA: +55.71%",
+        "20D momentum: +6.13%",
+        "63D drawdown: -26.22%"
       ]
     },
     {
       "name": "Vol / Shock",
       "score": 100,
       "metrics": [
-        "Realized vol (20D): 76.42%",
-        "1D drop percentile: 95th",
+        "Realized vol (20D): 75.84%",
+        "1D drop percentile: 89th",
         "Whipsaw flag: triggered"
       ]
     },
     {
       "name": "Macro (headwinds)",
-      "score": 58,
+      "score": 55,
       "metrics": [
-        "DFII10: 1.78",
-        "DFII10 1M change: -0.11",
-        "T10YIE 1M change: -0.01"
+        "DFII10: 1.82",
+        "DFII10 1M change: -0.06",
+        "T10YIE 1M change: +0.01"
       ]
     },
     {
       "name": "Risk appetite",
-      "score": 77,
+      "score": 78,
       "metrics": [
         "HY spread level: 3.06",
         "HY spread 1M change: +0.22",
@@ -88,50 +88,50 @@
     {
       "name": "Distance above 200DMA",
       "state": "Triggered",
-      "last": "+54.17%",
+      "last": "+55.71%",
       "percentile": "96th",
-      "sparkline": "\u2582\u2582\u2581\u2582\u2585\u2587\u2582"
+      "sparkline": "\u2582\u2582\u2581\u2582\u2585\u2587\u2583"
     },
     {
       "name": "20D momentum",
       "state": "Watch",
-      "last": "+5.07%",
-      "percentile": "68th",
+      "last": "+6.13%",
+      "percentile": "72nd",
       "sparkline": "\u2583\u2582\u2581\u2587\u2586\u2584\u2584"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+76.42%",
+      "last": "+75.84%",
       "percentile": "98th",
       "sparkline": "\u2587\u2586\u2586\u2582\u2582\u2581\u2581"
     },
     {
       "name": "1D down move severity",
       "state": "Triggered",
-      "last": "3.69%",
-      "percentile": "95th",
-      "sparkline": "\u2587\u2581\u2582\u2581\u2581\u2581\u2583"
+      "last": "2.72%",
+      "percentile": "89th",
+      "sparkline": "\u2587\u2581\u2582\u2581\u2581\u2581\u2582"
     },
     {
       "name": "DFII10 1M change",
       "state": "Quiet",
-      "last": "-0.11",
-      "percentile": "30th",
-      "sparkline": "\u2581\u2583\u2584\u2585\u2587\u2585\u2584"
+      "last": "-0.06",
+      "percentile": "40th",
+      "sparkline": "\u2581\u2582\u2585\u2587\u2585\u2583\u2587"
     },
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.01",
-      "percentile": "46th",
-      "sparkline": "\u2581\u2581\u2581\u2583\u2587\u2585\u2585"
+      "last": "+0.01",
+      "percentile": "50th",
+      "sparkline": "\u2581\u2581\u2582\u2586\u2585\u2584\u2587"
     },
     {
       "name": "HY spread level",
       "state": "Watch",
       "last": "+3.06",
-      "percentile": "77th",
+      "percentile": "78th",
       "sparkline": "\u2582\u2584\u2581\u2581\u2585\u2587\u2583"
     }
   ],
