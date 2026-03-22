@@ -1,7 +1,7 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-03-21",
+  "as_of": "2026-03-22",
   "data_dates": "SLV through 2026-03-20 \u00b7 FRED through 2026-03-20",
   "regime": "RED",
   "stability": {
@@ -24,7 +24,7 @@
   "top_drivers": [
     "Trend/extension score is 62/100 (distance vs 200DMA: +19.66%)",
     "Vol/shock score is 98/100 (20D realized vol percentile: 96th)",
-    "Risk appetite score is 87/100 (HY spread level: 3.27)"
+    "Risk appetite score is 86/100 (HY spread level: 3.27)"
   ],
   "triggers": [
     "deep_drawdown",
@@ -76,7 +76,7 @@
     },
     {
       "name": "Risk appetite",
-      "score": 87,
+      "score": 86,
       "metrics": [
         "HY spread level: 3.27",
         "HY spread 1M change: +0.41",
@@ -124,14 +124,14 @@
       "name": "T10YIE 1M change",
       "state": "Watch",
       "last": "+0.09",
-      "percentile": "75th",
+      "percentile": "76th",
       "sparkline": "\u2584\u2581\u2581\u2582\u2587\u2582\u2584"
     },
     {
       "name": "HY spread level",
       "state": "Triggered",
       "last": "+3.27",
-      "percentile": "87th",
+      "percentile": "86th",
       "sparkline": "\u2581\u2583\u2587\u2586\u2585\u2584\u2586"
     }
   ],
