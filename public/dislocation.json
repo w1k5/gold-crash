@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-03-22T17:24:35.429203+00:00",
+  "asof_utc": "2026-03-23T17:50:42.793143+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -9,7 +9,8 @@
   "signal_counting": {
     "excluded_from_threshold": [
       "forced_flow_proxy_combo",
-      "carry_trade_unwind_combo"
+      "carry_trade_unwind_combo",
+      "volatility_spike"
     ],
     "notes": "Stale VIX data (>0 business day lag) is excluded from K-of-N counting."
   },
@@ -18,24 +19,24 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.702030918460129,
-        "spy_intraday_range_pct": 1.84559877885194,
-        "spy_range_z": 0.6795897700441995,
-        "score_0_1": 0.6808123673840516,
+        "spy_1d_return_pct": 1.432382009651989,
+        "spy_intraday_range_pct": 1.2662268567780268,
+        "spy_range_z": 0.12134870318006673,
+        "score_0_1": 0.0,
         "counted_toward_threshold": true,
-        "severity_0_100": 68.08123673840515
+        "severity_0_100": 0.0
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": 3.3509572824444667,
-        "spy_range_z": 0.6795897700441995,
+        "spy_dollar_volume_z": -1.3171606586246074,
+        "spy_range_z": 0.12134870318006673,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
-        "score_0_1": 0.33979488502209976,
+        "score_0_1": 0.0,
         "counted_toward_threshold": true,
-        "severity_0_100": 33.979488502209975
+        "severity_0_100": 0.0
       }
     },
     {
@@ -48,7 +49,7 @@
         "vix_change_z": 1.2048323480438536,
         "vix_eligible": true,
         "score_0_1": 0.6024161740219268,
-        "counted_toward_threshold": true,
+        "counted_toward_threshold": false,
         "severity_0_100": 60.24161740219268
       }
     },
@@ -56,27 +57,27 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": -0.9289480291237662,
-        "spy_1d_return_pct": -1.702030918460129,
-        "hyg_minus_spy_pct": 0.7730828893363628,
-        "score_0_1": 0.0,
-        "margin": -2.273082889336363,
+        "hyg_1d_return_pct": 0.684237202230098,
+        "spy_1d_return_pct": 1.432382009651989,
+        "hyg_minus_spy_pct": -0.748144807421891,
+        "score_0_1": 0.49876320494792736,
+        "margin": -0.751855192578109,
         "margin_unit": "%",
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 49.876320494792736
       }
     },
     {
       "name": "credit_spread_widening_fred",
       "triggered": false,
       "details": {
-        "hy_oas_level": 3.27,
-        "hy_oas_5d_change": -0.009999999999999787,
-        "hy_oas_10d_change": 0.14000000000000012,
-        "hy_oas_z": -0.1755004356395069,
-        "score_0_1": 0.3500000000000003,
+        "hy_oas_level": 3.24,
+        "hy_oas_5d_change": -0.029999999999999805,
+        "hy_oas_10d_change": 0.050000000000000266,
+        "hy_oas_z": -0.22293406731407733,
+        "score_0_1": 0.12500000000000067,
         "counted_toward_threshold": true,
-        "severity_0_100": 35.00000000000003
+        "severity_0_100": 12.500000000000068
       }
     },
     {
@@ -84,8 +85,8 @@
       "triggered": false,
       "details": {
         "sofr_iorb_spread_bp": -2.9999999999999805,
-        "sofr_iorb_spread_5d_bp": -2.9999999999999805,
-        "sofr_iorb_spread_z": 0.4338312114359002,
+        "sofr_iorb_spread_5d_bp": -8.000000000000007,
+        "sofr_iorb_spread_z": 0.4326837947880972,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -96,10 +97,10 @@
       "triggered": false,
       "details": {
         "tgcr_rate": 3.6,
-        "tgcr_rate_5d_change_pct": -0.029999999999999805,
-        "tgcr_rate_z": -1.9854218285895673,
-        "tgcr_volume_z": 1.8281338053781369,
-        "tgcr_volume_5d_change_pct": 1.2509773260359625,
+        "tgcr_rate_5d_change_pct": -0.06999999999999984,
+        "tgcr_rate_z": -1.9781742061812242,
+        "tgcr_volume_z": 1.758772728021487,
+        "tgcr_volume_5d_change_pct": 0.1566170712607784,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -109,13 +110,13 @@
       "name": "rates_volatility_shock",
       "triggered": false,
       "details": {
-        "dgs10_rv5_bp": 3.7202150475476388,
-        "dgs10_rv5_z": -0.5246333971324201,
-        "dgs10_rv5_5d_change_bp": 0.3379081424900936,
-        "dgs10_5d_change_bp": -3.000000000000025,
-        "score_0_1": 0.3100179206289699,
+        "dgs10_rv5_bp": 3.006659275674572,
+        "dgs10_rv5_z": -0.8559246298762434,
+        "dgs10_rv5_5d_change_bp": -1.0627387142005693,
+        "dgs10_5d_change_bp": 1.9999999999999574,
+        "score_0_1": 0.25055493963954767,
         "counted_toward_threshold": true,
-        "severity_0_100": 31.00179206289699
+        "severity_0_100": 25.055493963954767
       }
     },
     {
@@ -124,8 +125,8 @@
       "details": {
         "usdjpy": 159.54,
         "usdjpy_5d_change_pct": 0.0,
-        "usdjpy_20d_change_pct": 2.9356732692431553,
-        "usdjpy_5d_change_z": -0.09144218770545001,
+        "usdjpy_20d_change_pct": 3.3959818535320707,
+        "usdjpy_5d_change_z": -0.09413268527861328,
         "score_0_1": 0.0,
         "margin": -2.0,
         "margin_unit": "% (5D)",
@@ -137,16 +138,16 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 2096.0,
-        "jgb_etf_5d_return_pct": -0.6635071090047351,
-        "jgb_etf_20d_return_pct": -0.19047619047618536,
-        "jgb_etf_5d_return_z": -0.7351388449915425,
-        "trigger_reason": "5d",
-        "score_0_1": 0.6635071090047351,
-        "margin": -0.3364928909952649,
-        "margin_unit": "% (5D)",
+        "jgb_etf_close": 2084.0,
+        "jgb_etf_5d_return_pct": -0.33476805356288386,
+        "jgb_etf_20d_return_pct": -0.8563273073263544,
+        "jgb_etf_5d_return_z": -0.29698096127132423,
+        "trigger_reason": "20d",
+        "score_0_1": 0.34253092293054177,
+        "margin": -1.6436726926736456,
+        "margin_unit": "% (20D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 66.3507109004735
+        "severity_0_100": 34.25309229305418
       }
     },
     {
@@ -154,10 +155,10 @@
       "triggered": false,
       "details": {
         "us_jp_10y_spread_pct": 2.14,
-        "us_jp_10y_spread_20d_change_bp": 16.999999999999993,
-        "us_jp_10y_spread_20d_change_z": 0.9575119677469514,
+        "us_jp_10y_spread_20d_change_bp": 21.999999999999975,
+        "us_jp_10y_spread_20d_change_z": 1.1848283346005235,
         "score_0_1": 0.0,
-        "margin": -51.99999999999999,
+        "margin": -56.99999999999997,
         "margin_unit": "bp (20D)",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -179,19 +180,19 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.702030918460129,
-        "gld_1d_return_pct": -3.055744471283517,
-        "score_0_1": 0.8510154592300645,
+        "spy_1d_return_pct": 1.432382009651989,
+        "gld_1d_return_pct": -1.4780589288306167,
+        "score_0_1": 0.0,
         "counted_toward_threshold": true,
-        "severity_0_100": 85.10154592300646
+        "severity_0_100": 0.0
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.702030918460129,
-        "hyg_minus_spy_pct": 0.7730828893363628,
+        "spy_1d_return_pct": 1.432382009651989,
+        "hyg_minus_spy_pct": -0.748144807421891,
         "vix_level": 26.78,
         "vix_1d_change_pct": 11.305070656691619,
         "score_0_1": 0.0,
@@ -203,48 +204,48 @@
       "name": "breadth_deterioration_rsp_spy",
       "triggered": false,
       "details": {
-        "rsp_spy_ratio": 0.2936922768552353,
-        "rsp_spy_20d_return_pct": -0.7887371099491114,
-        "rsp_spy_60d_return_pct": 3.921298934985451,
-        "rsp_spy_20d_return_z": -0.06941523080575036,
-        "score_0_1": 0.3943685549745557,
+        "rsp_spy_ratio": 0.29305627337123397,
+        "rsp_spy_20d_return_pct": -0.9270892317085222,
+        "rsp_spy_60d_return_pct": 4.412964849797563,
+        "rsp_spy_20d_return_z": -0.14070568961072227,
+        "score_0_1": 0.4635446158542611,
         "counted_toward_threshold": true,
-        "severity_0_100": 39.43685549745557
+        "severity_0_100": 46.35446158542611
       }
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 22.588549856976726,
-    "fragility_score_1_3m": 30.37092592036398,
+    "crash_risk_score_1_5d": 18.45917898261753,
+    "fragility_score_1_3m": 35.626850899535775,
     "liquidity_regime_label": "Normal",
-    "confidence_score": 100.0,
+    "confidence_score": 80.0,
     "pillar_scores": {
       "liquidity_funding": 0.0,
-      "credit_stress": 17.500000000000014,
-      "volatility_convexity": 45.621704732544835,
-      "correlation_liquidation": 34.040618369202576,
-      "structure_fragility": 39.43685549745557
+      "credit_stress": 31.188160247396404,
+      "volatility_convexity": 42.648555683073724,
+      "correlation_liquidation": 0.0,
+      "structure_fragility": 46.35446158542611
     },
     "top_drivers": [
       {
-        "name": "everything_sells_together",
-        "severity_0_100": 85.10154592300646
+        "name": "volatility_spike",
+        "severity_0_100": 60.24161740219268
       },
       {
-        "name": "big_down_and_whipsaw",
-        "severity_0_100": 68.08123673840515
+        "name": "credit_stress_proxy",
+        "severity_0_100": 49.876320494792736
       },
       {
-        "name": "jgb_price_drop_fast",
-        "severity_0_100": 66.3507109004735
+        "name": "breadth_deterioration_rsp_spy",
+        "severity_0_100": 46.35446158542611
       }
     ]
   },
   "data_dates": {
-    "equity_session_date": "2026-03-20",
-    "equities_close_utc": "2026-03-20T00:00:00+00:00",
+    "equity_session_date": "2026-03-23",
+    "equities_close_utc": "2026-03-23T00:00:00+00:00",
     "vix_close_utc": "2026-03-20T00:00:00+00:00",
-    "vix_stale_days": 0,
+    "vix_stale_days": 1,
     "data_stale": false,
     "stale_reasons": []
   },
