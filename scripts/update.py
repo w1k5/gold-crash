@@ -60,7 +60,17 @@ def fetch_url(url: str, timeout: int = 20) -> str:
     try:
         req = Request(url, headers={"User-Agent": "gold-risk-monitor"})
         with urlopen(req, timeout=timeout) as response:
-            return response.read().decode("utf-8")
+            raw = response.read()
+            charset_getter = getattr(response.headers, "get_content_charset", None)
+            charset = charset_getter() if callable(charset_getter) else None
+            for encoding in (charset, "utf-8", "cp1252", "latin-1"):
+                if not encoding:
+                    continue
+                try:
+                    return raw.decode(encoding)
+                except (LookupError, UnicodeDecodeError):
+                    continue
+            return raw.decode("utf-8", errors="replace")
     except URLError as exc:
         raise DataFetchError(f"Failed to fetch {url}: {exc}") from exc
 
