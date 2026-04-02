@@ -7,6 +7,7 @@ import csv
 import json
 import math
 import os
+from io import BytesIO
 from statistics import pstdev
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,8 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 from urllib.error import URLError
 from urllib.request import Request, urlopen
+from zipfile import ZipFile
+import xml.etree.ElementTree as ET
 from zoneinfo import ZoneInfo
 
 
@@ -25,6 +28,7 @@ FRED_SERIES = {
 }
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
 GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
+GLD_HOLDINGS_ARCHIVE_URL = "https://api.spdrgoldshares.com/api/v1/historical-archive?product=gld&exchange=NYSE&lang=en"
 TRADING_DAYS_1M = 21
 TRADING_DAYS_3M = 63
 TRADING_DAYS_6M = 126
@@ -60,7 +64,16 @@ def fetch_url(url: str, timeout: int = 20) -> str:
     try:
         req = Request(url, headers={"User-Agent": "gold-risk-monitor"})
         with urlopen(req, timeout=timeout) as response:
-            return response.read().decode("utf-8")
+            raw = response.read()
+            charset = response.headers.get_content_charset()
+            for encoding in (charset, "utf-8-sig", "utf-8", "cp1252", "latin-1"):
+                if not encoding:
+                    continue
+                try:
+                    return raw.decode(encoding)
+                except (LookupError, UnicodeDecodeError):
+                    continue
+            return raw.decode("utf-8", errors="replace")
     except URLError as exc:
         raise DataFetchError(f"Failed to fetch {url}: {exc}") from exc
 
@@ -139,8 +152,94 @@ def parse_holdings_date(value: str) -> datetime | None:
 
 
 def fetch_gld_holdings() -> List[Tuple[datetime, Decimal]]:
-    csv_text = fetch_url(GLD_HOLDINGS_URL)
-    return parse_holdings_csv(csv_text)
+    try:
+        csv_text = fetch_url(GLD_HOLDINGS_URL)
+        return parse_holdings_csv(csv_text)
+    except Exception:
+        return fetch_gld_holdings_archive()
+
+
+def fetch_gld_holdings_archive(timeout: int = 20) -> List[Tuple[datetime, Decimal]]:
+    req = Request(GLD_HOLDINGS_ARCHIVE_URL, headers={"User-Agent": "gold-risk-monitor"})
+    try:
+        with urlopen(req, timeout=timeout) as response:
+            raw = response.read()
+    except URLError as exc:
+        raise DataFetchError(f"Failed to fetch {GLD_HOLDINGS_ARCHIVE_URL}: {exc}") from exc
+
+    try:
+        with ZipFile(BytesIO(raw)) as workbook:
+            return parse_holdings_xlsx(workbook)
+    except Exception as exc:
+        raise DataFetchError(f"Failed to parse holdings archive workbook: {exc}") from exc
+
+
+def parse_holdings_xlsx(workbook: ZipFile) -> List[Tuple[datetime, Decimal]]:
+    ns = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+
+    shared: List[str] = []
+    try:
+        shared_root = ET.fromstring(workbook.read("xl/sharedStrings.xml"))
+        for item in shared_root.findall("x:si", ns):
+            shared.append("".join(node.text or "" for node in item.findall(".//x:t", ns)))
+    except KeyError:
+        shared = []
+
+    sheet = ET.fromstring(workbook.read("xl/worksheets/sheet2.xml"))
+    rows = sheet.findall("x:sheetData/x:row", ns)
+    if not rows:
+        raise DataFetchError("Holdings archive workbook missing rows")
+
+    header_map = row_cells(rows[0], shared, ns)
+    reverse_header = {value: column for column, value in header_map.items()}
+    if "Date" not in reverse_header or "Tonnes of Gold" not in reverse_header:
+        raise DataFetchError("Holdings archive workbook missing required columns")
+    date_col = reverse_header["Date"]
+    tonnes_col = reverse_header["Tonnes of Gold"]
+
+    parsed: List[Tuple[datetime, Decimal]] = []
+    for row in rows[1:]:
+        values = row_cells(row, shared, ns)
+        date_str = values.get(date_col, "").strip()
+        tonnes_str = values.get(tonnes_col, "").strip()
+        if not date_str or not tonnes_str:
+            continue
+        if tonnes_str.lower() == "us holiday":
+            continue
+
+        parsed_date = parse_holdings_date(date_str)
+        if not parsed_date:
+            continue
+        try:
+            parsed_tonnes = Decimal(tonnes_str.replace(",", ""))
+        except Exception:
+            continue
+        parsed.append((parsed_date, parsed_tonnes))
+
+    if len(parsed) < TRADING_DAYS_1M + 1:
+        raise DataFetchError("Not enough GLD holdings data points in archive workbook")
+    parsed.sort(key=lambda item: item[0])
+    return parsed
+
+
+def row_cells(row: ET.Element, shared: List[str], ns: Dict[str, str]) -> Dict[str, str]:
+    values: Dict[str, str] = {}
+    for cell in row.findall("x:c", ns):
+        cell_type = cell.attrib.get("t")
+        cell_ref = cell.attrib.get("r", "")
+        column = "".join(ch for ch in cell_ref if ch.isalpha())
+        if not column:
+            continue
+        value_node = cell.find("x:v", ns)
+        raw_value = value_node.text if value_node is not None else ""
+        if cell_type == "s":
+            try:
+                values[column] = shared[int(raw_value)]
+            except Exception:
+                values[column] = ""
+        else:
+            values[column] = raw_value
+    return values
 
 
 def fetch_fred_series(series_id: str, api_key: str, reference_date: datetime) -> List[Tuple[datetime, Decimal]]:
