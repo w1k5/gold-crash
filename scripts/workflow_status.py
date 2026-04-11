@@ -7,6 +7,14 @@ import os
 from pathlib import Path
 
 
+def write_env_var(handle, key: str, value: str) -> None:
+    if "\n" in value:
+        delimiter = "__GOLD_RISK_MONITOR__"
+        handle.write(f"{key}<<{delimiter}\n{value}\n{delimiter}\n")
+        return
+    handle.write(f"{key}={value}\n")
+
+
 def main() -> int:
     status_path = Path("/tmp/monitor_status.json")
     status = json.loads(status_path.read_text())
@@ -22,11 +30,11 @@ def main() -> int:
 
     env_path = Path(env_file)
     with env_path.open("a", encoding="utf-8") as handle:
-        handle.write(f"FETCH_OK={fetch_ok}\n")
-        handle.write(f"FLAG={flag}\n")
-        handle.write(f"ISSUE_NEEDED={issue_needed}\n")
-        handle.write(f"ISSUE_TITLE={issue_title}\n")
-        handle.write(f"ISSUE_BODY={issue_body}\n")
+        write_env_var(handle, "FETCH_OK", fetch_ok)
+        write_env_var(handle, "FLAG", flag)
+        write_env_var(handle, "ISSUE_NEEDED", issue_needed)
+        write_env_var(handle, "ISSUE_TITLE", issue_title)
+        write_env_var(handle, "ISSUE_BODY", issue_body)
     return 0
 
 
