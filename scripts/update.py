@@ -27,6 +27,7 @@ FRED_SERIES = {
     "be10": "T10YIE",
 }
 GLD_STOOQ_URL = "https://stooq.com/q/d/l/?s=gld.us&i=d"
+GLD_YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y"
 GLD_HOLDINGS_URL = "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
 GLD_HOLDINGS_ARCHIVE_URL = "https://api.spdrgoldshares.com/api/v1/historical-archive?product=gld&exchange=NYSE&lang=en"
 TRADING_DAYS_1M = 21
@@ -94,8 +95,54 @@ def parse_stooq_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
 
 
 def fetch_gld_prices() -> List[Tuple[datetime, Decimal]]:
-    csv_text = fetch_url(GLD_STOOQ_URL)
-    return parse_stooq_csv(csv_text)
+    errors: List[str] = []
+
+    try:
+        csv_text = fetch_url(GLD_STOOQ_URL)
+        rows = parse_stooq_csv(csv_text)
+        if rows:
+            return rows
+        errors.append("stooq returned empty dataset")
+    except Exception as exc:
+        errors.append(f"stooq fetch failed: {exc}")
+
+    try:
+        payload = fetch_url(GLD_YAHOO_CHART_URL)
+        rows = parse_yahoo_chart_json(payload)
+        if rows:
+            return rows
+        errors.append("yahoo returned empty dataset")
+    except Exception as exc:
+        errors.append(f"yahoo fetch failed: {exc}")
+
+    raise DataFetchError("No GLD price data available; " + "; ".join(errors))
+
+
+def parse_yahoo_chart_json(payload: str) -> List[Tuple[datetime, Decimal]]:
+    parsed = json.loads(payload)
+    chart = parsed.get("chart", {})
+    error = chart.get("error")
+    if error:
+        raise DataFetchError(f"Yahoo chart API error: {error}")
+
+    results = chart.get("result") or []
+    if not results:
+        return []
+    series = results[0]
+    timestamps = series.get("timestamp") or []
+    quote = ((series.get("indicators") or {}).get("quote") or [{}])[0]
+    closes = quote.get("close") or []
+
+    rows: List[Tuple[datetime, Decimal]] = []
+    for ts, close in zip(timestamps, closes):
+        if close is None:
+            continue
+        try:
+            rows.append((datetime.fromtimestamp(int(ts), tz=timezone.utc).replace(tzinfo=None), Decimal(str(close))))
+        except Exception:
+            continue
+    rows.sort(key=lambda item: item[0])
+    return rows
 
 
 def parse_holdings_csv(csv_text: str) -> List[Tuple[datetime, Decimal]]:
