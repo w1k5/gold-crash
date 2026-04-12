@@ -1,5 +1,4 @@
 {
-  "latest_issue_url": "https://github.com/w1k5/gold-crash/issues/101",
   "metrics": {
     "flows": {
       "holdings_change_21d_pct": -0.023076637457299775,
@@ -122,9 +121,9 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 1,
+      "red_enter_streak": 2,
       "red_exit_streak": 0,
-      "stability_streak": 6
+      "stability_streak": 7
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -147,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 69,
-      "streak": 6
+      "streak": 7
     },
     "state": "RED",
     "transitions": {
@@ -321,5 +320,5 @@
     "gld_prices": "https://stooq.com/q/d/l/?s=gld.us&i=d",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-04-11T09:12:20.392777-04:00"
+  "updated_at": "2026-04-12T09:06:43.255294-04:00"
 }
