@@ -31,7 +31,6 @@ jobs:
       - name: Run dislocation detector
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-          STOOQ_API_KEY: ${{ secrets.STOOQ_API_KEY }}
         run: |
           python scripts/dislocation_detector.py --output dislocation.json
           cp dislocation.json public/dislocation.json
