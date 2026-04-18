@@ -37,12 +37,20 @@ DEFAULT_FRED_SERIES = {
 }
 
 
-def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
+def fetch_stooq_daily(symbol: str, require_volume: bool = True, api_key: str = "") -> pd.DataFrame:
     url = STOOQ_DAILY.format(symbol=symbol)
+    if api_key:
+        url += f"&apikey={api_key}"
     response = requests.get(url, timeout=20)
     response.raise_for_status()
-    if "<html" in response.text.lower():
+    body_lower = response.text.lower()
+    if "<html" in body_lower:
         raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
+    if "get your apikey" in body_lower:
+        raise ValueError(
+            f"Stooq now requires an API key for symbol {symbol}. "
+            "Set STOOQ_API_KEY in the environment or pass --stooq-api-key."
+        )
     try:
         df = pd.read_csv(StringIO(response.text))
     except pd.errors.ParserError as exc:
@@ -937,16 +945,21 @@ def main() -> None:
     parser.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Stooq symbol for GLD")
     parser.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Stooq symbol for HYG")
     parser.add_argument("--fred-series", default="", help="Optional legacy FRED series id (e.g., BAMLH0A0HYM2)")
+    parser.add_argument(
+        "--stooq-api-key",
+        default=os.environ.get("STOOQ_API_KEY", "").strip(),
+        help="Optional Stooq API key (or set STOOQ_API_KEY env var).",
+    )
     args = parser.parse_args()
 
-    spy = fetch_stooq_daily(args.spy_symbol)
-    gld = fetch_stooq_daily(args.gld_symbol)
-    hyg = fetch_stooq_daily(args.hyg_symbol)
-    jgb_etf = fetch_stooq_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True)
+    spy = fetch_stooq_daily(args.spy_symbol, api_key=args.stooq_api_key)
+    gld = fetch_stooq_daily(args.gld_symbol, api_key=args.stooq_api_key)
+    hyg = fetch_stooq_daily(args.hyg_symbol, api_key=args.stooq_api_key)
+    jgb_etf = fetch_stooq_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True, api_key=args.stooq_api_key)
 
     rsp = None
     try:
-        rsp = fetch_stooq_daily(DEFAULT_TICKERS["equity_equal_weight"], require_volume=True)
+        rsp = fetch_stooq_daily(DEFAULT_TICKERS["equity_equal_weight"], require_volume=True, api_key=args.stooq_api_key)
     except ValueError:
         pass
 
@@ -957,7 +970,7 @@ def main() -> None:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate, require_volume=False)
+            vix = fetch_stooq_daily(candidate, require_volume=False, api_key=args.stooq_api_key)
             break
         except ValueError:
             continue
