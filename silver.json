@@ -7,8 +7,8 @@
   "stability": {
     "score_0_100": 85,
     "is_stabilizing": true,
-    "label": "stabilizing",
-    "streak": 2,
+    "label": "stabilized",
+    "streak": 3,
     "reasons": [
       "shock_falling",
       "drawdown_stabilizing",
