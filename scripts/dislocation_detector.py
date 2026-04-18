@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dislocation detector (daily, low-churn) using free data (Stooq) + optional FRED."""
+"""Dislocation detector (daily, low-churn) using free data (Yahoo) + optional FRED."""
 from __future__ import annotations
 
 import argparse
@@ -7,7 +7,6 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from io import StringIO
 from statistics import median
 from typing import Dict, List, Optional
 
@@ -15,7 +14,7 @@ import pandas as pd
 import requests
 
 
-STOOQ_DAILY = "https://stooq.com/q/d/l/?s={symbol}&i=d"
+YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=10y&interval=1d&events=history"
 DEFAULT_TICKERS = {
     "equity_core": "spy.us",
     "equity_broad": "vti.us",
@@ -37,31 +36,64 @@ DEFAULT_FRED_SERIES = {
 }
 
 
-def fetch_stooq_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
-    url = STOOQ_DAILY.format(symbol=symbol)
-    response = requests.get(url, timeout=20)
+def map_symbol_to_yahoo(symbol: str) -> str:
+    normalized = symbol.strip().lower()
+    mapping = {
+        "spy.us": "SPY",
+        "gld.us": "GLD",
+        "hyg.us": "HYG",
+        "rsp.us": "RSP",
+        "vi.c": "^VIX",
+        "vix": "^VIX",
+        "^vix": "^VIX",
+        "2561.jp": "2561.T",
+    }
+    if normalized in mapping:
+        return mapping[normalized]
+    # Convert generic stooq-style `xxxx.us` / `xxxx.jp` to Yahoo style.
+    if "." in normalized:
+        root, suffix = normalized.rsplit(".", 1)
+        if suffix == "us":
+            return root.upper()
+        if suffix == "jp":
+            return f"{root}.T".upper()
+    return symbol
+
+
+def fetch_market_daily(symbol: str, require_volume: bool = True) -> pd.DataFrame:
+    yahoo_symbol = map_symbol_to_yahoo(symbol)
+    url = YAHOO_CHART.format(symbol=yahoo_symbol)
+    response = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
     response.raise_for_status()
-    if "<html" in response.text.lower():
-        raise ValueError(f"Stooq returned HTML for symbol: {symbol}")
     try:
-        df = pd.read_csv(StringIO(response.text))
-    except pd.errors.ParserError as exc:
-        raise ValueError(f"Unable to parse Stooq CSV for symbol: {symbol}") from exc
-    normalized = {column.lower(): column for column in df.columns}
-    if "date" not in normalized:
-        raise ValueError(f"Stooq CSV missing Date column for symbol: {symbol}")
-    df = df.rename(columns={normalized["date"]: "Date"})
-    df["Date"] = pd.to_datetime(df["Date"], utc=True)
+        payload = response.json()
+    except ValueError as exc:
+        raise ValueError(f"Unable to parse Yahoo response for symbol: {symbol}") from exc
+    result = (payload.get("chart", {}) or {}).get("result") or []
+    if not result:
+        raise ValueError(f"Yahoo chart response missing result for symbol: {symbol}")
+    series = result[0]
+    timestamps = series.get("timestamp") or []
+    quote = ((series.get("indicators") or {}).get("quote") or [{}])[0]
+    if not timestamps or not quote:
+        raise ValueError(f"Yahoo chart response missing price arrays for symbol: {symbol}")
+    df = pd.DataFrame(
+        {
+            "Date": pd.to_datetime(timestamps, unit="s", utc=True),
+            "Open": pd.to_numeric(quote.get("open"), errors="coerce"),
+            "High": pd.to_numeric(quote.get("high"), errors="coerce"),
+            "Low": pd.to_numeric(quote.get("low"), errors="coerce"),
+            "Close": pd.to_numeric(quote.get("close"), errors="coerce"),
+            "Volume": pd.to_numeric(quote.get("volume"), errors="coerce"),
+        }
+    ).dropna(subset=["Date"])
     df = df.sort_values("Date").set_index("Date")
-    for column in ["Open", "High", "Low", "Close", "Volume"]:
-        if column in df.columns:
-            df[column] = pd.to_numeric(df[column], errors="coerce")
     required = {"Open", "High", "Low", "Close"}
     if require_volume:
         required.add("Volume")
     missing = required.difference(df.columns)
     if missing:
-        raise ValueError(f"Stooq CSV missing columns for symbol {symbol}: {sorted(missing)}")
+        raise ValueError(f"Yahoo OHLCV payload missing columns for symbol {symbol}: {sorted(missing)}")
     if "Volume" not in df.columns:
         df["Volume"] = 0.0
     return df.dropna(subset=["Close"])
@@ -932,21 +964,21 @@ def main() -> None:
     parser.add_argument("--output", default="dislocation.json", help="Output JSON path")
     parser.add_argument("--k", type=int, default=3, help="Signals required to flag dislocation")
     parser.add_argument("--lookback", type=int, default=252, help="Lookback window for z-scores")
-    parser.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Stooq symbol for VIX (try vi.c, vix, or ^vix)")
-    parser.add_argument("--spy-symbol", default=DEFAULT_TICKERS["equity_core"], help="Stooq symbol for SPY proxy")
-    parser.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Stooq symbol for GLD")
-    parser.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Stooq symbol for HYG")
+    parser.add_argument("--vix-symbol", default=DEFAULT_TICKERS["vix"], help="Market symbol for VIX (e.g., vi.c, vix, or ^VIX)")
+    parser.add_argument("--spy-symbol", default=DEFAULT_TICKERS["equity_core"], help="Market symbol for SPY proxy (Stooq or Yahoo style)")
+    parser.add_argument("--gld-symbol", default=DEFAULT_TICKERS["gold"], help="Market symbol for GLD (Stooq or Yahoo style)")
+    parser.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Market symbol for HYG (Stooq or Yahoo style)")
     parser.add_argument("--fred-series", default="", help="Optional legacy FRED series id (e.g., BAMLH0A0HYM2)")
     args = parser.parse_args()
 
-    spy = fetch_stooq_daily(args.spy_symbol)
-    gld = fetch_stooq_daily(args.gld_symbol)
-    hyg = fetch_stooq_daily(args.hyg_symbol)
-    jgb_etf = fetch_stooq_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True)
+    spy = fetch_market_daily(args.spy_symbol)
+    gld = fetch_market_daily(args.gld_symbol)
+    hyg = fetch_market_daily(args.hyg_symbol)
+    jgb_etf = fetch_market_daily(DEFAULT_TICKERS["jgb_etf"], require_volume=True)
 
     rsp = None
     try:
-        rsp = fetch_stooq_daily(DEFAULT_TICKERS["equity_equal_weight"], require_volume=True)
+        rsp = fetch_market_daily(DEFAULT_TICKERS["equity_equal_weight"], require_volume=True)
     except ValueError:
         pass
 
@@ -957,12 +989,12 @@ def main() -> None:
             continue
         tried.append(candidate)
         try:
-            vix = fetch_stooq_daily(candidate, require_volume=False)
+            vix = fetch_market_daily(candidate, require_volume=False)
             break
         except ValueError:
             continue
     if vix is None:
-        print(f"Warning: Unable to fetch VIX data from Stooq. Tried: {tried}")
+        print(f"Warning: Unable to fetch VIX data from Yahoo. Tried: {tried}")
 
     fred_map: Dict[str, pd.DataFrame] = {}
     api_key = os.environ.get("FRED_API_KEY", "").strip()
