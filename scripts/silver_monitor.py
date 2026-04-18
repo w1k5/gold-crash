@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Generate silver.json using Stooq + FRED with stdlib only."""
+"""Generate silver.json using Yahoo + FRED with stdlib only."""
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import os
 import urllib.parse
@@ -12,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from statistics import pstdev
 from typing import Dict, List, Tuple
 
-STOOQ_URL = "https://stooq.com/q/d/l/?s=slv.us&i=d"
+SLV_YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/SLV?interval=1d&range=10y"
 FRED_SERIES = {
     "dfii10": "DFII10",
     "t10yie": "T10YIE",
@@ -26,14 +25,26 @@ def fetch_url(url: str) -> str:
         return resp.read().decode("utf-8")
 
 
-def fetch_stooq_slv() -> List[Tuple[datetime, float]]:
-    text = fetch_url(STOOQ_URL)
-    rows = list(csv.DictReader(text.splitlines()))
+def fetch_slv_prices() -> List[Tuple[datetime, float]]:
+    payload = json.loads(fetch_url(SLV_YAHOO_CHART_URL))
+    chart = payload.get("chart", {})
+    if chart.get("error"):
+        raise RuntimeError(f"Yahoo chart API error: {chart['error']}")
+    results = chart.get("result") or []
+    if not results:
+        raise RuntimeError("Yahoo chart API returned no results for SLV")
+    series = results[0]
+    timestamps = series.get("timestamp") or []
+    quote = ((series.get("indicators") or {}).get("quote") or [{}])[0]
+    closes = quote.get("close") or []
+
     out: List[Tuple[datetime, float]] = []
-    for r in rows:
+    for ts, close in zip(timestamps, closes):
+        if close is None:
+            continue
         try:
-            d = datetime.fromisoformat(r["Date"]).replace(tzinfo=timezone.utc)
-            c = float(r["Close"])
+            d = datetime.fromtimestamp(int(ts), tz=timezone.utc)
+            c = float(close)
         except Exception:
             continue
         out.append((d, c))
@@ -396,7 +407,7 @@ def build_payload(
             {"regime": "RED", "definition": "Breakdown / stress regime (triggered by deep drawdown, high shock, or credit stress).", "action_bias": "Defensive posture", "escalation": "N/A", "deescalation": "Shock flags turn off and trend repair persists for multiple sessions."},
         ],
         "sources": {
-            "slv": "https://stooq.com/q/d/l/?s=slv.us&i=d",
+            "slv": SLV_YAHOO_CHART_URL,
             "dfii10": "https://fred.stlouisfed.org/series/DFII10",
             "t10yie": "https://fred.stlouisfed.org/series/T10YIE",
             "hy_spread": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
@@ -420,7 +431,7 @@ def main() -> None:
             prev_stability_streak = 0
 
     try:
-        slv = fetch_stooq_slv()
+        slv = fetch_slv_prices()
         api_key = os.getenv("FRED_API_KEY", "").strip()
         fred: Dict[str, List[Tuple[datetime, float]]] = {}
         for k, series in FRED_SERIES.items():
@@ -456,7 +467,7 @@ def main() -> None:
             "signals": [],
             "rules": [],
             "sources": {
-                "slv": "https://stooq.com/q/d/l/?s=slv.us&i=d",
+                "slv": SLV_YAHOO_CHART_URL,
                 "dfii10": "https://fred.stlouisfed.org/series/DFII10",
                 "t10yie": "https://fred.stlouisfed.org/series/T10YIE",
                 "hy_spread": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",

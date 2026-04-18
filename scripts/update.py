@@ -98,15 +98,6 @@ def fetch_gld_prices() -> List[Tuple[datetime, Decimal]]:
     errors: List[str] = []
 
     try:
-        csv_text = fetch_url(GLD_STOOQ_URL)
-        rows = parse_stooq_csv(csv_text)
-        if rows:
-            return rows
-        errors.append("stooq returned empty dataset")
-    except Exception as exc:
-        errors.append(f"stooq fetch failed: {exc}")
-
-    try:
         payload = fetch_url(GLD_YAHOO_CHART_URL)
         rows = parse_yahoo_chart_json(payload)
         if rows:
@@ -114,6 +105,15 @@ def fetch_gld_prices() -> List[Tuple[datetime, Decimal]]:
         errors.append("yahoo returned empty dataset")
     except Exception as exc:
         errors.append(f"yahoo fetch failed: {exc}")
+
+    try:
+        csv_text = fetch_url(GLD_STOOQ_URL)
+        rows = parse_stooq_csv(csv_text)
+        if rows:
+            return rows
+        errors.append("stooq returned empty dataset")
+    except Exception as exc:
+        errors.append(f"stooq fetch failed: {exc}")
 
     raise DataFetchError("No GLD price data available; " + "; ".join(errors))
 
@@ -1565,7 +1565,7 @@ def main() -> int:
         data = {
             "updated_at": now_et.isoformat(),
             "sources": {
-                "gld_prices": GLD_STOOQ_URL,
+                "gld_prices": GLD_YAHOO_CHART_URL,
                 "gld_holdings": GLD_HOLDINGS_URL,
                 "dfii10": "https://fred.stlouisfed.org/series/DFII10",
                 "dgs10": "https://fred.stlouisfed.org/series/DGS10",
