@@ -1,14 +1,14 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-04-18",
+  "as_of": "2026-04-19",
   "data_dates": "SLV through 2026-04-17 \u00b7 FRED through 2026-04-17",
   "regime": "RED",
   "stability": {
     "score_0_100": 85,
     "is_stabilizing": true,
     "label": "stabilized",
-    "streak": 3,
+    "streak": 4,
     "reasons": [
       "shock_falling",
       "drawdown_stabilizing",
@@ -66,7 +66,7 @@
     },
     {
       "name": "Macro (headwinds)",
-      "score": 38,
+      "score": 39,
       "metrics": [
         "DFII10: 1.93",
         "DFII10 1M change: +0.07",
@@ -123,7 +123,7 @@
       "name": "T10YIE 1M change",
       "state": "Quiet",
       "last": "-0.01",
-      "percentile": "43rd",
+      "percentile": "44th",
       "sparkline": "\u2581\u2583\u2585\u2584\u2587\u2587\u2583"
     },
     {
