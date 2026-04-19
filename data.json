@@ -67,7 +67,7 @@
       "breakeven_10y_change_1m_bp": -1.0,
       "breakeven_10y_today": 2.36,
       "corr_gld_ret_vs_real_yield_chg_20d": -0.37417749028225117,
-      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 60,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 59,
       "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": null,
       "cut_style_classifier": {
         "explain": [
@@ -121,17 +121,17 @@
       "price_crack": false
     },
     "persistence": {
-      "red_enter_streak": 8,
+      "red_enter_streak": 9,
       "red_exit_streak": 0,
-      "stability_streak": 1
+      "stability_streak": 2
     },
     "primary_horizon": "3M",
     "reasons": [
       "primary_3m_drawdown"
     ],
     "stability": {
-      "is_stabilizing": false,
-      "label": "early_stabilizing",
+      "is_stabilizing": true,
+      "label": "stabilizing",
       "missing": [
         "short_ma_repair"
       ],
@@ -146,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 90,
-      "streak": 1
+      "streak": 2
     },
     "state": "RED",
     "transitions": {
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-04-18T09:07:48.734255-04:00"
+  "updated_at": "2026-04-19T09:06:49.257502-04:00"
 }
