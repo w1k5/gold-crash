@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-04-18T17:35:30.628679+00:00",
+  "asof_utc": "2026-04-19T17:34:35.283333+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
   "signals_triggered_count": 1,
-  "signals_triggered_count_yesterday": 0,
+  "signals_triggered_count_yesterday": 1,
   "signals_triggered": [
     "breadth_deterioration_rsp_spy"
   ],
