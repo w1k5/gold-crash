@@ -121,9 +121,9 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 19,
+      "red_enter_streak": 20,
       "red_exit_streak": 0,
-      "stability_streak": 12
+      "stability_streak": 13
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -146,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 79,
-      "streak": 12
+      "streak": 13
     },
     "state": "RED",
     "transitions": {
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-05-02T09:17:28.447225-04:00"
+  "updated_at": "2026-05-03T09:16:27.005997-04:00"
 }
