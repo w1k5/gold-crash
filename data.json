@@ -106,7 +106,7 @@
       "real_yield_today": 1.96
     },
     "pct_above_200dma": 0.09984744640753347,
-    "pct_above_200dma_pctile_5y": 61,
+    "pct_above_200dma_pctile_5y": 60,
     "pct_above_200dma_pctile_5y_explain": null
   },
   "notes": {
@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 24,
+      "red_enter_streak": 25,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -282,7 +282,7 @@
           "unit": "pctile"
         },
         {
-          "current": 61.0,
+          "current": 60.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-05-09T09:22:41.211216-04:00"
+  "updated_at": "2026-05-10T09:23:35.835968-04:00"
 }
