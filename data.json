@@ -9,7 +9,7 @@
       "holdings_change_5d_pct_pctile_5y_explain": null,
       "holdings_today_tonnes": 1039.99
     },
-    "gld_price": 416.69000244140625,
+    "gld_price": 417.2900085449219,
     "horizons": {
       "1Y": {
         "available": true,
@@ -17,7 +17,7 @@
         "max_drawdown": -0.19209514099718208,
         "max_drawdown_pctile_5y": 15,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 0.42137398429587675,
+        "ret": 0.42342066902783354,
         "ret_pctile_5y": 80,
         "ret_pctile_5y_explain": null
       },
@@ -27,7 +27,7 @@
         "max_drawdown": -0.1823673170440051,
         "max_drawdown_pctile_5y": 3,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": -0.09928233357952157,
+        "ret": -0.0979853595839128,
         "ret_pctile_5y": 2,
         "ret_pctile_5y_explain": null
       },
@@ -37,7 +37,7 @@
         "max_drawdown": -0.19209514099718208,
         "max_drawdown_pctile_5y": 48,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 1.2076291520074502,
+        "ret": 1.210807992290977,
         "ret_pctile_5y": 68,
         "ret_pctile_5y_explain": null
       },
@@ -47,7 +47,7 @@
         "max_drawdown": -0.21032844203783363,
         "max_drawdown_pctile_5y": 73,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 1.4210679272773439,
+        "ret": 1.424554105311089,
         "ret_pctile_5y": 93,
         "ret_pctile_5y_explain": null
       },
@@ -57,55 +57,55 @@
         "max_drawdown": -0.19209514099718208,
         "max_drawdown_pctile_5y": 3,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 0.0795357729053804,
+        "ret": 0.08109023317299337,
         "ret_pctile_5y": 41,
         "ret_pctile_5y_explain": null
       }
     },
-    "ma_200": 397.44949981689456,
+    "ma_200": 397.4524998474121,
     "macro": {
       "breakeven_10y_change_1m_bp": 10.0,
-      "breakeven_10y_today": 2.47,
-      "corr_gld_ret_vs_real_yield_chg_20d": -0.5432598167586667,
-      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 32,
+      "breakeven_10y_today": 2.49,
+      "corr_gld_ret_vs_real_yield_chg_20d": -0.5638750647640551,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 29,
       "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": null,
       "cut_style_classifier": {
         "explain": [
           "cuts_priced=False",
-          "dgs2_1m_bp=22.00",
-          "dgs10_1m_bp=20.00",
+          "dgs2_1m_bp=24.00",
+          "dgs10_1m_bp=18.00",
           "be10_1m_bp=10.00",
-          "real10_1m_bp=10.00",
-          "disinflation_ratio=0.50"
+          "real10_1m_bp=10.0",
+          "disinflation_ratio=0.56"
         ],
         "inputs": {
           "breakeven_10y_change_1m_bp": 10.0,
-          "breakeven_10y_today": 2.47,
-          "disinflation_ratio": 0.5,
-          "nominal_10y_change_1m_bp": 20.0,
-          "nominal_10y_today": 4.46,
-          "nominal_2y_change_1m_bp": 22.0,
-          "nominal_2y_change_3m_bp": 51.0,
-          "nominal_2y_today": 3.98,
+          "breakeven_10y_today": 2.49,
+          "disinflation_ratio": 0.5555555555555556,
+          "nominal_10y_change_1m_bp": 18.0,
+          "nominal_10y_today": 4.47,
+          "nominal_2y_change_1m_bp": 24.0,
+          "nominal_2y_change_3m_bp": 60.0,
+          "nominal_2y_today": 4.0,
           "real_10y_change_1m_bp": 10.0
         },
         "label": "NO_CUTS_PRICED",
         "score": 0
       },
-      "nominal_10y_change_1m_bp": 20.0,
-      "nominal_10y_today": 4.46,
-      "nominal_2y_change_1m_bp": 22.0,
-      "nominal_2y_change_3m_bp": 51.0,
-      "nominal_2y_today": 3.98,
+      "nominal_10y_change_1m_bp": 18.0,
+      "nominal_10y_today": 4.47,
+      "nominal_2y_change_1m_bp": 24.0,
+      "nominal_2y_change_3m_bp": 60.0,
+      "nominal_2y_today": 4.0,
       "real_yield_change_1m_bp": 10.0,
       "real_yield_change_1m_bp_pctile_5y": 65,
       "real_yield_change_1m_bp_pctile_5y_explain": null,
-      "real_yield_change_3m_bp": 19.0,
-      "real_yield_change_3m_bp_pctile_5y": 63,
+      "real_yield_change_3m_bp": 23.0,
+      "real_yield_change_3m_bp_pctile_5y": 67,
       "real_yield_change_3m_bp_pctile_5y_explain": null,
-      "real_yield_today": 1.99
+      "real_yield_today": 2.0
     },
-    "pct_above_200dma": 0.048409930402166415,
+    "pct_above_200dma": 0.049911646561855066,
     "pct_above_200dma_pctile_5y": 45,
     "pct_above_200dma_pctile_5y_explain": null
   },
@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 28,
+      "red_enter_streak": 29,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -154,8 +154,8 @@
     "transitions": {
       "deescalate_to_blue": [
         {
-          "current": -0.05314939293886403,
-          "distance": 0.05314939293886403,
+          "current": -0.05178599055333627,
+          "distance": 0.05178599055333627,
           "fired": false,
           "note": null,
           "threshold": "1M return > 0%",
@@ -192,7 +192,7 @@
       ],
       "escalate_to_red_composite": [
         {
-          "current": -0.09928233357952157,
+          "current": -0.0979853595839128,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -231,7 +231,7 @@
           "current": 10.0,
           "distance": 0.0,
           "fired": true,
-          "note": "20D corr: -0.54",
+          "note": "20D corr: -0.56",
           "threshold": "Corr \u2264 -0.40 & 1M real yield \u2265 +10 bp",
           "trigger": "RED composite: macro follow-through",
           "unit": "bp"
@@ -239,8 +239,8 @@
       ],
       "escalate_to_red_primary": [
         {
-          "current": -0.09928233357952157,
-          "distance": -0.05071766642047843,
+          "current": -0.0979853595839128,
+          "distance": -0.0520146404160872,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -15%",
@@ -322,5 +322,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-05-15T10:11:40.324918-04:00"
+  "updated_at": "2026-05-16T09:27:11.714775-04:00"
 }
