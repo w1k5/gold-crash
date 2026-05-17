@@ -1,7 +1,7 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-05-16",
+  "as_of": "2026-05-17",
   "data_dates": "SLV through 2026-05-15 \u00b7 FRED through 2026-05-15",
   "regime": "RED",
   "stability": {
