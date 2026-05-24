@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 36,
+      "red_enter_streak": 37,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -323,5 +323,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-05-23T09:40:24.752664-04:00"
+  "updated_at": "2026-05-24T09:40:08.746971-04:00"
 }
