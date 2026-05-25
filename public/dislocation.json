@@ -1,12 +1,11 @@
 {
-  "asof_utc": "2026-05-24T17:57:33.494995+00:00",
-  "dislocation": true,
-  "watch": false,
-  "status": "dislocation",
-  "signals_triggered_count": 2,
+  "asof_utc": "2026-05-25T18:24:16.366755+00:00",
+  "dislocation": false,
+  "watch": true,
+  "status": "stress_building",
+  "signals_triggered_count": 1,
   "signals_triggered_count_yesterday": 2,
   "signals_triggered": [
-    "jgb_price_drop_fast",
     "breadth_deterioration_rsp_spy"
   ],
   "signal_counting": {
@@ -48,7 +47,7 @@
         "vix_level": 16.700000762939453,
         "vix_1d_change_pct": -0.3579920353401156,
         "vix_level_z": -0.45864923811877306,
-        "vix_change_z": -0.07256966060566486,
+        "vix_change_z": -0.0725696606056648,
         "vix_eligible": true,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -138,18 +137,18 @@
     },
     {
       "name": "jgb_price_drop_fast",
-      "triggered": true,
+      "triggered": false,
       "details": {
-        "jgb_etf_close": 1998.0,
-        "jgb_etf_5d_return_pct": -0.24962556165751826,
-        "jgb_etf_20d_return_pct": -2.8682547399124902,
-        "jgb_etf_5d_return_z": -0.12296233878224383,
+        "jgb_etf_close": 2013.0,
+        "jgb_etf_5d_return_pct": 0.8012018027040657,
+        "jgb_etf_20d_return_pct": -2.281553398058256,
+        "jgb_etf_5d_return_z": 1.3040216797031112,
         "trigger_reason": "20d",
-        "score_0_1": 1.0,
-        "margin": 0.36825473991249025,
+        "score_0_1": 0.9126213592233023,
+        "margin": -0.21844660194174415,
         "margin_unit": "% (20D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 100.0
+        "severity_0_100": 91.26213592233023
       }
     },
     {
@@ -171,7 +170,7 @@
       "triggered": false,
       "details": {
         "yen_strengthening_fast": false,
-        "jgb_price_drop_fast": true,
+        "jgb_price_drop_fast": false,
         "us_jp_spread_compression": false,
         "score_0_1": 0.0,
         "counted_toward_threshold": false,
@@ -230,12 +229,12 @@
     },
     "top_drivers": [
       {
-        "name": "jgb_price_drop_fast",
+        "name": "breadth_deterioration_rsp_spy",
         "severity_0_100": 100.0
       },
       {
-        "name": "breadth_deterioration_rsp_spy",
-        "severity_0_100": 100.0
+        "name": "jgb_price_drop_fast",
+        "severity_0_100": 91.26213592233023
       },
       {
         "name": "rates_volatility_shock",
@@ -246,7 +245,7 @@
   "data_dates": {
     "equity_session_date": "2026-05-22",
     "equities_close_utc": "2026-05-22T13:30:00+00:00",
-    "vix_close_utc": "2026-05-22T07:00:00+00:00",
+    "vix_close_utc": "2026-05-25T07:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": []
@@ -351,6 +350,11 @@
       "timestamp_utc": "2026-05-14T18:52:51.924109+00:00",
       "from": "stress_building",
       "to": "dislocation"
+    },
+    {
+      "timestamp_utc": "2026-05-25T18:24:16.366745+00:00",
+      "from": "dislocation",
+      "to": "stress_building"
     }
   ],
   "rule": {
