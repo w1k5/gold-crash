@@ -1,8 +1,8 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-05-30",
-  "data_dates": "SLV through 2026-05-29 \u00b7 FRED through 2026-05-28",
+  "as_of": "2026-05-31",
+  "data_dates": "SLV through 2026-05-29 \u00b7 FRED through 2026-05-29",
   "regime": "RED",
   "stability": {
     "score_0_100": 30,
@@ -42,7 +42,7 @@
   },
   "now_cards": {
     "event_risk_1_5d": 48,
-    "fragility_1_3m": 49,
+    "fragility_1_3m": 48,
     "liquidity_regime": "Mixed"
   },
   "pillars": [
@@ -66,11 +66,11 @@
     },
     {
       "name": "Macro (headwinds)",
-      "score": 26,
+      "score": 22,
       "metrics": [
         "DFII10: 2.06",
         "DFII10 1M change: +0.14",
-        "T10YIE 1M change: -0.05"
+        "T10YIE 1M change: -0.08"
       ]
     },
     {
@@ -122,9 +122,9 @@
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.05",
-      "percentile": "31st",
-      "sparkline": "\u2587\u2583\u2581\u2581\u2581\u2581\u2581"
+      "last": "-0.08",
+      "percentile": "23rd",
+      "sparkline": "\u2587\u2582\u2583\u2583\u2582\u2582\u2581"
     }
   ],
   "rules": [
