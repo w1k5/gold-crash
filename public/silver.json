@@ -1,14 +1,14 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-06-01",
-  "data_dates": "SLV through 2026-06-01 \u00b7 FRED through 2026-05-29",
+  "as_of": "2026-06-02",
+  "data_dates": "SLV through 2026-06-02 \u00b7 FRED through 2026-06-01",
   "regime": "RED",
   "stability": {
     "score_0_100": 85,
-    "is_stabilizing": false,
-    "label": "early_stabilizing",
-    "streak": 1,
+    "is_stabilizing": true,
+    "label": "stabilizing",
+    "streak": 2,
     "reasons": [
       "shock_falling",
       "drawdown_stabilizing",
@@ -22,11 +22,12 @@
   "confidence": "High",
   "regime_description": "Breakdown / stress regime driven by deep drawdown.",
   "top_drivers": [
-    "Trend/extension score is 65/100 (distance vs 200DMA: +12.82%)",
-    "Vol/shock score is 70/100 (20D realized vol percentile: 94th)",
+    "Trend/extension score is 72/100 (distance vs 200DMA: +13.03%)",
+    "Vol/shock score is 72/100 (20D realized vol percentile: 94th)",
     "Risk appetite score is 50/100"
   ],
   "triggers": [
+    "high_extension",
     "deep_drawdown"
   ],
   "what_changes_next": {
@@ -40,26 +41,26 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 70,
-    "fragility_1_3m": 53,
+    "event_risk_1_5d": 72,
+    "fragility_1_3m": 55,
     "liquidity_regime": "Mixed"
   },
   "pillars": [
     {
       "name": "Trend / Extension",
-      "score": 65,
+      "score": 72,
       "metrics": [
-        "Distance vs 200DMA: +12.82%",
-        "20D momentum: -0.91%",
-        "63D drawdown: -15.51%"
+        "Distance vs 200DMA: +13.03%",
+        "20D momentum: +3.11%",
+        "63D drawdown: -15.11%"
       ]
     },
     {
       "name": "Vol / Shock",
-      "score": 70,
+      "score": 72,
       "metrics": [
-        "Realized vol (20D): 56.63%",
-        "1D drop percentile: 47th",
+        "Realized vol (20D): 55.21%",
+        "1D drop percentile: 50th",
         "Whipsaw flag: quiet"
       ]
     },
@@ -68,8 +69,8 @@
       "score": 26,
       "metrics": [
         "DFII10: 2.07",
-        "DFII10 1M change: +0.11",
-        "T10YIE 1M change: -0.08"
+        "DFII10 1M change: +0.13",
+        "T10YIE 1M change: -0.06"
       ]
     },
     {
@@ -86,44 +87,44 @@
     {
       "name": "Distance above 200DMA",
       "state": "Watch",
-      "last": "+12.82%",
+      "last": "+13.03%",
       "percentile": "70th",
-      "sparkline": "\u2587\u2584\u2586\u2581\u2583\u2582\u2581"
+      "sparkline": "\u2584\u2587\u2581\u2583\u2582\u2581\u2581"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-0.91%",
-      "percentile": "39th",
-      "sparkline": "\u2583\u2581\u2583\u2583\u2587\u2584\u2581"
+      "last": "+3.11%",
+      "percentile": "59th",
+      "sparkline": "\u2581\u2583\u2583\u2587\u2584\u2581\u2584"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+56.63%",
+      "last": "+55.21%",
       "percentile": "94th",
-      "sparkline": "\u2584\u2585\u2586\u2587\u2585\u2582\u2581"
+      "sparkline": "\u2586\u2586\u2587\u2586\u2584\u2583\u2581"
     },
     {
       "name": "1D down move severity",
       "state": "Quiet",
-      "last": "0.97%",
-      "percentile": "47th",
-      "sparkline": "\u2581\u2583\u2581\u2587\u2581\u2581\u2582"
+      "last": "0.00%",
+      "percentile": "50th",
+      "sparkline": "\u2583\u2581\u2587\u2581\u2581\u2582\u2581"
     },
     {
       "name": "DFII10 1M change",
       "state": "Watch",
-      "last": "+0.11",
-      "percentile": "72nd",
-      "sparkline": "\u2584\u2587\u2586\u2583\u2582\u2581\u2581"
+      "last": "+0.13",
+      "percentile": "75th",
+      "sparkline": "\u2587\u2586\u2583\u2582\u2581\u2581\u2581"
     },
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.08",
-      "percentile": "23rd",
-      "sparkline": "\u2587\u2582\u2583\u2583\u2582\u2582\u2581"
+      "last": "-0.06",
+      "percentile": "28th",
+      "sparkline": "\u2584\u2587\u2587\u2584\u2584\u2581\u2587"
     }
   ],
   "rules": [
