@@ -18,7 +18,7 @@
         "max_drawdown_pctile_5y": 11,
         "max_drawdown_pctile_5y_explain": null,
         "ret": 0.27449339984967946,
-        "ret_pctile_5y": 56,
+        "ret_pctile_5y": 55,
         "ret_pctile_5y_explain": null
       },
       "3M": {
@@ -38,7 +38,7 @@
         "max_drawdown_pctile_5y": 38,
         "max_drawdown_pctile_5y_explain": null,
         "ret": 1.1733214914243801,
-        "ret_pctile_5y": 65,
+        "ret_pctile_5y": 64,
         "ret_pctile_5y_explain": null
       },
       "5Y": {
@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 46,
+      "red_enter_streak": 47,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -322,5 +322,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-06-06T09:48:24.455847-04:00"
+  "updated_at": "2026-06-07T09:58:01.592067-04:00"
 }
