@@ -1,10 +1,10 @@
 {
-  "asof_utc": "2026-06-06T18:03:58.101270+00:00",
+  "asof_utc": "2026-06-07T18:02:27.800281+00:00",
   "dislocation": true,
   "watch": false,
   "status": "dislocation",
   "signals_triggered_count": 2,
-  "signals_triggered_count_yesterday": 1,
+  "signals_triggered_count_yesterday": 2,
   "signals_triggered": [
     "big_down_and_whipsaw",
     "everything_sells_together"
