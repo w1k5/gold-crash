@@ -1,34 +1,33 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-06-07",
-  "data_dates": "SLV through 2026-06-05 \u00b7 FRED through 2026-06-05",
+  "as_of": "2026-06-08",
+  "data_dates": "SLV through 2026-06-08 \u00b7 FRED through 2026-06-05",
   "regime": "RED",
   "stability": {
-    "score_0_100": 20,
+    "score_0_100": 55,
     "is_stabilizing": false,
     "label": "unstable",
     "streak": 0,
     "reasons": [
+      "shock_falling",
       "range_contracting"
     ],
     "missing": [
-      "shock_falling",
       "drawdown_stabilizing",
       "credit_stress_cooling"
     ]
   },
   "action_bias": "Defensive",
   "confidence": "High",
-  "regime_description": "Breakdown / stress regime driven by deep drawdown, high shock.",
+  "regime_description": "Breakdown / stress regime driven by deep drawdown.",
   "top_drivers": [
-    "Trend/extension score is 45/100 (distance vs 200DMA: +1.59%)",
-    "Vol/shock score is 96/100 (20D realized vol percentile: 94th)",
-    "Risk appetite score is 56/100 (HY spread level: 2.74)"
+    "Trend/extension score is 45/100 (distance vs 200DMA: +1.48%)",
+    "Vol/shock score is 72/100 (20D realized vol percentile: 94th)",
+    "Risk appetite score is 54/100 (HY spread level: 2.76)"
   ],
   "triggers": [
-    "deep_drawdown",
-    "high_shock"
+    "deep_drawdown"
   ],
   "what_changes_next": {
     "escalate": [
@@ -41,8 +40,8 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 96,
-    "fragility_1_3m": 56,
+    "event_risk_1_5d": 72,
+    "fragility_1_3m": 49,
     "liquidity_regime": "Mixed"
   },
   "pillars": [
@@ -50,17 +49,17 @@
       "name": "Trend / Extension",
       "score": 45,
       "metrics": [
-        "Distance vs 200DMA: +1.59%",
-        "20D momentum: -14.01%",
-        "63D drawdown: -23.12%"
+        "Distance vs 200DMA: +1.48%",
+        "20D momentum: -15.57%",
+        "63D drawdown: -23.03%"
       ]
     },
     {
       "name": "Vol / Shock",
-      "score": 96,
+      "score": 72,
       "metrics": [
-        "Realized vol (20D): 57.41%",
-        "1D drop percentile: 99th",
+        "Realized vol (20D): 56.68%",
+        "1D drop percentile: 50th",
         "Whipsaw flag: quiet"
       ]
     },
@@ -75,10 +74,10 @@
     },
     {
       "name": "Risk appetite",
-      "score": 56,
+      "score": 54,
       "metrics": [
-        "HY spread level: 2.74",
-        "HY spread 1M change: -0.01",
+        "HY spread level: 2.76",
+        "HY spread 1M change: -0.03",
         "Regime: Mixed"
       ]
     }
@@ -87,30 +86,30 @@
     {
       "name": "Distance above 200DMA",
       "state": "Quiet",
-      "last": "+1.59%",
-      "percentile": "39th",
-      "sparkline": "\u2587\u2586\u2586\u2586\u2584\u2585\u2581"
+      "last": "+1.48%",
+      "percentile": "38th",
+      "sparkline": "\u2587\u2586\u2586\u2584\u2585\u2581\u2581"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-14.01%",
+      "last": "-15.57%",
       "percentile": "2nd",
-      "sparkline": "\u2587\u2586\u2585\u2586\u2585\u2583\u2581"
+      "sparkline": "\u2586\u2585\u2587\u2586\u2584\u2581\u2581"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+57.41%",
+      "last": "+56.68%",
       "percentile": "94th",
-      "sparkline": "\u2587\u2586\u2585\u2584\u2585\u2581\u2586"
+      "sparkline": "\u2586\u2586\u2584\u2585\u2581\u2587\u2586"
     },
     {
       "name": "1D down move severity",
-      "state": "Triggered",
-      "last": "8.08%",
-      "percentile": "99th",
-      "sparkline": "\u2581\u2581\u2581\u2581\u2582\u2581\u2587"
+      "state": "Quiet",
+      "last": "0.00%",
+      "percentile": "50th",
+      "sparkline": "\u2581\u2581\u2581\u2582\u2581\u2587\u2581"
     },
     {
       "name": "DFII10 1M change",
@@ -129,9 +128,9 @@
     {
       "name": "HY spread level",
       "state": "Quiet",
-      "last": "+2.74",
-      "percentile": "56th",
-      "sparkline": "\u2582\u2582\u2585\u2582\u2581\u2587\u2585"
+      "last": "+2.76",
+      "percentile": "54th",
+      "sparkline": "\u2582\u2584\u2582\u2581\u2585\u2584\u2587"
     }
   ],
   "rules": [
