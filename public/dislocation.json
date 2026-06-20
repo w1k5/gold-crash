@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-06-19T18:52:16.684830+00:00",
+  "asof_utc": "2026-06-20T18:09:19.936145+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
@@ -32,7 +32,7 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": 0.6842044347555288,
+        "spy_dollar_volume_z": 0.6898856493371051,
         "spy_range_z": -0.7126072540768427,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
@@ -245,7 +245,7 @@
   "data_dates": {
     "equity_session_date": "2026-06-18",
     "equities_close_utc": "2026-06-18T13:30:00+00:00",
-    "vix_close_utc": "2026-06-19T07:00:00+00:00",
+    "vix_close_utc": "2026-06-18T07:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": []
