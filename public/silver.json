@@ -1,8 +1,8 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-06-25",
-  "data_dates": "SLV through 2026-06-25 \u00b7 FRED through 2026-06-24",
+  "as_of": "2026-06-26",
+  "data_dates": "SLV through 2026-06-26 \u00b7 FRED through 2026-06-25",
   "regime": "RED",
   "stability": {
     "score_0_100": 55,
@@ -22,9 +22,9 @@
   "confidence": "High",
   "regime_description": "Breakdown / stress regime driven by deep drawdown.",
   "top_drivers": [
-    "Trend/extension score is 34/100 (distance vs 200DMA: -15.29%)",
+    "Trend/extension score is 34/100 (distance vs 200DMA: -14.35%)",
     "Vol/shock score is 71/100 (20D realized vol percentile: 92nd)",
-    "Risk appetite score is 67/100 (HY spread level: 2.76)"
+    "Risk appetite score is 68/100 (HY spread level: 2.78)"
   ],
   "triggers": [
     "deep_drawdown"
@@ -41,7 +41,7 @@
   },
   "now_cards": {
     "event_risk_1_5d": 71,
-    "fragility_1_3m": 48,
+    "fragility_1_3m": 49,
     "liquidity_regime": "Mixed"
   },
   "pillars": [
@@ -49,9 +49,9 @@
       "name": "Trend / Extension",
       "score": 34,
       "metrics": [
-        "Distance vs 200DMA: -15.29%",
-        "20D momentum: -22.06%",
-        "63D drawdown: -33.70%"
+        "Distance vs 200DMA: -14.35%",
+        "20D momentum: -22.09%",
+        "63D drawdown: -32.88%"
       ]
     },
     {
@@ -65,19 +65,19 @@
     },
     {
       "name": "Macro (headwinds)",
-      "score": 18,
+      "score": 22,
       "metrics": [
-        "DFII10: 2.29",
-        "DFII10 1M change: +0.11",
-        "T10YIE 1M change: -0.22"
+        "DFII10: 2.23",
+        "DFII10 1M change: +0.07",
+        "T10YIE 1M change: -0.19"
       ]
     },
     {
       "name": "Risk appetite",
-      "score": 67,
+      "score": 68,
       "metrics": [
-        "HY spread level: 2.76",
-        "HY spread 1M change: +0.04",
+        "HY spread level: 2.78",
+        "HY spread 1M change: +0.07",
         "Regime: Mixed"
       ]
     }
@@ -86,51 +86,51 @@
     {
       "name": "Distance above 200DMA",
       "state": "Quiet",
-      "last": "-15.29%",
-      "percentile": "3rd",
-      "sparkline": "\u2587\u2585\u2584\u2584\u2582\u2581\u2581"
+      "last": "-14.35%",
+      "percentile": "4th",
+      "sparkline": "\u2587\u2586\u2585\u2583\u2581\u2581\u2581"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-22.06%",
+      "last": "-22.09%",
       "percentile": "1st",
-      "sparkline": "\u2587\u2586\u2585\u2584\u2583\u2581\u2582"
+      "sparkline": "\u2587\u2585\u2584\u2583\u2581\u2582\u2582"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
       "last": "+52.61%",
       "percentile": "92nd",
-      "sparkline": "\u2582\u2582\u2581\u2581\u2583\u2586\u2587"
+      "sparkline": "\u2582\u2581\u2581\u2583\u2586\u2586\u2587"
     },
     {
       "name": "1D down move severity",
       "state": "Quiet",
       "last": "0.00%",
       "percentile": "50th",
-      "sparkline": "\u2581\u2584\u2582\u2581\u2585\u2587\u2581"
+      "sparkline": "\u2584\u2582\u2581\u2585\u2587\u2581\u2581"
     },
     {
       "name": "DFII10 1M change",
-      "state": "Watch",
-      "last": "+0.11",
-      "percentile": "71st",
-      "sparkline": "\u2582\u2581\u2581\u2584\u2583\u2586\u2587"
+      "state": "Quiet",
+      "last": "+0.07",
+      "percentile": "64th",
+      "sparkline": "\u2581\u2581\u2584\u2583\u2586\u2587\u2584"
     },
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.22",
-      "percentile": "6th",
-      "sparkline": "\u2587\u2585\u2584\u2584\u2583\u2582\u2581"
+      "last": "-0.19",
+      "percentile": "8th",
+      "sparkline": "\u2587\u2585\u2584\u2583\u2582\u2581\u2582"
     },
     {
       "name": "HY spread level",
       "state": "Watch",
-      "last": "+2.76",
-      "percentile": "67th",
-      "sparkline": "\u2584\u2581\u2582\u2582\u2581\u2584\u2587"
+      "last": "+2.78",
+      "percentile": "68th",
+      "sparkline": "\u2581\u2582\u2582\u2581\u2584\u2586\u2587"
     }
   ],
   "rules": [
