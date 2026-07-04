@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-07-03T18:11:41.443280+00:00",
+  "asof_utc": "2026-07-04T18:00:27.049773+00:00",
   "dislocation": false,
   "watch": true,
   "status": "stress_building",
@@ -245,7 +245,7 @@
   "data_dates": {
     "equity_session_date": "2026-07-02",
     "equities_close_utc": "2026-07-02T13:30:00+00:00",
-    "vix_close_utc": "2026-07-03T07:00:00+00:00",
+    "vix_close_utc": "2026-07-02T07:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": []
