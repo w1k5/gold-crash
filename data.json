@@ -1,15 +1,15 @@
 {
   "metrics": {
     "flows": {
-      "holdings_change_21d_pct": -0.023440391095183317,
-      "holdings_change_21d_pct_pctile_5y": 14,
+      "holdings_change_21d_pct": -0.022075033653940056,
+      "holdings_change_21d_pct_pctile_5y": 16,
       "holdings_change_21d_pct_pctile_5y_explain": null,
-      "holdings_change_5d_pct": -0.002278425597962432,
-      "holdings_change_5d_pct_pctile_5y": 43,
+      "holdings_change_5d_pct": -0.002557010387232908,
+      "holdings_change_5d_pct_pctile_5y": 42,
       "holdings_change_5d_pct_pctile_5y_explain": null,
-      "holdings_today_tonnes": 1002.79
+      "holdings_today_tonnes": 1002.51
     },
-    "gld_price": 380.7900085449219,
+    "gld_price": 371.989990234375,
     "horizons": {
       "1Y": {
         "available": true,
@@ -17,8 +17,8 @@
         "max_drawdown": -0.262109260069647,
         "max_drawdown_pctile_5y": 1,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 0.23979289699776368,
-        "ret_pctile_5y": 53,
+        "ret": 0.21023520884838015,
+        "ret_pctile_5y": 49,
         "ret_pctile_5y_explain": null
       },
       "3M": {
@@ -27,8 +27,8 @@
         "max_drawdown": -0.1794227357705878,
         "max_drawdown_pctile_5y": 5,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": -0.10957555482370772,
-        "ret_pctile_5y": 3,
+        "ret": -0.1385331688993643,
+        "ret_pctile_5y": 1,
         "ret_pctile_5y_explain": null
       },
       "3Y": {
@@ -37,8 +37,8 @@
         "max_drawdown": -0.262109260069647,
         "max_drawdown_pctile_5y": 2,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 1.1502626710679258,
-        "ret_pctile_5y": 63,
+        "ret": 1.0866661879125776,
+        "ret_pctile_5y": 60,
         "ret_pctile_5y_explain": null
       },
       "5Y": {
@@ -47,8 +47,8 @@
         "max_drawdown": -0.262109260069647,
         "max_drawdown_pctile_5y": 1,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": 1.2859287090842921,
-        "ret_pctile_5y": 91,
+        "ret": 1.256809962397819,
+        "ret_pctile_5y": 90,
         "ret_pctile_5y_explain": null
       },
       "6M": {
@@ -57,56 +57,56 @@
         "max_drawdown": -0.262109260069647,
         "max_drawdown_pctile_5y": 1,
         "max_drawdown_pctile_5y_explain": null,
-        "ret": -0.04391380508180355,
-        "ret_pctile_5y": 9,
+        "ret": -0.08995503144334792,
+        "ret_pctile_5y": 5,
         "ret_pctile_5y_explain": null
       }
     },
-    "ma_200": 410.32790008544924,
+    "ma_200": 410.4932499694824,
     "macro": {
-      "breakeven_10y_change_1m_bp": -14.0,
-      "breakeven_10y_today": 2.24,
-      "corr_gld_ret_vs_real_yield_chg_20d": -0.33629611937045634,
-      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 64,
+      "breakeven_10y_change_1m_bp": -11.0,
+      "breakeven_10y_today": 2.25,
+      "corr_gld_ret_vs_real_yield_chg_20d": -0.3503869379507886,
+      "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y": 62,
       "corr_gld_ret_vs_real_yield_chg_20d_pctile_5y_explain": null,
       "cut_style_classifier": {
         "explain": [
           "cuts_priced=False",
-          "dgs2_1m_bp=9.00",
-          "dgs10_1m_bp=3.00",
-          "be10_1m_bp=-14.00",
-          "real10_1m_bp=19.00",
-          "disinflation_ratio=4.67"
+          "dgs2_1m_bp=5.00",
+          "dgs10_1m_bp=-1.00",
+          "be10_1m_bp=-11.00",
+          "real10_1m_bp=13.00",
+          "disinflation_ratio=11.00"
         ],
         "inputs": {
-          "breakeven_10y_change_1m_bp": -14.0,
-          "breakeven_10y_today": 2.24,
-          "disinflation_ratio": 4.666666666666667,
-          "nominal_10y_change_1m_bp": 3.0,
-          "nominal_10y_today": 4.49,
-          "nominal_2y_change_1m_bp": 9.0,
-          "nominal_2y_change_3m_bp": 35.0,
-          "nominal_2y_today": 4.14,
-          "real_10y_change_1m_bp": 19.0
+          "breakeven_10y_change_1m_bp": -11.0,
+          "breakeven_10y_today": 2.25,
+          "disinflation_ratio": 11.0,
+          "nominal_10y_change_1m_bp": -1.0,
+          "nominal_10y_today": 4.48,
+          "nominal_2y_change_1m_bp": 5.0,
+          "nominal_2y_change_3m_bp": 29.0,
+          "nominal_2y_today": 4.13,
+          "real_10y_change_1m_bp": 13.0
         },
         "label": "NO_CUTS_PRICED",
         "score": 0
       },
-      "nominal_10y_change_1m_bp": 3.0,
-      "nominal_10y_today": 4.49,
-      "nominal_2y_change_1m_bp": 9.0,
-      "nominal_2y_change_3m_bp": 35.0,
-      "nominal_2y_today": 4.14,
-      "real_yield_change_1m_bp": 19.0,
-      "real_yield_change_1m_bp_pctile_5y": 76,
+      "nominal_10y_change_1m_bp": -1.0,
+      "nominal_10y_today": 4.48,
+      "nominal_2y_change_1m_bp": 5.0,
+      "nominal_2y_change_3m_bp": 29.0,
+      "nominal_2y_today": 4.13,
+      "real_yield_change_1m_bp": 13.0,
+      "real_yield_change_1m_bp_pctile_5y": 67,
       "real_yield_change_1m_bp_pctile_5y_explain": null,
-      "real_yield_change_3m_bp": 29.0,
-      "real_yield_change_3m_bp_pctile_5y": 69,
+      "real_yield_change_3m_bp": 25.0,
+      "real_yield_change_3m_bp_pctile_5y": 66,
       "real_yield_change_3m_bp_pctile_5y_explain": null,
-      "real_yield_today": 2.26
+      "real_yield_today": 2.24
     },
-    "pct_above_200dma": -0.07198606659302516,
-    "pct_above_200dma_pctile_5y": 4,
+    "pct_above_200dma": -0.09379754658077788,
+    "pct_above_200dma_pctile_5y": 1,
     "pct_above_200dma_pctile_5y_explain": null
   },
   "notes": {
@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 9,
+      "red_enter_streak": 10,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -153,8 +153,8 @@
     "transitions": {
       "deescalate_to_blue": [
         {
-          "current": -0.07411185178341995,
-          "distance": 0.07411185178341995,
+          "current": -0.0612002841653014,
+          "distance": 0.0612002841653014,
           "fired": false,
           "note": null,
           "threshold": "1M return > 0%",
@@ -171,7 +171,7 @@
           "unit": "fraction"
         },
         {
-          "current": -0.023440391095183317,
+          "current": -0.022075033653940056,
           "distance": 0.0,
           "fired": true,
           "note": "Flow divergence only evaluated when 3M return > 0 and 1M return > 0.",
@@ -180,7 +180,7 @@
           "unit": "fraction"
         },
         {
-          "current": 19.0,
+          "current": 13.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -191,7 +191,7 @@
       ],
       "escalate_to_red_composite": [
         {
-          "current": -0.10957555482370772,
+          "current": -0.1385331688993643,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -200,7 +200,7 @@
           "unit": "fraction"
         },
         {
-          "current": -0.023440391095183317,
+          "current": -0.022075033653940056,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -209,8 +209,8 @@
           "unit": "fraction"
         },
         {
-          "current": -0.002278425597962432,
-          "distance": -0.007721574402037568,
+          "current": -0.002557010387232908,
+          "distance": -0.007442989612767092,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -1%",
@@ -218,8 +218,8 @@
           "unit": "fraction"
         },
         {
-          "current": 19.0,
-          "distance": 6.0,
+          "current": 13.0,
+          "distance": 12.0,
           "fired": false,
           "note": null,
           "threshold": "\u2265 +25 bp",
@@ -227,10 +227,10 @@
           "unit": "bp"
         },
         {
-          "current": 19.0,
-          "distance": -9.0,
+          "current": 13.0,
+          "distance": -3.0,
           "fired": false,
-          "note": "20D corr: -0.34",
+          "note": "20D corr: -0.35",
           "threshold": "Corr \u2264 -0.40 & 1M real yield \u2265 +10 bp",
           "trigger": "RED composite: macro follow-through",
           "unit": "bp"
@@ -238,8 +238,8 @@
       ],
       "escalate_to_red_primary": [
         {
-          "current": -0.10957555482370772,
-          "distance": -0.04042444517629228,
+          "current": -0.1385331688993643,
+          "distance": -0.0114668311006357,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -15%",
@@ -256,8 +256,8 @@
           "unit": "fraction"
         },
         {
-          "current": 19.0,
-          "distance": 31.0,
+          "current": 13.0,
+          "distance": 37.0,
           "fired": false,
           "note": null,
           "threshold": "\u2265 +50 bp",
@@ -274,7 +274,7 @@
       },
       "normalize_to_green": [
         {
-          "current": 3.0,
+          "current": 1.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -283,7 +283,7 @@
           "unit": "pctile"
         },
         {
-          "current": 4.0,
+          "current": 1.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -292,8 +292,8 @@
           "unit": "pctile"
         },
         {
-          "current": 14.0,
-          "distance": 6.0,
+          "current": 16.0,
+          "distance": 4.0,
           "fired": false,
           "note": null,
           "threshold": "Holdings 21D flow percentile > 20",
@@ -301,7 +301,7 @@
           "unit": "pctile"
         },
         {
-          "current": 76.0,
+          "current": 67.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -321,5 +321,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-07-07T10:39:46.948165-04:00"
+  "updated_at": "2026-07-08T10:16:02.776392-04:00"
 }
