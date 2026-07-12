@@ -38,7 +38,7 @@
         "max_drawdown_pctile_5y": 2,
         "max_drawdown_pctile_5y_explain": null,
         "ret": 1.1199393698216085,
-        "ret_pctile_5y": 62,
+        "ret_pctile_5y": 61,
         "ret_pctile_5y_explain": null
       },
       "5Y": {
@@ -122,7 +122,7 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 3,
+      "red_exit_streak": 4,
       "stability_streak": 0
     },
     "primary_horizon": "3M",
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-07-11T09:23:28.064126-04:00"
+  "updated_at": "2026-07-12T09:23:51.456181-04:00"
 }
