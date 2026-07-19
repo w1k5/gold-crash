@@ -101,7 +101,7 @@
       "real_yield_change_1m_bp_pctile_5y": 76,
       "real_yield_change_1m_bp_pctile_5y_explain": null,
       "real_yield_change_3m_bp": 45.0,
-      "real_yield_change_3m_bp_pctile_5y": 81,
+      "real_yield_change_3m_bp_pctile_5y": 80,
       "real_yield_change_3m_bp_pctile_5y_explain": null,
       "real_yield_today": 2.35
     },
@@ -121,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 3,
+      "red_enter_streak": 4,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -321,5 +321,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-07-18T09:19:11.170776-04:00"
+  "updated_at": "2026-07-19T09:21:03.357020-04:00"
 }
