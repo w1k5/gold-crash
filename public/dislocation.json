@@ -1,12 +1,11 @@
 {
-  "asof_utc": "2026-08-04T18:25:23.870577+00:00",
-  "dislocation": true,
-  "watch": false,
-  "status": "dislocation",
-  "signals_triggered_count": 2,
-  "signals_triggered_count_yesterday": 1,
+  "asof_utc": "2026-08-05T18:19:17.144050+00:00",
+  "dislocation": false,
+  "watch": true,
+  "status": "stress_building",
+  "signals_triggered_count": 1,
+  "signals_triggered_count_yesterday": 2,
   "signals_triggered": [
-    "credit_stress_proxy",
     "yen_strengthening_fast"
   ],
   "signal_counting": {
@@ -21,9 +20,9 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.926965162987715,
-        "spy_intraday_range_pct": 1.6270219124954397,
-        "spy_range_z": 1.2321633393205507,
+        "spy_1d_return_pct": 0.08167773441378756,
+        "spy_intraday_range_pct": 0.8977139331739538,
+        "spy_range_z": -0.18096613519184954,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -33,8 +32,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.2140791165999492,
-        "spy_range_z": 1.2321633393205507,
+        "spy_dollar_volume_z": -1.7801891913745405,
+        "spy_range_z": -0.18096613519184954,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -45,10 +44,10 @@
       "name": "volatility_spike",
       "triggered": false,
       "details": {
-        "vix_level": 16.520000457763672,
-        "vix_1d_change_pct": 4.161417499202513,
-        "vix_level_z": -0.49870327367833117,
-        "vix_change_z": 0.494352352591249,
+        "vix_level": 15.800000190734863,
+        "vix_1d_change_pct": -4.242423086455371,
+        "vix_level_z": -0.7152316007259306,
+        "vix_change_z": -0.570949211979522,
         "vix_eligible": true,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -57,52 +56,52 @@
     },
     {
       "name": "credit_stress_proxy",
-      "triggered": true,
+      "triggered": false,
       "details": {
-        "hyg_1d_return_pct": 0.31521877152411726,
-        "spy_1d_return_pct": 1.926965162987715,
-        "hyg_minus_spy_pct": -1.6117463914635977,
-        "score_0_1": 1.0,
-        "margin": 0.11174639146359766,
+        "hyg_1d_return_pct": -0.10685947279207575,
+        "spy_1d_return_pct": 0.08167773441378756,
+        "hyg_minus_spy_pct": -0.1885372072058633,
+        "score_0_1": 0.12569147147057555,
+        "margin": -1.3114627927941367,
         "margin_unit": "%",
         "counted_toward_threshold": true,
-        "severity_0_100": 100.0
+        "severity_0_100": 12.569147147057555
       }
     },
     {
       "name": "credit_spread_widening_fred",
       "triggered": false,
       "details": {
-        "hy_oas_level": 2.85,
-        "hy_oas_5d_change": 0.010000000000000231,
-        "hy_oas_10d_change": 0.16000000000000014,
+        "hy_oas_level": 2.73,
+        "hy_oas_5d_change": -0.14000000000000012,
+        "hy_oas_10d_change": 0.04999999999999982,
         "hy_oas_z": null,
-        "score_0_1": 0.40000000000000036,
+        "score_0_1": 0.12499999999999956,
         "counted_toward_threshold": true,
-        "severity_0_100": 40.000000000000036
+        "severity_0_100": 12.499999999999956
       }
     },
     {
       "name": "funding_stress_sofr_iorb",
       "triggered": false,
       "details": {
-        "sofr_iorb_spread_bp": 0.0,
-        "sofr_iorb_spread_5d_bp": 0.0,
-        "sofr_iorb_spread_z": 0.8162707557832264,
-        "score_0_1": 0.0,
+        "sofr_iorb_spread_bp": 1.000000000000023,
+        "sofr_iorb_spread_5d_bp": 1.000000000000023,
+        "sofr_iorb_spread_z": 0.9862752717798811,
+        "score_0_1": 0.10000000000000231,
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 10.000000000000231
       }
     },
     {
       "name": "repo_rate_volume_dislocation",
       "triggered": false,
       "details": {
-        "tgcr_rate": 3.63,
-        "tgcr_rate_5d_change_pct": -0.010000000000000231,
-        "tgcr_rate_z": -1.4019646654875595,
-        "tgcr_volume_z": 1.1575856568313059,
-        "tgcr_volume_5d_change_pct": 1.6638935108153063,
+        "tgcr_rate": 3.64,
+        "tgcr_rate_5d_change_pct": 0.0,
+        "tgcr_rate_z": -1.3829837476809457,
+        "tgcr_volume_z": 1.1236824071384008,
+        "tgcr_volume_5d_change_pct": -0.9787928221859699,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -112,13 +111,13 @@
       "name": "rates_volatility_shock",
       "triggered": false,
       "details": {
-        "dgs10_rv5_bp": 3.059411708155658,
-        "dgs10_rv5_z": -0.7543514341210534,
-        "dgs10_rv5_5d_change_bp": -0.6066488478090073,
-        "dgs10_5d_change_bp": 13.999999999999968,
-        "score_0_1": 0.38242646351945725,
+        "dgs10_rv5_bp": 3.8262252939417944,
+        "dgs10_rv5_z": -0.3670830033432158,
+        "dgs10_rv5_5d_change_bp": -0.36901009873879254,
+        "dgs10_5d_change_bp": 3.000000000000025,
+        "score_0_1": 0.3188521078284829,
         "counted_toward_threshold": true,
-        "severity_0_100": 38.24264635194572
+        "severity_0_100": 31.88521078284829
       }
     },
     {
@@ -126,11 +125,11 @@
       "triggered": true,
       "details": {
         "usdjpy": 159.16,
-        "usdjpy_5d_change_pct": -2.743660250534685,
-        "usdjpy_20d_change_pct": -1.6984744611203806,
-        "usdjpy_5d_change_z": -2.214886188064983,
+        "usdjpy_5d_change_pct": -2.8683022092029886,
+        "usdjpy_20d_change_pct": -2.1577426692075963,
+        "usdjpy_5d_change_z": -2.3007506893915406,
         "score_0_1": 1.0,
-        "margin": 0.7436602505346852,
+        "margin": 0.8683022092029886,
         "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
         "severity_0_100": 100.0
@@ -140,27 +139,27 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 1993.0,
-        "jgb_etf_5d_return_pct": -0.15030060120240218,
-        "jgb_etf_20d_return_pct": -0.4992511233150254,
-        "jgb_etf_5d_return_z": 0.01920060461330336,
-        "trigger_reason": "20d",
-        "score_0_1": 0.19970044932601017,
-        "margin": -2.0007488766849746,
-        "margin_unit": "% (20D)",
+        "jgb_etf_close": 1991.0,
+        "jgb_etf_5d_return_pct": -0.350350350350348,
+        "jgb_etf_20d_return_pct": -0.44999999999999485,
+        "jgb_etf_5d_return_z": -0.24799309155145258,
+        "trigger_reason": "5d",
+        "score_0_1": 0.350350350350348,
+        "margin": -0.649649649649652,
+        "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 19.970044932601017
+        "severity_0_100": 35.0350350350348
       }
     },
     {
       "name": "us_jp_spread_compression",
       "triggered": false,
       "details": {
-        "us_jp_10y_spread_pct": 2.08,
-        "us_jp_10y_spread_20d_change_bp": 20.000000000000018,
-        "us_jp_10y_spread_20d_change_z": 1.1293194613239408,
+        "us_jp_10y_spread_pct": 2.0300000000000002,
+        "us_jp_10y_spread_20d_change_bp": 14.000000000000057,
+        "us_jp_10y_spread_20d_change_z": 0.8413250921114797,
         "score_0_1": 0.0,
-        "margin": -55.000000000000014,
+        "margin": -49.00000000000006,
         "margin_unit": "bp (20D)",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -173,17 +172,17 @@
         "yen_strengthening_fast": true,
         "jgb_price_drop_fast": false,
         "us_jp_spread_compression": false,
-        "score_0_1": 0.19970044932601017,
+        "score_0_1": 0.350350350350348,
         "counted_toward_threshold": false,
-        "severity_0_100": 19.970044932601017
+        "severity_0_100": 35.0350350350348
       }
     },
     {
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.926965162987715,
-        "gld_1d_return_pct": 0.8501261022711315,
+        "spy_1d_return_pct": 0.08167773441378756,
+        "gld_1d_return_pct": 4.352417014838328,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -193,10 +192,10 @@
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 1.926965162987715,
-        "hyg_minus_spy_pct": -1.6117463914635977,
-        "vix_level": 16.520000457763672,
-        "vix_1d_change_pct": 4.161417499202513,
+        "spy_1d_return_pct": 0.08167773441378756,
+        "hyg_minus_spy_pct": -0.1885372072058633,
+        "vix_level": 15.800000190734863,
+        "vix_1d_change_pct": -4.242423086455371,
         "score_0_1": 0.0,
         "counted_toward_threshold": false,
         "severity_0_100": 0.0
@@ -206,47 +205,47 @@
       "name": "breadth_deterioration_rsp_spy",
       "triggered": false,
       "details": {
-        "rsp_spy_ratio": 0.28479676392837927,
-        "rsp_spy_20d_return_pct": -0.8310907411247737,
-        "rsp_spy_60d_return_pct": 2.3639718455522374,
-        "rsp_spy_20d_return_z": -0.19919456049559378,
-        "score_0_1": 0.41554537056238683,
+        "rsp_spy_ratio": 0.2851507768983885,
+        "rsp_spy_20d_return_pct": 0.16559807660658787,
+        "rsp_spy_60d_return_pct": 3.053850256513324,
+        "rsp_spy_20d_return_z": 0.28389222560327276,
+        "score_0_1": 0.0,
         "counted_toward_threshold": true,
-        "severity_0_100": 41.554537056238686
+        "severity_0_100": 0.0
       }
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 22.28033079399322,
-    "fragility_score_1_3m": 36.52380631050199,
+    "crash_risk_score_1_5d": 7.119294741238225,
+    "fragility_score_1_3m": 5.69543579299058,
     "liquidity_regime_label": "Normal",
     "confidence_score": 100.0,
     "pillar_scores": {
       "liquidity_funding": 0.0,
-      "credit_stress": 70.00000000000001,
-      "volatility_convexity": 19.12132317597286,
+      "credit_stress": 12.534573573528755,
+      "volatility_convexity": 15.942605391424145,
       "correlation_liquidation": 0.0,
-      "structure_fragility": 41.554537056238686
+      "structure_fragility": 0.0
     },
     "top_drivers": [
-      {
-        "name": "credit_stress_proxy",
-        "severity_0_100": 100.0
-      },
       {
         "name": "yen_strengthening_fast",
         "severity_0_100": 100.0
       },
       {
-        "name": "breadth_deterioration_rsp_spy",
-        "severity_0_100": 41.554537056238686
+        "name": "jgb_price_drop_fast",
+        "severity_0_100": 35.0350350350348
+      },
+      {
+        "name": "carry_trade_unwind_combo",
+        "severity_0_100": 35.0350350350348
       }
     ]
   },
   "data_dates": {
-    "equity_session_date": "2026-08-04",
-    "equities_close_utc": "2026-08-04T13:30:00+00:00",
-    "vix_close_utc": "2026-08-04T07:00:00+00:00",
+    "equity_session_date": "2026-08-05",
+    "equities_close_utc": "2026-08-05T13:30:00+00:00",
+    "vix_close_utc": "2026-08-05T07:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": []
@@ -406,6 +405,11 @@
       "timestamp_utc": "2026-08-04T18:25:23.870564+00:00",
       "from": "stress_building",
       "to": "dislocation"
+    },
+    {
+      "timestamp_utc": "2026-08-05T18:19:17.144032+00:00",
+      "from": "dislocation",
+      "to": "stress_building"
     }
   ],
   "rule": {
