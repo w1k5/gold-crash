@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-08-29T00:51:28.249657+00:00",
+  "asof_utc": "2026-08-29T19:36:27.087667+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -19,8 +19,8 @@
       "triggered": false,
       "details": {
         "spy_1d_return_pct": -0.2269485222937795,
-        "spy_intraday_range_pct": 0.9078280654627559,
-        "spy_range_z": -0.13683734002435763,
+        "spy_intraday_range_pct": 0.9085579328252293,
+        "spy_range_z": -0.13543980623911164,
         "score_0_1": 0.0907794089175118,
         "counted_toward_threshold": true,
         "severity_0_100": 9.07794089175118
@@ -30,8 +30,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.283650885699249,
-        "spy_range_z": -0.13683734002435763,
+        "spy_dollar_volume_z": -1.2658984019348847,
+        "spy_range_z": -0.13543980623911164,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -137,16 +137,16 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 1984.0,
-        "jgb_etf_5d_return_pct": -0.05037783375314575,
-        "jgb_etf_20d_return_pct": -0.7503751875937992,
-        "jgb_etf_5d_return_z": 0.1438471150267724,
-        "trigger_reason": "20d",
-        "score_0_1": 0.30015007503751967,
-        "margin": -1.7496248124062008,
-        "margin_unit": "% (20D)",
+        "jgb_etf_close": 1978.0,
+        "jgb_etf_5d_return_pct": -0.40281973816717054,
+        "jgb_etf_20d_return_pct": -0.9514271407110697,
+        "jgb_etf_5d_return_z": -0.32676828077637093,
+        "trigger_reason": "5d",
+        "score_0_1": 0.40281973816717054,
+        "margin": -0.5971802618328295,
+        "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 30.015007503751967
+        "severity_0_100": 40.281973816717056
       }
     },
     {
@@ -228,7 +228,7 @@
     "top_drivers": [
       {
         "name": "jgb_price_drop_fast",
-        "severity_0_100": 30.015007503751967
+        "severity_0_100": 40.281973816717056
       },
       {
         "name": "rates_volatility_shock",
