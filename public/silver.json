@@ -1,7 +1,7 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-08-29",
+  "as_of": "2026-08-30",
   "data_dates": "SLV through 2026-08-28 \u00b7 FRED through 2026-08-28",
   "regime": "RED",
   "stability": {
@@ -122,7 +122,7 @@
       "name": "T10YIE 1M change",
       "state": "Quiet",
       "last": "+0.04",
-      "percentile": "62nd",
+      "percentile": "63rd",
       "sparkline": "\u2587\u2587\u2582\u2582\u2582\u2585\u2581"
     },
     {
