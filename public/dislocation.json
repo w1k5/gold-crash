@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-08-31T21:43:58.791097+00:00",
+  "asof_utc": "2026-09-01T19:44:26.826259+00:00",
   "dislocation": false,
   "watch": false,
   "status": "normal",
@@ -18,20 +18,20 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.2989520850009919,
-        "spy_intraday_range_pct": 0.4276081499142182,
-        "spy_range_z": -1.0570314357996256,
-        "score_0_1": 0.11958083400039676,
+        "spy_1d_return_pct": -0.7939464073045799,
+        "spy_intraday_range_pct": 0.6820335223330226,
+        "spy_range_z": -0.5664895953617634,
+        "score_0_1": 0.27281340893320905,
         "counted_toward_threshold": true,
-        "severity_0_100": 11.958083400039676
+        "severity_0_100": 27.281340893320905
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.1727679551989518,
-        "spy_range_z": -1.0570314357996256,
+        "spy_dollar_volume_z": -1.6553922193491215,
+        "spy_range_z": -0.5664895953617634,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -42,10 +42,10 @@
       "name": "volatility_spike",
       "triggered": false,
       "details": {
-        "vix_level": 14.920000076293945,
-        "vix_1d_change_pct": 3.395701737736001,
-        "vix_level_z": -0.9771117351893833,
-        "vix_change_z": 0.3995612435142521,
+        "vix_level": 16.309999465942383,
+        "vix_1d_change_pct": 9.316349748931806,
+        "vix_level_z": -0.5530392379735712,
+        "vix_change_z": 1.1620881371095753,
         "vix_eligible": true,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -56,23 +56,23 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": 0.08778492187047071,
-        "spy_1d_return_pct": -0.2989520850009919,
-        "hyg_minus_spy_pct": 0.3867370068714626,
-        "score_0_1": 0.0,
-        "margin": -1.8867370068714626,
+        "hyg_1d_return_pct": -0.9209380188389904,
+        "spy_1d_return_pct": -0.7939464073045799,
+        "hyg_minus_spy_pct": -0.12699161153441052,
+        "score_0_1": 0.08466107435627368,
+        "margin": -1.3730083884655895,
         "margin_unit": "%",
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 8.466107435627368
       }
     },
     {
       "name": "credit_spread_widening_fred",
       "triggered": false,
       "details": {
-        "hy_oas_level": 2.6,
-        "hy_oas_5d_change": -0.08999999999999986,
-        "hy_oas_10d_change": -0.10000000000000009,
+        "hy_oas_level": 2.63,
+        "hy_oas_5d_change": -0.06000000000000005,
+        "hy_oas_10d_change": -0.07000000000000028,
         "hy_oas_z": null,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -83,23 +83,23 @@
       "name": "funding_stress_sofr_iorb",
       "triggered": false,
       "details": {
-        "sofr_iorb_spread_bp": 0.0,
-        "sofr_iorb_spread_5d_bp": 0.0,
-        "sofr_iorb_spread_z": 0.7817662921303608,
-        "score_0_1": 0.0,
+        "sofr_iorb_spread_bp": 3.000000000000025,
+        "sofr_iorb_spread_5d_bp": 3.000000000000025,
+        "sofr_iorb_spread_z": 1.300155791685343,
+        "score_0_1": 0.3000000000000025,
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 30.00000000000025
       }
     },
     {
       "name": "repo_rate_volume_dislocation",
       "triggered": false,
       "details": {
-        "tgcr_rate": 3.63,
-        "tgcr_rate_5d_change_pct": 0.0,
-        "tgcr_rate_z": -1.327864675484625,
-        "tgcr_volume_z": 0.8739646662937597,
-        "tgcr_volume_5d_change_pct": -1.5254237288135575,
+        "tgcr_rate": 3.67,
+        "tgcr_rate_5d_change_pct": 0.040000000000000036,
+        "tgcr_rate_z": -1.2684017100664529,
+        "tgcr_volume_z": 0.94865706638357,
+        "tgcr_volume_5d_change_pct": 0.08474576271186862,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -137,16 +137,16 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 1978.0,
-        "jgb_etf_5d_return_pct": -0.40281973816717054,
-        "jgb_etf_20d_return_pct": -0.9514271407110697,
-        "jgb_etf_5d_return_z": -0.32676828077637093,
+        "jgb_etf_close": 1979.0,
+        "jgb_etf_5d_return_pct": -0.35246727089627283,
+        "jgb_etf_20d_return_pct": -0.5527638190954809,
+        "jgb_etf_5d_return_z": -0.2575785747350996,
         "trigger_reason": "5d",
-        "score_0_1": 0.40281973816717054,
-        "margin": -0.5971802618328295,
+        "score_0_1": 0.35246727089627283,
+        "margin": -0.6475327291037272,
         "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 40.281973816717056
+        "severity_0_100": 35.246727089627285
       }
     },
     {
@@ -179,21 +179,21 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.2989520850009919,
-        "gld_1d_return_pct": -0.11494563424524484,
-        "score_0_1": 0.11494563424524484,
+        "spy_1d_return_pct": -0.7939464073045799,
+        "gld_1d_return_pct": -2.8451166085722845,
+        "score_0_1": 0.39697320365228994,
         "counted_toward_threshold": true,
-        "severity_0_100": 11.494563424524484
+        "severity_0_100": 39.697320365229
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -0.2989520850009919,
-        "hyg_minus_spy_pct": 0.3867370068714626,
-        "vix_level": 14.920000076293945,
-        "vix_1d_change_pct": 3.395701737736001,
+        "spy_1d_return_pct": -0.7939464073045799,
+        "hyg_minus_spy_pct": -0.12699161153441052,
+        "vix_level": 16.309999465942383,
+        "vix_1d_change_pct": 9.316349748931806,
         "score_0_1": 0.0,
         "counted_toward_threshold": false,
         "severity_0_100": 0.0
@@ -203,47 +203,47 @@
       "name": "breadth_deterioration_rsp_spy",
       "triggered": false,
       "details": {
-        "rsp_spy_ratio": 0.286017864390949,
-        "rsp_spy_20d_return_pct": -0.18555118793668335,
-        "rsp_spy_60d_return_pct": 2.708945952772579,
-        "rsp_spy_20d_return_z": 0.10721041054690386,
-        "score_0_1": 0.09277559396834167,
+        "rsp_spy_ratio": 0.2856720303693527,
+        "rsp_spy_20d_return_pct": -0.3062402655913288,
+        "rsp_spy_60d_return_pct": 2.584757039229002,
+        "rsp_spy_20d_return_z": 0.049024955730534635,
+        "score_0_1": 0.1531201327956644,
         "counted_toward_threshold": true,
-        "severity_0_100": 9.277559396834167
+        "severity_0_100": 15.31201327956644
       }
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 5.189189556966083,
-    "fragility_score_1_3m": 7.406688300186283,
+    "crash_risk_score_1_5d": 7.826130733299147,
+    "fragility_score_1_3m": 10.968803290978542,
     "liquidity_regime_label": "Normal",
     "confidence_score": 100.0,
     "pillar_scores": {
       "liquidity_funding": 0.0,
-      "credit_stress": 0.0,
+      "credit_stress": 4.233053717813684,
       "volatility_convexity": 16.158932858054538,
-      "correlation_liquidation": 5.747281712262242,
-      "structure_fragility": 9.277559396834167
+      "correlation_liquidation": 13.640670446660453,
+      "structure_fragility": 15.31201327956644
     },
     "top_drivers": [
       {
+        "name": "everything_sells_together",
+        "severity_0_100": 39.697320365229
+      },
+      {
         "name": "jgb_price_drop_fast",
-        "severity_0_100": 40.281973816717056
+        "severity_0_100": 35.246727089627285
       },
       {
         "name": "rates_volatility_shock",
         "severity_0_100": 32.317865716109075
-      },
-      {
-        "name": "big_down_and_whipsaw",
-        "severity_0_100": 11.958083400039676
       }
     ]
   },
   "data_dates": {
-    "equity_session_date": "2026-08-31",
-    "equities_close_utc": "2026-08-31T13:30:00+00:00",
-    "vix_close_utc": "2026-08-31T07:00:00+00:00",
+    "equity_session_date": "2026-09-01",
+    "equities_close_utc": "2026-09-01T13:30:00+00:00",
+    "vix_close_utc": "2026-09-01T07:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": []
