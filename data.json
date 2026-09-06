@@ -38,7 +38,7 @@
         "max_drawdown_pctile_5y": 7,
         "max_drawdown_pctile_5y_explain": null,
         "ret": 1.2558228288128441,
-        "ret_pctile_5y": 66,
+        "ret_pctile_5y": 65,
         "ret_pctile_5y_explain": null
       },
       "5Y": {
@@ -122,8 +122,8 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 30,
-      "stability_streak": 2
+      "red_exit_streak": 31,
+      "stability_streak": 3
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -131,7 +131,7 @@
     ],
     "stability": {
       "is_stabilizing": true,
-      "label": "stabilizing",
+      "label": "stabilized",
       "missing": [
         "range_contracting",
         "short_ma_repair"
@@ -146,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 75,
-      "streak": 2
+      "streak": 3
     },
     "state": "GREEN",
     "transitions": {
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-09-05T10:47:06.447192-04:00"
+  "updated_at": "2026-09-06T11:06:57.913216-04:00"
 }
