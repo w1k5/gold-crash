@@ -1,13 +1,13 @@
 {
   "metrics": {
     "flows": {
-      "holdings_change_21d_pct": 0.038781245377902715,
-      "holdings_change_21d_pct_pctile_5y": 93,
+      "holdings_change_21d_pct": 0.03679832860296428,
+      "holdings_change_21d_pct_pctile_5y": 92,
       "holdings_change_21d_pct_pctile_5y_explain": null,
-      "holdings_change_5d_pct": 0.006535198349002445,
-      "holdings_change_5d_pct_pctile_5y": 80,
+      "holdings_change_5d_pct": 0.00930580605548951,
+      "holdings_change_5d_pct_pctile_5y": 87,
       "holdings_change_5d_pct_pctile_5y_explain": null,
-      "holdings_today_tonnes": 1053.48
+      "holdings_today_tonnes": 1052.06
     },
     "gld_price": 406.7699890136719,
     "horizons": {
@@ -122,8 +122,8 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 31,
-      "stability_streak": 3
+      "red_exit_streak": 32,
+      "stability_streak": 4
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -146,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 75,
-      "streak": 3
+      "streak": 4
     },
     "state": "GREEN",
     "transitions": {
@@ -170,7 +170,7 @@
           "unit": "fraction"
         },
         {
-          "current": 0.038781245377902715,
+          "current": 0.03679832860296428,
           "distance": 0.0,
           "fired": true,
           "note": "Flow divergence only evaluated when 3M return > 0 and 1M return > 0.",
@@ -199,8 +199,8 @@
           "unit": "fraction"
         },
         {
-          "current": 0.038781245377902715,
-          "distance": -0.05878124537790272,
+          "current": 0.03679832860296428,
+          "distance": -0.05679832860296428,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -2%",
@@ -208,8 +208,8 @@
           "unit": "fraction"
         },
         {
-          "current": 0.006535198349002445,
-          "distance": -0.016535198349002446,
+          "current": 0.00930580605548951,
+          "distance": -0.01930580605548951,
           "fired": false,
           "note": null,
           "threshold": "\u2264 -1%",
@@ -291,7 +291,7 @@
           "unit": "pctile"
         },
         {
-          "current": 93.0,
+          "current": 92.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-09-06T11:06:57.913216-04:00"
+  "updated_at": "2026-09-07T13:28:44.490020-04:00"
 }
