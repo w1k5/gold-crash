@@ -2,7 +2,7 @@
   "metrics": {
     "flows": {
       "holdings_change_21d_pct": 0.026997956329998934,
-      "holdings_change_21d_pct_pctile_5y": 88,
+      "holdings_change_21d_pct_pctile_5y": 87,
       "holdings_change_21d_pct_pctile_5y_explain": null,
       "holdings_change_5d_pct": -0.006000264995930344,
       "holdings_change_5d_pct_pctile_5y": 24,
@@ -122,8 +122,8 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 36,
-      "stability_streak": 8
+      "red_exit_streak": 37,
+      "stability_streak": 9
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -146,7 +146,7 @@
         "macro_followthrough_cooling"
       ],
       "score_0_100": 84,
-      "streak": 8
+      "streak": 9
     },
     "state": "GREEN",
     "transitions": {
@@ -291,7 +291,7 @@
           "unit": "pctile"
         },
         {
-          "current": 88.0,
+          "current": 87.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-09-12T11:11:49.744394-04:00"
+  "updated_at": "2026-09-13T11:47:23.167037-04:00"
 }
