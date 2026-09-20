@@ -122,7 +122,7 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 43,
+      "red_exit_streak": 44,
       "stability_streak": 0
     },
     "primary_horizon": "3M",
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-09-19T11:33:23.477755-04:00"
+  "updated_at": "2026-09-20T11:39:21.940422-04:00"
 }
