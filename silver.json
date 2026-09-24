@@ -1,34 +1,32 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-09-23",
-  "data_dates": "SLV through 2026-09-23 \u00b7 FRED through 2026-09-22",
-  "regime": "RED",
+  "as_of": "2026-09-24",
+  "data_dates": "SLV through 2026-09-24 \u00b7 FRED through 2026-09-23",
+  "regime": "GREEN",
   "stability": {
-    "score_0_100": 30,
+    "score_0_100": 50,
     "is_stabilizing": false,
     "label": "unstable",
     "streak": 0,
     "reasons": [
-      "drawdown_stabilizing"
+      "drawdown_stabilizing",
+      "range_contracting"
     ],
     "missing": [
       "shock_falling",
-      "range_contracting",
       "credit_stress_cooling"
     ]
   },
-  "action_bias": "Defensive",
-  "confidence": "High",
-  "regime_description": "Breakdown / stress regime driven by high shock.",
+  "action_bias": "Accumulate / hold core",
+  "confidence": "Medium",
+  "regime_description": "Normal / constructive: trend is healthy and stress signals are mostly quiet.",
   "top_drivers": [
-    "Trend/extension score is 24/100 (distance vs 200DMA: -11.75%)",
-    "Vol/shock score is 88/100 (20D realized vol percentile: 83rd)",
-    "Risk appetite score is 58/100 (HY spread level: 2.68)"
+    "Trend/extension score is 25/100 (distance vs 200DMA: -12.60%)",
+    "Vol/shock score is 64/100 (20D realized vol percentile: 83rd)",
+    "Risk appetite score is 63/100 (HY spread level: 2.73)"
   ],
-  "triggers": [
-    "high_shock"
-  ],
+  "triggers": [],
   "what_changes_next": {
     "escalate": [
       "If extension stays high and shock flips to Triggered, BLUE can escalate to ORANGE.",
@@ -40,44 +38,44 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 88,
-    "fragility_1_3m": 50,
+    "event_risk_1_5d": 64,
+    "fragility_1_3m": 46,
     "liquidity_regime": "Mixed"
   },
   "pillars": [
     {
       "name": "Trend / Extension",
-      "score": 24,
+      "score": 25,
       "metrics": [
-        "Distance vs 200DMA: -11.75%",
-        "20D momentum: -6.68%",
-        "63D drawdown: -7.34%"
+        "Distance vs 200DMA: -12.60%",
+        "20D momentum: -6.45%",
+        "63D drawdown: -8.20%"
       ]
     },
     {
       "name": "Vol / Shock",
-      "score": 88,
+      "score": 64,
       "metrics": [
-        "Realized vol (20D): 39.70%",
-        "1D drop percentile: 94th",
+        "Realized vol (20D): 39.64%",
+        "1D drop percentile: 44th",
         "Whipsaw flag: quiet"
       ]
     },
     {
       "name": "Macro (headwinds)",
-      "score": 30,
+      "score": 33,
       "metrics": [
-        "DFII10: 2.63",
-        "DFII10 1M change: +0.23",
-        "T10YIE 1M change: -0.01"
+        "DFII10: 2.76",
+        "DFII10 1M change: +0.38",
+        "T10YIE 1M change: +0.03"
       ]
     },
     {
       "name": "Risk appetite",
-      "score": 58,
+      "score": 63,
       "metrics": [
-        "HY spread level: 2.68",
-        "HY spread 1M change: -0.02",
+        "HY spread level: 2.73",
+        "HY spread 1M change: +0.04",
         "Regime: Mixed"
       ]
     }
@@ -86,51 +84,51 @@
     {
       "name": "Distance above 200DMA",
       "state": "Quiet",
-      "last": "-11.75%",
-      "percentile": "9th",
-      "sparkline": "\u2581\u2581\u2584\u2585\u2585\u2587\u2582"
+      "last": "-12.60%",
+      "percentile": "7th",
+      "sparkline": "\u2581\u2584\u2585\u2585\u2587\u2582\u2581"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-6.68%",
-      "percentile": "15th",
-      "sparkline": "\u2584\u2587\u2585\u2584\u2582\u2585\u2581"
+      "last": "-6.45%",
+      "percentile": "16th",
+      "sparkline": "\u2587\u2585\u2584\u2582\u2585\u2581\u2581"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+39.70%",
+      "last": "+39.64%",
       "percentile": "83rd",
-      "sparkline": "\u2587\u2584\u2582\u2581\u2581\u2581\u2585"
+      "sparkline": "\u2586\u2583\u2582\u2581\u2582\u2587\u2586"
     },
     {
       "name": "1D down move severity",
-      "state": "Triggered",
-      "last": "4.23%",
-      "percentile": "94th",
-      "sparkline": "\u2581\u2582\u2581\u2581\u2581\u2581\u2587"
+      "state": "Quiet",
+      "last": "0.93%",
+      "percentile": "44th",
+      "sparkline": "\u2582\u2581\u2581\u2581\u2581\u2587\u2582"
     },
     {
       "name": "DFII10 1M change",
       "state": "Triggered",
-      "last": "+0.23",
-      "percentile": "85th",
-      "sparkline": "\u2581\u2582\u2587\u2581\u2587\u2582\u2583"
+      "last": "+0.38",
+      "percentile": "93rd",
+      "sparkline": "\u2581\u2583\u2581\u2583\u2581\u2581\u2587"
     },
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.01",
-      "percentile": "44th",
-      "sparkline": "\u2585\u2587\u2581\u2581\u2581\u2582\u2581"
+      "last": "+0.03",
+      "percentile": "59th",
+      "sparkline": "\u2587\u2581\u2581\u2581\u2582\u2581\u2583"
     },
     {
       "name": "HY spread level",
       "state": "Quiet",
-      "last": "+2.68",
-      "percentile": "58th",
-      "sparkline": "\u2584\u2587\u2583\u2583\u2582\u2581\u2582"
+      "last": "+2.73",
+      "percentile": "63rd",
+      "sparkline": "\u2587\u2583\u2583\u2582\u2581\u2582\u2585"
     }
   ],
   "rules": [
