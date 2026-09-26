@@ -1,8 +1,8 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-09-25",
-  "data_dates": "SLV through 2026-09-25 \u00b7 FRED through 2026-09-24",
+  "as_of": "2026-09-26",
+  "data_dates": "SLV through 2026-09-25 \u00b7 FRED through 2026-09-25",
   "regime": "GREEN",
   "stability": {
     "score_0_100": 50,
@@ -63,11 +63,11 @@
     },
     {
       "name": "Macro (headwinds)",
-      "score": 28,
+      "score": 29,
       "metrics": [
         "DFII10: 2.85",
         "DFII10 1M change: +0.53",
-        "T10YIE 1M change: +0.01"
+        "T10YIE 1M change: +0.02"
       ]
     },
     {
@@ -119,9 +119,9 @@
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "+0.01",
-      "percentile": "52nd",
-      "sparkline": "\u2581\u2581\u2581\u2583\u2581\u2587\u2581"
+      "last": "+0.02",
+      "percentile": "55th",
+      "sparkline": "\u2581\u2581\u2583\u2581\u2587\u2581\u2583"
     },
     {
       "name": "HY spread level",
