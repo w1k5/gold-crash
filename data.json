@@ -1,5 +1,4 @@
 {
-  "latest_issue_url": "https://github.com/w1k5/gold-crash/issues/101",
   "metrics": {
     "flows": {
       "holdings_change_21d_pct": 0.005914055420422608,
@@ -122,7 +121,7 @@
       "price_crack": true
     },
     "persistence": {
-      "red_enter_streak": 2,
+      "red_enter_streak": 3,
       "red_exit_streak": 0,
       "stability_streak": 0
     },
@@ -321,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-09-26T11:59:14.144128-04:00"
+  "updated_at": "2026-09-27T12:36:04.837273-04:00"
 }
