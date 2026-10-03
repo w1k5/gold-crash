@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-10-02T21:09:03.021971+00:00",
+  "asof_utc": "2026-10-03T19:40:32.863427+00:00",
   "dislocation": true,
   "watch": false,
   "status": "dislocation",
@@ -22,8 +22,8 @@
       "triggered": false,
       "details": {
         "spy_1d_return_pct": 0.73954168068735,
-        "spy_intraday_range_pct": 0.7152700974529139,
-        "spy_range_z": -0.5043123478651228,
+        "spy_intraday_range_pct": 0.7146198086533138,
+        "spy_range_z": -0.5055520567929184,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -33,8 +33,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -0.7078043620235765,
-        "spy_range_z": -0.5043123478651228,
+        "spy_dollar_volume_z": -0.6868153061620489,
+        "spy_range_z": -0.5055520567929184,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -140,16 +140,16 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 1965.0,
-        "jgb_etf_5d_return_pct": 0.25510204081633514,
-        "jgb_etf_20d_return_pct": -0.707427993936327,
-        "jgb_etf_5d_return_z": 0.5511228942554117,
-        "trigger_reason": "20d",
-        "score_0_1": 0.2829711975745308,
-        "margin": -1.792572006063673,
-        "margin_unit": "% (20D)",
+        "jgb_etf_close": 1960.0,
+        "jgb_etf_5d_return_pct": -0.20366598778004397,
+        "jgb_etf_20d_return_pct": -0.5076142131979711,
+        "jgb_etf_5d_return_z": -0.0742278315525266,
+        "trigger_reason": "5d",
+        "score_0_1": 0.20366598778004397,
+        "margin": -0.796334012219956,
+        "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 28.297119757453082
+        "severity_0_100": 20.366598778004395
       }
     },
     {
