@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫨</text></svg>">
-  <title>Crash Probability Dashboard</title>
+  <title>Crash Risk &amp; Fragility Dashboard</title>
   <style>
     :root{
       --bg:#0b0d10;
@@ -123,7 +123,7 @@
 <main>
   <header>
     <div>
-      <h1>Crash Probability Dashboard</h1>
+      <h1>Crash Risk &amp; Fragility Dashboard</h1>
       <p class="sub">
         A low-churn market-plumbing monitor with continuous crash/fragility scoring, pillar decomposition, and confidence framing.
       </p>
@@ -134,6 +134,7 @@
       <span class="pill"><strong>Rule</strong> <span id="ruleVal" class="skeleton">Loading…</span></span>
     </div>
     <p class="tiny" id="dataDatesVal">Data dates: Loading…</p>
+    <p class="tiny" id="feedDatesVal"></p>
     <p class="tiny" id="countingVal">Signal counting: Loading…</p>
   </header>
 
@@ -177,8 +178,8 @@
       <div style="margin-top:14px;">
         <h2>What this means</h2>
         <p class="help" style="margin:0;">
-          <strong>Normal</strong> = signals are quiet. <strong>Watch</strong> = at least one stress signal is elevated.
-          <strong>Dislocation</strong> = a flow-driven event is likely (≥K signals, with optional persistence).
+          <strong>Normal</strong> = signals are quiet. <strong>Stress building</strong> = at least one stress signal is elevated.
+          <strong>Dislocation</strong> = several stress checks agree (≥K signals, or a previously confirmed state holding at K−1).
         </p>
       </div>
     </section>
@@ -206,7 +207,7 @@
   <section class="card" style="margin-top:14px;">
     <h2>Signals</h2>
     <p class="help" style="margin-top:-4px;">
-      Each card is one independent check. The detector triggers only when enough cards flip to “Triggered”.
+      Cards show stress checks and contextual warnings. Only eligible checks count toward the dislocation threshold.
     </p>
     <div id="signals" class="signalsGrid">
       <div class="sig skeleton"><p class="sigName">Loading…</p><p class="sigHint">—</p></div>
@@ -251,6 +252,7 @@
       jgb_price_drop_fast: "Japan bond ETF sells off (yield up proxy)",
       us_jp_spread_compression: "US–Japan 10Y spread compression",
       carry_trade_unwind_combo: "Carry trade unwind (combo)",
+      gold_futures_deleveraging: "Gold futures deleveraging (weekly)",
       breadth_deterioration_rsp_spy: "Breadth deterioration (RSP vs SPY)"
     };
     return map[name] || name.replaceAll('_',' ');
@@ -258,6 +260,7 @@
 
   const tooltipText = (name) => {
     const map = {
+      gold_futures_deleveraging: "Falling COMEX open interest, managed-money net length, and GLD price over the same CFTC reporting interval. Rising GLD holdings highlight ETF buying versus futures selling. Weekly positioning is context and does not prove forced liquidation.",
       big_down_and_whipsaw: "Checks for sharp market losses combined with unusually violent intraday swings, a common sign of forced selling in thin liquidity.",
       liquidity_degraded_proxy: "Looks for outsized price moves relative to trading activity, suggesting markets may struggle to absorb trades smoothly.",
       volatility_spike: "Flags sudden jumps in implied volatility, which often accompany margin stress and rapid repositioning by leveraged players.",
@@ -288,6 +291,9 @@
         return `VIX ${fmtNum(d.vix_level)} • 1D ${fmtPct(d.vix_1d_change_pct)}`;
       case "credit_stress_proxy":
         return `HYG-SPY ${fmtPct(d.hyg_minus_spy_pct)} • HYG ${fmtPct(d.hyg_1d_return_pct)}`;
+      case "gold_futures_deleveraging":
+        if (!d.available) return d.note;
+        return `Report ${d.report_date} • OI ${fmtPct(d.open_interest_change_pct)} • GLD ${fmtPct(d.gld_report_interval_return_pct)} • Holdings ${fmtPct(d.gld_holdings_report_interval_change_pct)}${d.etf_buying_vs_futures_selling ? " • ETF buying / futures selling" : ""}`;
       case "credit_spread_widening_fred":
         return `HY OAS ${fmtNum(d.hy_oas_level)} • 5D ${fmtNum(d.hy_oas_5d_change)}`;
       case "funding_stress_sofr_iorb":
@@ -387,6 +393,7 @@
       ['volatility_convexity', 'Volatility & Convexity'],
       ['correlation_liquidation', 'Correlation/Liquidation'],
       ['structure_fragility', 'Structure Fragility'],
+      ['gold_deleveraging', 'Gold Deleveraging'],
     ];
     const root = document.getElementById('pillarsVal');
     root.innerHTML = '';
@@ -407,25 +414,27 @@
     const count = data.signals_triggered_count ?? 0;
     const k = data.rule?.k_required ?? 3;
 
-    if (data.status === "dislocation" || data.dislocation === true){
-      badge.className = "badge b-bad";
-      badge.textContent = "DISLOCATION";
-      headline.textContent = "Flow-driven event likely";
-      explain.textContent = `Triggered because ${count}/${k} signals are active (or persistence carried it). Expect correlations to rise and prices to gap more than usual.`;
-      return;
-    }
-    if (data.watch === true || data.status === "stress_building" || count >= 1){
-      badge.className = "badge b-warn";
-      badge.textContent = "WATCH";
-      headline.textContent = "Stress building";
-      explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.`;
-      return;
-    }
     if (data.status === "data_stale"){
       badge.className = "badge b-muted";
       badge.textContent = "DATA STALE";
       headline.textContent = "Freshness guardrail triggered";
       explain.textContent = "At least one required series is stale beyond tolerance. Treat this run as informational until data refreshes.";
+      return;
+    }
+    if (data.status === "dislocation" || data.dislocation === true){
+      badge.className = "badge b-bad";
+      badge.textContent = "DISLOCATION";
+      headline.textContent = "Multiple stress checks agree";
+      explain.textContent = data.persistence_applied
+        ? `A previously confirmed dislocation is holding with ${count}/${k} signals active.`
+        : `${count}/${k} eligible stress signals are active. This is a stress classification, not confirmation of a liquidity crisis.`;
+      return;
+    }
+    if (data.watch === true || data.status === "stress_building" || count >= 1){
+      badge.className = "badge b-warn";
+      badge.textContent = "STRESS BUILDING";
+      headline.textContent = "Stress building";
+      explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.`;
       return;
     }
     badge.className = "badge b-good";
@@ -459,14 +468,16 @@
       left.appendChild(name);
       const small = document.createElement('p');
       small.className = 'sigHint';
-      small.textContent = hint(s);
+      const sources = Object.entries(s.details?.source_inputs || {}).map(([key, q]) =>
+        `${key}: ${q.source_date || 'unavailable'}${q.stale_days == null ? '' : ` (${q.stale_days} business days lag)`}`);
+      small.textContent = [hint(s), ...sources].join(' • ');
       left.appendChild(small);
 
       const b = document.createElement('span');
       const counted = s.details?.counted_toward_threshold ?? !excludedSet.has(s.name);
       if (!counted) {
         b.className = 'badge b-muted';
-        b.textContent = 'Excluded from K';
+        b.textContent = s.details?.eligible === false ? 'Unavailable / stale' : (s.triggered ? 'Warning (context)' : 'Context only');
       } else {
         b.className = `badge ${s.triggered ? 'b-bad' : 'b-muted'}`;
         b.textContent = s.triggered ? 'Triggered' : 'Not triggered';
@@ -604,6 +615,11 @@
     document.getElementById('dataDatesVal').textContent =
       `Data dates: equity session ${sessionDate}; equities close ${equitiesDate}; VIX close ${vixDate} (${staleNote})${staleReasons}.`;
 
+    const inputs = {...(dataDates.fred_inputs || {}), ...(dataDates.gold_inputs || {})};
+    document.getElementById('feedDatesVal').textContent = Object.entries(inputs).map(([key, q]) =>
+      `${key}: ${q.source_date || 'unavailable'}${q.stale_days == null ? '' : ` (${q.stale_days} business days lag)`}`
+    ).join(' • ');
+
     const excluded = Array.isArray(data.signal_counting?.excluded_from_threshold)
       ? data.signal_counting.excluded_from_threshold.filter(Boolean)
       : [];
@@ -615,7 +631,7 @@
     const p = data.rule?.persistence;
     const pEl = document.getElementById('persistenceNote');
     if (p?.enabled){
-      pEl.textContent = `Persistence: holds if today is ${p.today_minimum} and yesterday had ≥${p.yesterday_minimum}.`;
+      pEl.textContent = p.description || 'Persistence requires a previously confirmed dislocation.';
     } else {
       pEl.textContent = '';
     }
