@@ -5,13 +5,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from statistics import median
 from typing import Dict, List, Optional
 
 import pandas as pd
 import requests
+
+if __package__:
+    from .gold_positioning import compute_gold_deleveraging, fetch_gold_cot, fetch_gold_holdings
+else:
+    from gold_positioning import compute_gold_deleveraging, fetch_gold_cot, fetch_gold_holdings
 
 
 YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=10y&interval=1d&events=history"
@@ -33,6 +38,15 @@ DEFAULT_FRED_SERIES = {
     "dgs10": "DGS10",
     "usdjpy": "DEXJPUS",
     "jgb10": "IRLTLT01JPM156N",
+}
+FRED_LAG_TOLERANCE = {key: (35 if key == "jgb10" else 1) for key in DEFAULT_FRED_SERIES}
+FRED_SIGNAL_INPUTS = {
+    "credit_spread_widening_fred": ["hy_oas"],
+    "funding_stress_sofr_iorb": ["sofr", "iorb"],
+    "repo_rate_volume_dislocation": ["tgcr_rate", "tgcr_volume"],
+    "rates_volatility_shock": ["dgs10"],
+    "yen_strengthening_fast": ["usdjpy"],
+    "us_jp_spread_compression": ["dgs10", "jgb10"],
 }
 
 
@@ -129,10 +143,9 @@ def pct_change(series: pd.Series, periods: int = 1) -> pd.Series:
     return series.pct_change(periods=periods) * 100.0
 
 
-def rolling_z(series: pd.Series, window: int) -> pd.Series:
-    mean = series.rolling(window).mean()
-    std = series.rolling(window).std(ddof=0)
-    return (series - mean) / std.replace(0, pd.NA)
+def rolling_z(series: pd.Series, window: int, min_periods: Optional[int] = None) -> pd.Series:
+    rolling = series.rolling(window, min_periods=min_periods)
+    return (series - rolling.mean()) / rolling.std(ddof=0).replace(0, float("nan"))
 
 
 def intraday_range_pct(df: pd.DataFrame) -> pd.Series:
@@ -216,6 +229,33 @@ class RunMeta:
     vix_stale_days: Optional[int]
     data_stale: bool
     stale_reasons: List[str]
+    fred_inputs: Dict[str, Dict[str, object]] = field(default_factory=dict)
+    gold_inputs: Dict[str, Dict[str, object]] = field(default_factory=dict)
+
+
+def prepare_fred_inputs(fred_map, idx):
+    """Retain original observation dates and discard observations after the equity session."""
+    prepared, quality = {}, {}
+    for key, series_id in DEFAULT_FRED_SERIES.items():
+        frame = (fred_map or {}).get(key)
+        values = pd.Series(dtype=float)
+        if frame is not None and series_id in frame and not idx.empty:
+            values = frame[series_id].dropna().sort_index()
+            values = values.loc[values.index <= idx.max()]
+        lag = bday_lag_days(idx, values.index)
+        tolerance = FRED_LAG_TOLERANCE[key]
+        quality[key] = {
+            "series_id": series_id,
+            "source_date": values.index[-1].date().isoformat() if not values.empty else None,
+            "stale_days": lag,
+            "lag_tolerance_bdays": tolerance,
+            "cadence": "monthly" if key == "jgb10" else "daily",
+            "available": not values.empty,
+            "eligible": lag is not None and lag <= tolerance,
+        }
+        if not values.empty:
+            prepared[key] = values.to_frame(series_id)
+    return prepared, quality
 
 
 def compute_signals(
@@ -227,6 +267,8 @@ def compute_signals(
     jgb_etf: Optional[pd.DataFrame] = None,
     fred_map: Optional[Dict[str, pd.DataFrame]] = None,
     lookback: int = 252,
+    gold_cot: Optional[pd.DataFrame] = None,
+    gold_holdings: Optional[pd.Series] = None,
 ) -> tuple[List[SignalResult], RunMeta]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
     spy = spy.loc[idx]
@@ -235,6 +277,7 @@ def compute_signals(
 
     equities_data_date = idx.max() if len(idx) else None
     session_date = equities_data_date.date().isoformat() if equities_data_date is not None else None
+    fred_map, fred_quality = prepare_fred_inputs(fred_map, idx)
     vix_data_date = vix.index.max() if vix is not None and not vix.empty else None
     vix_stale_days = bday_lag_days(idx, vix.index if vix is not None else None)
 
@@ -384,10 +427,11 @@ def compute_signals(
 
         hy = fred_map.get("hy_oas")
         if hy is not None and not hy.empty:
-            oas = hy[DEFAULT_FRED_SERIES["hy_oas"]].reindex(idx, method="ffill")
-            oas_chg_5 = oas.diff(5)
-            oas_chg_10 = oas.diff(10)
-            oas_z = rolling_z(oas, 756)
+            raw_oas = hy[DEFAULT_FRED_SERIES["hy_oas"]]
+            oas = raw_oas.reindex(idx, method="ffill")
+            oas_chg_5 = raw_oas.diff(5).reindex(idx, method="ffill")
+            oas_chg_10 = raw_oas.diff(10).reindex(idx, method="ffill")
+            oas_z = rolling_z(raw_oas, 504, min_periods=252).reindex(idx, method="ffill")
             trig = (oas >= 6.5) | (oas_chg_5 >= 0.50) | (oas_chg_10 >= 0.40) | ((oas_z >= 2.0) & (oas_chg_10 >= 0.60))
             last_oas = safe_last(oas)
             last_oas_5 = safe_last(oas_chg_5)
@@ -407,6 +451,9 @@ def compute_signals(
                     "hy_oas_5d_change": last_oas_5,
                     "hy_oas_10d_change": last_oas_10,
                     "hy_oas_z": last_oas_z,
+                    "hy_oas_z_window": 504,
+                    "hy_oas_z_min_periods": 252,
+                    "hy_oas_z_observations": min(len(raw_oas), 504),
                     "score_0_1": score_oas,
                 },
             ))
@@ -739,9 +786,40 @@ def compute_signals(
                 "score_0_1": 0.0,
             },
         ))
+    # Gate dependent signals before scoring/counting; keep raw values visible for audit.
+    by_name = {signal.name: signal for signal in results}
+    for name, inputs in FRED_SIGNAL_INPUTS.items():
+        if name not in by_name:
+            results.append(SignalResult(name, False, {"score_0_1": 0.0, "note": "Required FRED input unavailable."}))
+        signal = next(s for s in results if s.name == name)
+        signal.details["source_inputs"] = {key: fred_quality[key] for key in inputs}
+        signal.details["eligible"] = all(fred_quality[key]["eligible"] for key in inputs)
+    # The combo is informational, but stale components must not inflate its score.
+    combo = next((s for s in results if s.name == "carry_trade_unwind_combo"), None)
+    if combo:
+        combo.details["eligible"] = fred_quality["usdjpy"]["eligible"] and (
+            (jgb_etf is not None and not jgb_etf.empty)
+            or (fred_quality["dgs10"]["eligible"] and fred_quality["jgb10"]["eligible"])
+        )
+        usable = {s.name: s for s in results if s.details.get("eligible", True)}
+        yen = usable.get("yen_strengthening_fast")
+        legs = [usable.get(name) for name in ("jgb_price_drop_fast", "us_jp_spread_compression")]
+        combo.triggered = bool(yen and yen.triggered and any(s and s.triggered for s in legs))
+        combo.details["score_0_1"] = combine_and(
+            yen.details.get("score_0_1", 0.0) if yen else 0.0,
+            combine_or(*(s.details.get("score_0_1", 0.0) for s in legs if s)),
+        )
+
+    gold_details, gold_quality = compute_gold_deleveraging(gld["Close"], gold_cot, gold_holdings)
+    results.append(SignalResult("gold_futures_deleveraging", gold_details.pop("triggered"), gold_details))
     stale_reasons: List[str] = []
     if vix_stale_days is not None and vix_stale_days > 1:
         stale_reasons.append("vix_stale")
+    elif vix_stale_days is None:
+        stale_reasons.append("vix_missing")
+    for key, quality in fred_quality.items():
+        if not quality["eligible"]:
+            stale_reasons.append(f"{key}_stale" if quality["available"] else f"{key}_missing")
 
     meta = RunMeta(
         equity_session_date=session_date,
@@ -750,6 +828,8 @@ def compute_signals(
         vix_stale_days=vix_stale_days,
         data_stale=bool(stale_reasons),
         stale_reasons=stale_reasons,
+        fred_inputs=fred_quality,
+        gold_inputs=gold_quality,
     )
     return results, meta
 
@@ -790,11 +870,15 @@ def compute_dashboard(signals: List[SignalResult], meta: RunMeta) -> Dict[str, o
         "structure_fragility": [
             "breadth_deterioration_rsp_spy",
         ],
+        "gold_deleveraging": ["gold_futures_deleveraging"],
     }
 
     severities: Dict[str, float] = {}
     for signal in signals:
-        severities[signal.name] = score_to_severity(signal.details.get("score_0_1"))
+        eligible = signal.details.get("eligible", True)
+        if signal.name in ("volatility_spike", "forced_flow_proxy_combo"):
+            eligible = meta.vix_stale_days == 0
+        severities[signal.name] = score_to_severity(signal.details.get("score_0_1")) if eligible else 0.0
 
     pillar_scores: Dict[str, float] = {}
     for pillar, names in pillar_map.items():
@@ -838,14 +922,18 @@ def compute_dashboard(signals: List[SignalResult], meta: RunMeta) -> Dict[str, o
     else:
         liquidity_regime = "Normal"
 
-    freshness_penalty = 0
-    if meta.vix_stale_days is not None:
-        freshness_penalty += min(meta.vix_stale_days * 20, 60)
-    freshness_penalty += max(0, len(meta.stale_reasons) - 1) * 20
+    penalties = {"vix": 20 if meta.vix_stale_days is None else min(meta.vix_stale_days * 20, 60)}
+    for key, quality in {**meta.fred_inputs, **meta.gold_inputs}.items():
+        lag = quality["stale_days"]
+        # Daily lags always reduce freshness, including an ordinary one-day publication lag.
+        effective_lag = lag if quality.get("cadence", "daily") == "daily" else max(0, (lag or 0) - quality["lag_tolerance_bdays"])
+        penalties[key] = 20 if lag is None else min(effective_lag * 5, 60)
+    freshness_penalty = sum(penalties.values())
     confidence = clamp_0_100(100 - freshness_penalty)
 
     top_drivers = sorted(
-        [{"name": signal.name, "severity_0_100": severities.get(signal.name, 0.0)} for signal in signals],
+        [{"name": signal.name, "severity_0_100": severities.get(signal.name, 0.0)} for signal in signals
+         if severities.get(signal.name, 0.0) > 0],
         key=lambda x: x["severity_0_100"],
         reverse=True,
     )[:3]
@@ -855,6 +943,8 @@ def compute_dashboard(signals: List[SignalResult], meta: RunMeta) -> Dict[str, o
         "fragility_score_1_3m": fragility,
         "liquidity_regime_label": liquidity_regime,
         "confidence_score": confidence,
+        "confidence_penalties": penalties,
+        "confidence_notes": "Input-freshness score, not a probability. Daily observation lags reduce confidence; weekly/monthly series use cadence tolerances.",
         "pillar_scores": pillar_scores,
         "top_drivers": top_drivers,
     }
@@ -866,10 +956,14 @@ def summarize_dislocation(
     k_required: int = 3,
     previous_summary: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
+    if k_required < 1:
+        raise ValueError("k_required must be positive")
     stale_vix = bool(meta.vix_stale_days is not None and meta.vix_stale_days > 0)
-    excluded_from_threshold = ["forced_flow_proxy_combo", "carry_trade_unwind_combo"]
-    if stale_vix:
+    excluded_from_threshold = ["forced_flow_proxy_combo", "carry_trade_unwind_combo", "gold_futures_deleveraging"]
+    if stale_vix or meta.vix_stale_days is None:
         excluded_from_threshold.append("volatility_spike")
+    excluded_from_threshold.extend(s.name for s in signals
+                                   if s.details.get("eligible") is False and s.name not in excluded_from_threshold)
 
     countable_signals = [s for s in signals if s.name not in set(excluded_from_threshold)]
     triggered = [signal for signal in countable_signals if signal.triggered]
@@ -886,8 +980,19 @@ def summarize_dislocation(
             previous_dislocation = bool(previous_summary.get("dislocation", False))
             previous_status = derive_status(yesterday_count, previous_dislocation)
 
-    carry_forward = count == (k_required - 1) and yesterday_count >= 1
+    previous_confirmation = None
+    if previous_summary:
+        prior_k = previous_summary.get("rule", {}).get("k_required", k_required)
+        # Legacy two-signal dislocations have no proven entry and must not be grandfathered in.
+        if prior_k == k_required and previous_status == "dislocation":
+            if yesterday_count >= k_required:
+                previous_confirmation = previous_summary.get("data_dates", {}).get("equity_session_date") or "legacy_confirmed"
+            elif previous_summary.get("rule_version") == 2:
+                previous_confirmation = previous_summary.get("last_confirmed_dislocation_session")
+    hold_minimum = max(k_required - 1, 1)
+    carry_forward = bool(previous_confirmation and count >= hold_minimum and count < k_required)
     dislocation = bool(count >= k_required or carry_forward)
+    last_confirmation = (meta.equity_session_date if count >= k_required else previous_confirmation) if dislocation else None
     watch = bool((not dislocation) and count >= 1)
     status = derive_status(count, dislocation, data_stale=meta.data_stale)
     transitions = []
@@ -904,6 +1009,9 @@ def summarize_dislocation(
 
     return {
         "asof_utc": datetime.now(timezone.utc).isoformat(),
+        "rule_version": 2,
+        "last_confirmed_dislocation_session": last_confirmation,
+        "persistence_applied": carry_forward,
         "dislocation": dislocation,
         "watch": watch,
         "status": status,
@@ -912,7 +1020,7 @@ def summarize_dislocation(
         "signals_triggered": [signal.name for signal in triggered],
         "signal_counting": {
             "excluded_from_threshold": excluded_from_threshold,
-            "notes": "Stale VIX data (>0 business day lag) is excluded from K-of-N counting.",
+            "notes": "Lagged VIX and ineligible FRED signals are excluded. Combos and weekly gold positioning are contextual checks, excluded from K-of-N to avoid double counting.",
         },
         "signals": [
             {
@@ -934,6 +1042,8 @@ def summarize_dislocation(
             "vix_stale_days": meta.vix_stale_days,
             "data_stale": meta.data_stale,
             "stale_reasons": meta.stale_reasons,
+            "fred_inputs": meta.fred_inputs,
+            "gold_inputs": meta.gold_inputs,
         },
         "transitions": transitions,
         "rule": {
@@ -941,9 +1051,10 @@ def summarize_dislocation(
             "notes": "Designed to be low-churn: multiple independent stress signals must agree.",
             "persistence": {
                 "enabled": True,
-                "today_minimum": max(k_required - 1, 1),
-                "yesterday_minimum": 1,
-                "description": "Dislocation holds if today is k-1 and yesterday had >=1 signal.",
+                "today_minimum": hold_minimum,
+                "previous_status_required": "dislocation",
+                "confirmed_entry_required": True,
+                "description": "Enter at K signals; hold at K-1 only after a confirmed dislocation entry. Legacy unconfirmed states are reset.",
             },
         },
     }
@@ -970,6 +1081,8 @@ def main() -> None:
     parser.add_argument("--hyg-symbol", default=DEFAULT_TICKERS["credit_hy"], help="Market symbol for HYG (Stooq or Yahoo style)")
     parser.add_argument("--fred-series", default="", help="Optional legacy FRED series id (e.g., BAMLH0A0HYM2)")
     args = parser.parse_args()
+    if args.k < 1:
+        parser.error("--k must be positive")
 
     spy = fetch_market_daily(args.spy_symbol)
     gld = fetch_market_daily(args.gld_symbol)
@@ -1011,6 +1124,16 @@ def main() -> None:
                 pass
 
     previous_summary = load_previous_summary(args.output)
+    gold_cot = gold_holdings = None
+    try:
+        gold_cot = fetch_gold_cot()
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        print("Warning: CFTC gold positioning unavailable; weekly warning will be marked unavailable.")
+    try:
+        gold_holdings = fetch_gold_holdings()
+    except Exception:
+        # Holdings is optional context; do not block the cross-market detector on a provider outage.
+        print("Warning: GLD holdings unavailable; ETF/positioning divergence cannot be assessed.")
     signals, meta = compute_signals(
         spy=spy,
         gld=gld,
@@ -1020,6 +1143,8 @@ def main() -> None:
         jgb_etf=jgb_etf,
         fred_map=fred_map,
         lookback=args.lookback,
+        gold_cot=gold_cot,
+        gold_holdings=gold_holdings,
     )
     summary = summarize_dislocation(signals, meta, k_required=args.k, previous_summary=previous_summary)
 

@@ -1,0 +1,36 @@
+name: Test dislocation detector
+
+on:
+  pull_request:
+    paths:
+      - "scripts/dislocation_detector.py"
+      - "scripts/gold_positioning.py"
+      - "tests/**"
+      - "dislocation/index.html"
+      - "public/dislocation/index.html"
+      - ".github/workflows/test-dislocation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/dislocation_detector.py"
+      - "scripts/gold_positioning.py"
+      - "tests/**"
+      - ".github/workflows/test-dislocation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas requests
+      - run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tests/test_dislocation_dashboard.js

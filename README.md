@@ -206,6 +206,67 @@ python scripts/update.py --output data.json --status-file /tmp/monitor_status.js
 * Real yields (FRED DFII10):
   [https://fred.stlouisfed.org/series/DFII10](https://fred.stlouisfed.org/series/DFII10)
 
+## Dislocation detector
+
+`scripts/dislocation_detector.py` powers `/dislocation/` and the mirrored
+`public/dislocation/` page. It describes cross-market stress separately from the
+gold monitor's GREEN/BLUE/ORANGE/RED regime.
+
+* Enter **DISLOCATION** only at `K` eligible checks (default 3). Hold at
+  `max(K−1, 1)` only when the previous status was dislocation and there is a
+  recorded confirmed entry. A one-check run followed by two checks stays
+  **STRESS BUILDING**. Legacy two-check dislocations are reset rather than
+  assumed to have been confirmed; changing K also requires a new confirmation.
+* Every configured FRED input includes its actual `source_date`, business-day
+  `stale_days`, cadence and eligibility. Daily inputs tolerate one business day
+  for signal counting; the monthly JGB yield tolerates 35. Weekends are excluded
+  from lag calculations; exchange/bank holidays are not separately modeled.
+  Observations after the equity session are discarded. Missing or out-of-tolerance
+  FRED feeds set **DATA STALE** and their dependent checks are excluded from
+  both the threshold and dashboard scores. The UI gives DATA STALE precedence.
+* Confidence is an input-freshness heuristic, **not a probability**. Each daily
+  FRED/holdings input loses 5 points per lagged business day (maximum 60);
+  missing inputs lose 20. VIX retains its 20-points-per-day penalty (maximum 60).
+  Weekly CFTC and monthly JGB observations are penalized only beyond their
+  cadence tolerance. JSON exposes each contribution in `confidence_penalties`.
+* HY OAS uses a 504-observation z-score window with at least 252 valid source
+  observations. Changes and z-scores are calculated before alignment to equity
+  sessions, so forward-filled rows do not invent extra OAS observations.
+  Insufficient history leaves the z-score null and reports the sample size.
+* **Gold futures deleveraging** is a sixth, contextual pillar. It requires falling
+  COMEX gold open interest, falling managed-money net length (long minus short),
+  and a negative GLD return over the same two consecutive CFTC report dates.
+  GLD holdings rising over that interval adds **ETF buying / futures selling**
+  context; missing holdings leave that comparison unavailable. Holdings cover
+  GLD only, not all ETFs or physical demand. Positioning is weekly and generally
+  released after the observation date, not an intraday liquidation feed. Reports
+  more than 7 business days behind the equity session, nonconsecutive reports,
+  and unmatched price intervals cannot trigger the warning.
+* The gold positioning check and existing combo checks are excluded from K-of-N.
+  The new pillar does not change crash/fragility score weights; it adds a distinct
+  gold warning without implying a broad funding crisis. Its severity uses a
+  2% decline ramp for each leg (managed-money change scaled by prior total OI),
+  and is descriptive rather than calibrated to crash probabilities.
+
+CFTC source: [Disaggregated futures-only reports](https://publicreporting.cftc.gov/stories/s/Disaggregated-Futures-Only/ubmb-6exi/),
+dataset `72hh-3qpy`, COMEX gold contract-market code `088691`.
+GLD holdings reuse the existing SPDR CSV/archive fetcher. Source outages are
+reported as unavailable; they do not silently replace weekly positions with zeros.
+
+The daily job refreshes both `dislocation.json` copies after merge. Market-data
+snapshots are not manually reclassified as part of code changes.
+
+Run the deterministic regression suite (no API keys or network required):
+
+```bash
+pip install pandas requests
+python -m unittest discover -s tests -v
+node tests/test_dislocation_dashboard.js
+```
+
+PR checks run this suite separately from the production data-refresh job, which
+only runs on main, schedule, or manual dispatch.
+
 ## What you must do manually
 
 * Create the GitHub repository
