@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-10-09T21:28:11.897116+00:00",
+  "asof_utc": "2026-10-10T20:27:59.614995+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
@@ -38,7 +38,7 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.760645375230921,
+        "spy_dollar_volume_z": -1.7472807833250217,
         "spy_range_z": -0.8260147788445037,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
@@ -226,16 +226,16 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 1949.0,
-        "jgb_etf_5d_return_pct": -0.8142493638676807,
-        "jgb_etf_20d_return_pct": -1.6649848637739662,
-        "jgb_etf_5d_return_z": -0.9025820420518794,
-        "trigger_reason": "5d",
-        "score_0_1": 0.8142493638676807,
-        "margin": -0.18575063613231935,
-        "margin_unit": "% (5D)",
+        "jgb_etf_close": 1965.0,
+        "jgb_etf_5d_return_pct": 0.25510204081633514,
+        "jgb_etf_20d_return_pct": -1.4049172102358232,
+        "jgb_etf_5d_return_z": 0.5532329737167745,
+        "trigger_reason": "20d",
+        "score_0_1": 0.5619668840943293,
+        "margin": -1.0950827897641768,
+        "margin_unit": "% (20D)",
         "counted_toward_threshold": true,
-        "severity_0_100": 81.42493638676807
+        "severity_0_100": 56.19668840943292
       }
     },
     {
@@ -408,7 +408,7 @@
       },
       {
         "name": "jgb_price_drop_fast",
-        "severity_0_100": 81.42493638676807
+        "severity_0_100": 56.19668840943292
       }
     ]
   },
