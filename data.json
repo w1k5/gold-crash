@@ -2,7 +2,7 @@
   "metrics": {
     "flows": {
       "holdings_change_21d_pct": 0.0018251124060115304,
-      "holdings_change_21d_pct_pctile_5y": 50,
+      "holdings_change_21d_pct_pctile_5y": 49,
       "holdings_change_21d_pct_pctile_5y_explain": null,
       "holdings_change_5d_pct": -0.0014212486142826009,
       "holdings_change_5d_pct_pctile_5y": 45,
@@ -101,7 +101,7 @@
       "real_yield_change_1m_bp_pctile_5y": 69,
       "real_yield_change_1m_bp_pctile_5y_explain": null,
       "real_yield_change_3m_bp": 43.0,
-      "real_yield_change_3m_bp_pctile_5y": 77,
+      "real_yield_change_3m_bp_pctile_5y": 76,
       "real_yield_change_3m_bp_pctile_5y_explain": null,
       "real_yield_today": 2.78
     },
@@ -122,8 +122,8 @@
     },
     "persistence": {
       "red_enter_streak": 0,
-      "red_exit_streak": 2,
-      "stability_streak": 2
+      "red_exit_streak": 3,
+      "stability_streak": 3
     },
     "primary_horizon": "3M",
     "reasons": [
@@ -131,7 +131,7 @@
     ],
     "stability": {
       "is_stabilizing": true,
-      "label": "stabilizing",
+      "label": "stabilized",
       "missing": [
         "higher_low",
         "price_crack_cooling",
@@ -146,7 +146,7 @@
         "flow_divergence_cooling"
       ],
       "score_0_100": 66,
-      "streak": 2
+      "streak": 3
     },
     "state": "RED",
     "transitions": {
@@ -291,7 +291,7 @@
           "unit": "pctile"
         },
         {
-          "current": 50.0,
+          "current": 49.0,
           "distance": 0.0,
           "fired": true,
           "note": null,
@@ -320,5 +320,5 @@
     "gld_prices": "https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1d&range=10y",
     "t10yie": "https://fred.stlouisfed.org/series/T10YIE"
   },
-  "updated_at": "2026-10-17T11:10:39.133727-04:00"
+  "updated_at": "2026-10-18T11:32:04.808345-04:00"
 }
