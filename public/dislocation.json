@@ -1,19 +1,26 @@
 {
-  "asof_utc": "2026-10-21T13:21:17.458351+00:00",
+  "asof_utc": "2026-10-21T20:26:32.991571+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
   "dislocation": false,
-  "watch": false,
-  "status": "normal",
-  "signals_triggered_count": 0,
+  "watch": true,
+  "status": "data_stale",
+  "signals_triggered_count": 1,
   "signals_triggered_count_yesterday": 0,
-  "signals_triggered": [],
+  "signals_triggered": [
+    "breadth_deterioration_rsp_spy"
+  ],
   "signal_counting": {
     "excluded_from_threshold": [
       "forced_flow_proxy_combo",
       "carry_trade_unwind_combo",
-      "gold_futures_deleveraging"
+      "gold_futures_deleveraging",
+      "us_jp_spread_compression",
+      "credit_spread_widening_fred",
+      "funding_stress_sofr_iorb",
+      "repo_rate_volume_dislocation",
+      "rates_volatility_shock"
     ],
     "notes": "Lagged VIX and ineligible FRED signals are excluded. Combos and weekly gold positioning are contextual checks, excluded from K-of-N to avoid double counting."
   },
@@ -22,9 +29,9 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.33529999343844263,
-        "spy_intraday_range_pct": 1.0454428392121817,
-        "spy_range_z": 0.17018640683538996,
+        "spy_1d_return_pct": 0.5253285386680906,
+        "spy_intraday_range_pct": 0.7799826737185511,
+        "spy_range_z": -0.362484973078469,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -34,8 +41,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.151746913043695,
-        "spy_range_z": 0.17018640683538996,
+        "spy_dollar_volume_z": -1.3665116578709935,
+        "spy_range_z": -0.362484973078469,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -46,10 +53,10 @@
       "name": "volatility_spike",
       "triggered": false,
       "details": {
-        "vix_level": 17.309999465942383,
-        "vix_1d_change_pct": -6.127988261324546,
-        "vix_level_z": -0.20547555533554945,
-        "vix_change_z": -0.8516391165419486,
+        "vix_level": 16.65999984741211,
+        "vix_1d_change_pct": -3.755052793670821,
+        "vix_level_z": -0.4010807795439784,
+        "vix_change_z": -0.5310661806396724,
         "vix_eligible": true,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -60,159 +67,32 @@
       "name": "credit_stress_proxy",
       "triggered": false,
       "details": {
-        "hyg_1d_return_pct": 0.0,
-        "spy_1d_return_pct": 0.33529999343844263,
-        "hyg_minus_spy_pct": -0.33529999343844263,
-        "score_0_1": 0.22353332895896175,
-        "margin": -1.1647000065615574,
+        "hyg_1d_return_pct": 0.19523821723803625,
+        "spy_1d_return_pct": 0.5253285386680906,
+        "hyg_minus_spy_pct": -0.33009032143005435,
+        "score_0_1": 0.2200602142867029,
+        "margin": -1.1699096785699457,
         "margin_unit": "%",
         "counted_toward_threshold": true,
-        "severity_0_100": 22.353332895896173
-      }
-    },
-    {
-      "name": "credit_spread_widening_fred",
-      "triggered": false,
-      "details": {
-        "hy_oas_level": 3.29,
-        "hy_oas_5d_change": 0.18000000000000016,
-        "hy_oas_10d_change": 0.16999999999999993,
-        "hy_oas_z": 1.0975337753301224,
-        "hy_oas_z_window": 504,
-        "hy_oas_z_min_periods": 252,
-        "hy_oas_z_observations": 504,
-        "score_0_1": 0.4249999999999998,
-        "source_inputs": {
-          "hy_oas": {
-            "series_id": "BAMLH0A0HYM2",
-            "source": "FRED",
-            "source_date": "2026-10-19",
-            "stale_days": 1,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          }
-        },
-        "eligible": true,
-        "counted_toward_threshold": true,
-        "severity_0_100": 42.499999999999986
-      }
-    },
-    {
-      "name": "funding_stress_sofr_iorb",
-      "triggered": false,
-      "details": {
-        "sofr_iorb_spread_bp": -2.0000000000000018,
-        "sofr_iorb_spread_5d_bp": -1.000000000000023,
-        "sofr_iorb_spread_z": 0.37841493866822284,
-        "score_0_1": 0.0,
-        "source_inputs": {
-          "sofr": {
-            "series_id": "SOFR",
-            "source": "FRED",
-            "source_date": "2026-10-20",
-            "stale_days": 0,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          },
-          "iorb": {
-            "series_id": "IORB",
-            "source": "FRED",
-            "source_date": "2026-10-20",
-            "stale_days": 0,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          }
-        },
-        "eligible": true,
-        "counted_toward_threshold": true,
-        "severity_0_100": 0.0
-      }
-    },
-    {
-      "name": "repo_rate_volume_dislocation",
-      "triggered": false,
-      "details": {
-        "tgcr_rate": 3.86,
-        "tgcr_rate_5d_change_pct": -0.020000000000000018,
-        "tgcr_rate_z": -0.8863670409519486,
-        "tgcr_volume_z": 0.9355759816262461,
-        "tgcr_volume_5d_change_pct": 0.16736401673640433,
-        "score_0_1": 0.0,
-        "source_inputs": {
-          "tgcr_rate": {
-            "series_id": "TGCRRATE",
-            "source": "FRED",
-            "source_date": "2026-10-20",
-            "stale_days": 0,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          },
-          "tgcr_volume": {
-            "series_id": "TGCRVOLUME",
-            "source": "FRED",
-            "source_date": "2026-10-20",
-            "stale_days": 0,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          }
-        },
-        "eligible": true,
-        "counted_toward_threshold": true,
-        "severity_0_100": 0.0
-      }
-    },
-    {
-      "name": "rates_volatility_shock",
-      "triggered": false,
-      "details": {
-        "dgs10_rv5_bp": 4.79165942028441,
-        "dgs10_rv5_z": 0.1851598725440338,
-        "dgs10_rv5_5d_change_bp": 1.8659116526188178,
-        "dgs10_5d_change_bp": -5.999999999999961,
-        "score_0_1": 0.3993049516903675,
-        "source_inputs": {
-          "dgs10": {
-            "series_id": "DGS10",
-            "source": "FRED",
-            "source_date": "2026-10-19",
-            "stale_days": 1,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": true,
-            "eligible": true
-          }
-        },
-        "eligible": true,
-        "counted_toward_threshold": true,
-        "severity_0_100": 39.93049516903675
+        "severity_0_100": 22.006021428670287
       }
     },
     {
       "name": "yen_strengthening_fast",
       "triggered": false,
       "details": {
-        "usdjpy": 158.5229949951172,
-        "usdjpy_5d_change_pct": 0.001886653151417228,
-        "usdjpy_20d_change_pct": 0.7333030489167669,
-        "usdjpy_5d_change_z": -0.035229475130169136,
-        "score_0_1": 0.0,
-        "margin": -2.0018866531514172,
+        "usdjpy": 158.26800537109375,
+        "usdjpy_5d_change_pct": -0.034108242928176935,
+        "usdjpy_20d_change_pct": 0.5105934254373778,
+        "usdjpy_5d_change_z": -0.06232992350708495,
+        "score_0_1": 0.017054121464088468,
+        "margin": -1.965891757071823,
         "margin_unit": "% (5D)",
         "source_inputs": {
           "usdjpy": {
             "series_id": "JPY=X",
             "source": "Yahoo",
-            "source_date": "2026-10-20",
+            "source_date": "2026-10-21",
             "stale_days": 0,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
@@ -222,7 +102,7 @@
         },
         "eligible": true,
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 1.7054121464088468
       }
     },
     {
@@ -245,36 +125,32 @@
       "name": "us_jp_spread_compression",
       "triggered": false,
       "details": {
-        "us_jp_10y_spread_pct": 2.1000000000000005,
-        "us_jp_10y_spread_20d_change_bp": 19.00000000000004,
-        "us_jp_10y_spread_20d_change_z": 1.120740285035898,
+        "note": "US10/JGB10 spread unavailable (missing DGS10 or JGB10).",
         "score_0_1": 0.0,
-        "margin": -54.00000000000004,
-        "margin_unit": "bp (20D)",
         "source_inputs": {
           "dgs10": {
             "series_id": "DGS10",
             "source": "FRED",
-            "source_date": "2026-10-19",
-            "stale_days": 1,
+            "source_date": null,
+            "stale_days": null,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
-            "available": true,
-            "eligible": true
+            "available": false,
+            "eligible": false
           },
           "jgb10": {
             "series_id": "IRLTLT01JPM156N",
             "source": "FRED",
-            "source_date": "2026-09-01",
-            "stale_days": 35,
+            "source_date": null,
+            "stale_days": null,
             "lag_tolerance_bdays": 35,
             "cadence": "monthly",
-            "available": true,
-            "eligible": true
+            "available": false,
+            "eligible": false
           }
         },
-        "eligible": true,
-        "counted_toward_threshold": true,
+        "eligible": false,
+        "counted_toward_threshold": false,
         "severity_0_100": 0.0
       }
     },
@@ -295,8 +171,8 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.33529999343844263,
-        "gld_1d_return_pct": -0.5372826600133274,
+        "spy_1d_return_pct": 0.5253285386680906,
+        "gld_1d_return_pct": 0.344238933286789,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -306,10 +182,10 @@
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": 0.33529999343844263,
-        "hyg_minus_spy_pct": -0.33529999343844263,
-        "vix_level": 17.309999465942383,
-        "vix_1d_change_pct": -6.127988261324546,
+        "spy_1d_return_pct": 0.5253285386680906,
+        "hyg_minus_spy_pct": -0.33009032143005435,
+        "vix_level": 16.65999984741211,
+        "vix_1d_change_pct": -3.755052793670821,
         "score_0_1": 0.0,
         "counted_toward_threshold": false,
         "severity_0_100": 0.0
@@ -317,15 +193,127 @@
     },
     {
       "name": "breadth_deterioration_rsp_spy",
+      "triggered": true,
+      "details": {
+        "rsp_spy_ratio": 0.2802260951041215,
+        "rsp_spy_20d_return_pct": 1.8221569654262693,
+        "rsp_spy_60d_return_pct": -4.631219447091894,
+        "rsp_spy_20d_return_z": 1.0608813244943642,
+        "score_0_1": 1.0,
+        "counted_toward_threshold": true,
+        "severity_0_100": 100.0
+      }
+    },
+    {
+      "name": "credit_spread_widening_fred",
       "triggered": false,
       "details": {
-        "rsp_spy_ratio": 0.2806839659796756,
-        "rsp_spy_20d_return_pct": 2.0090995614746365,
-        "rsp_spy_60d_return_pct": -3.5920034320334193,
-        "rsp_spy_20d_return_z": 1.1509561875497738,
-        "score_0_1": 0.8980008580083548,
-        "counted_toward_threshold": true,
-        "severity_0_100": 89.80008580083549
+        "score_0_1": 0.0,
+        "note": "Required FRED input unavailable.",
+        "source_inputs": {
+          "hy_oas": {
+            "series_id": "BAMLH0A0HYM2",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          }
+        },
+        "eligible": false,
+        "counted_toward_threshold": false,
+        "severity_0_100": 0.0
+      }
+    },
+    {
+      "name": "funding_stress_sofr_iorb",
+      "triggered": false,
+      "details": {
+        "score_0_1": 0.0,
+        "note": "Required FRED input unavailable.",
+        "source_inputs": {
+          "sofr": {
+            "series_id": "SOFR",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          },
+          "iorb": {
+            "series_id": "IORB",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          }
+        },
+        "eligible": false,
+        "counted_toward_threshold": false,
+        "severity_0_100": 0.0
+      }
+    },
+    {
+      "name": "repo_rate_volume_dislocation",
+      "triggered": false,
+      "details": {
+        "score_0_1": 0.0,
+        "note": "Required FRED input unavailable.",
+        "source_inputs": {
+          "tgcr_rate": {
+            "series_id": "TGCRRATE",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          },
+          "tgcr_volume": {
+            "series_id": "TGCRVOLUME",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          }
+        },
+        "eligible": false,
+        "counted_toward_threshold": false,
+        "severity_0_100": 0.0
+      }
+    },
+    {
+      "name": "rates_volatility_shock",
+      "triggered": false,
+      "details": {
+        "score_0_1": 0.0,
+        "note": "Required FRED input unavailable.",
+        "source_inputs": {
+          "dgs10": {
+            "series_id": "DGS10",
+            "source": "FRED",
+            "source_date": null,
+            "stale_days": null,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": false,
+            "eligible": false
+          }
+        },
+        "eligible": false,
+        "counted_toward_threshold": false,
+        "severity_0_100": 0.0
       }
     },
     {
@@ -338,7 +326,7 @@
         "source_inputs": {
           "cftc_gold": {
             "source_date": "2026-10-13",
-            "stale_days": 5,
+            "stale_days": 6,
             "lag_tolerance_bdays": 7,
             "cadence": "weekly",
             "available": true,
@@ -346,7 +334,7 @@
           },
           "gld_holdings": {
             "source_date": "2026-10-20",
-            "stale_days": 0,
+            "stale_days": 1,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
             "available": true,
@@ -376,119 +364,127 @@
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 13.097978508116615,
-    "fragility_score_1_3m": 50.888421416869264,
+    "crash_risk_score_1_5d": 2.750752678583786,
+    "fragility_score_1_3m": 47.20060214286703,
     "liquidity_regime_label": "Normal",
-    "confidence_score": 90.0,
+    "confidence_score": 0.0,
     "confidence_penalties": {
       "vix": 0,
-      "hy_oas": 5,
-      "sofr": 0,
-      "iorb": 0,
-      "tgcr_rate": 0,
-      "tgcr_volume": 0,
-      "dgs10": 5,
+      "hy_oas": 20,
+      "sofr": 20,
+      "iorb": 20,
+      "tgcr_rate": 20,
+      "tgcr_volume": 20,
+      "dgs10": 20,
       "usdjpy": 0,
-      "jgb10": 0,
+      "jgb10": 20,
       "cftc_gold": 0,
-      "gld_holdings": 0
+      "gld_holdings": 5
     },
     "confidence_notes": "Input-freshness score, not a probability. Daily observation lags reduce confidence; weekly/monthly series use cadence tolerances.",
     "pillar_scores": {
       "liquidity_funding": 0.0,
-      "credit_stress": 32.42666644794808,
-      "volatility_convexity": 19.965247584518377,
+      "credit_stress": 11.003010714335144,
+      "volatility_convexity": 0.0,
       "correlation_liquidation": 0.0,
-      "structure_fragility": 89.80008580083549,
+      "structure_fragility": 100.0,
       "gold_deleveraging": 0.0
     },
     "top_drivers": [
       {
         "name": "breadth_deterioration_rsp_spy",
-        "severity_0_100": 89.80008580083549
+        "severity_0_100": 100.0
       },
       {
-        "name": "credit_spread_widening_fred",
-        "severity_0_100": 42.499999999999986
+        "name": "credit_stress_proxy",
+        "severity_0_100": 22.006021428670287
       },
       {
-        "name": "rates_volatility_shock",
-        "severity_0_100": 39.93049516903675
+        "name": "yen_strengthening_fast",
+        "severity_0_100": 1.7054121464088468
       }
     ]
   },
   "data_dates": {
-    "equity_session_date": "2026-10-20",
-    "equities_close_utc": "2026-10-20T13:30:00+00:00",
+    "equity_session_date": "2026-10-21",
+    "equities_close_utc": "2026-10-21T13:30:00+00:00",
     "vix_close_utc": "2026-10-21T07:00:00+00:00",
     "vix_stale_days": 0,
-    "data_stale": false,
-    "stale_reasons": [],
+    "data_stale": true,
+    "stale_reasons": [
+      "hy_oas_missing",
+      "sofr_missing",
+      "iorb_missing",
+      "tgcr_rate_missing",
+      "tgcr_volume_missing",
+      "dgs10_missing",
+      "jgb10_missing"
+    ],
     "fred_inputs": {
       "hy_oas": {
         "series_id": "BAMLH0A0HYM2",
         "source": "FRED",
-        "source_date": "2026-10-19",
-        "stale_days": 1,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "sofr": {
         "series_id": "SOFR",
         "source": "FRED",
-        "source_date": "2026-10-20",
-        "stale_days": 0,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "iorb": {
         "series_id": "IORB",
         "source": "FRED",
-        "source_date": "2026-10-20",
-        "stale_days": 0,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "tgcr_rate": {
         "series_id": "TGCRRATE",
         "source": "FRED",
-        "source_date": "2026-10-20",
-        "stale_days": 0,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "tgcr_volume": {
         "series_id": "TGCRVOLUME",
         "source": "FRED",
-        "source_date": "2026-10-20",
-        "stale_days": 0,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "dgs10": {
         "series_id": "DGS10",
         "source": "FRED",
-        "source_date": "2026-10-19",
-        "stale_days": 1,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       },
       "usdjpy": {
         "series_id": "JPY=X",
         "source": "Yahoo",
-        "source_date": "2026-10-20",
+        "source_date": "2026-10-21",
         "stale_days": 0,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
@@ -498,18 +494,18 @@
       "jgb10": {
         "series_id": "IRLTLT01JPM156N",
         "source": "FRED",
-        "source_date": "2026-09-01",
-        "stale_days": 35,
+        "source_date": null,
+        "stale_days": null,
         "lag_tolerance_bdays": 35,
         "cadence": "monthly",
-        "available": true,
-        "eligible": true
+        "available": false,
+        "eligible": false
       }
     },
     "gold_inputs": {
       "cftc_gold": {
         "source_date": "2026-10-13",
-        "stale_days": 5,
+        "stale_days": 6,
         "lag_tolerance_bdays": 7,
         "cadence": "weekly",
         "available": true,
@@ -517,7 +513,7 @@
       },
       "gld_holdings": {
         "source_date": "2026-10-20",
-        "stale_days": 0,
+        "stale_days": 1,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
         "available": true,
@@ -750,6 +746,11 @@
       "timestamp_utc": "2026-10-21T13:21:17.458338+00:00",
       "from": "data_stale",
       "to": "normal"
+    },
+    {
+      "timestamp_utc": "2026-10-21T20:26:32.991559+00:00",
+      "from": "normal",
+      "to": "data_stale"
     }
   ],
   "rule": {
