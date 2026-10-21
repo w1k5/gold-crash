@@ -6,7 +6,8 @@ import pandas as pd
 
 from scripts.dislocation_detector import (
     DEFAULT_FRED_SERIES, RunMeta, SignalResult, compute_dashboard,
-    compute_signals, summarize_dislocation,
+    compute_signals, prepare_fred_inputs, summarize_dislocation,
+    yahoo_usdjpy_as_daily_series,
 )
 
 
@@ -68,6 +69,28 @@ class PersistenceTests(unittest.TestCase):
 
 
 class FeedQualityTests(unittest.TestCase):
+    def test_yahoo_fx_candles_use_tokyo_trading_date(self):
+        market = pd.DataFrame(
+            {"Close": [158.0, 158.5]},
+            index=pd.to_datetime(["2026-10-18T23:00:00Z", "2026-10-19T23:00:00Z"]),
+        )
+        fx = yahoo_usdjpy_as_daily_series(market)
+        self.assertEqual(fx.index[-1].date().isoformat(), "2026-10-20")
+        self.assertEqual(fx.iloc[-1, 0], 158.5)
+
+    def test_yahoo_fx_is_fresh_for_same_day_equity_session(self):
+        market = pd.DataFrame(
+            {"Close": [158.5]},
+            index=pd.to_datetime(["2026-10-19T23:00:00Z"]),
+        )
+        fx = yahoo_usdjpy_as_daily_series(market)
+        session = pd.DatetimeIndex([pd.Timestamp("2026-10-20T13:30:00Z")])
+        _, quality = prepare_fred_inputs({"usdjpy": fx}, session, "Yahoo")
+        self.assertEqual(quality["usdjpy"]["source_date"], "2026-10-20")
+        self.assertEqual(quality["usdjpy"]["stale_days"], 0)
+        self.assertTrue(quality["usdjpy"]["eligible"])
+        self.assertEqual(quality["usdjpy"]["series_id"], "JPY=X")
+
     def setUp(self):
         self.idx = pd.bdate_range(end="2026-10-05", periods=700, tz="UTC")
         n = len(self.idx)

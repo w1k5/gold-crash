@@ -217,13 +217,17 @@ gold monitor's GREEN/BLUE/ORANGE/RED regime.
   recorded confirmed entry. A one-check run followed by two checks stays
   **STRESS BUILDING**. Legacy two-check dislocations are reset rather than
   assumed to have been confirmed; changing K also requires a new confirmation.
-* Every configured FRED input includes its actual `source_date`, business-day
+* Every configured rates and FX input includes its actual `source_date`, business-day
   `stale_days`, cadence and eligibility. Daily inputs tolerate one business day
   for signal counting; the monthly JGB yield tolerates 35. Weekends are excluded
   from lag calculations; exchange/bank holidays are not separately modeled.
   Observations after the equity session are discarded. Missing or out-of-tolerance
-  FRED feeds set **DATA STALE** and their dependent checks are excluded from
+  inputs set **DATA STALE** and their dependent checks are excluded from
   both the threshold and dashboard scores. The UI gives DATA STALE precedence.
+  USD/JPY uses Yahoo's daily `JPY=X` candles, labeled by Tokyo trading date,
+  because FRED's `DEXJPUS` daily observations are published in weekly batches.
+  If Yahoo is unavailable, the detector falls back to FRED and applies the same
+  freshness gate.
 * Confidence is an input-freshness heuristic, **not a probability**. Each daily
   FRED/holdings input loses 5 points per lagged business day (maximum 60);
   missing inputs lose 20. VIX retains its 20-points-per-day penalty (maximum 60).
