@@ -139,6 +139,14 @@ def fetch_fred_series(series_id: str, api_key: str) -> pd.DataFrame:
     return df.set_index("Date").sort_index()
 
 
+def yahoo_usdjpy_as_daily_series(market: pd.DataFrame) -> pd.DataFrame:
+    """Label Yahoo FX candles by their Tokyo trading date, not their UTC timestamp."""
+    close = market["Close"].dropna().copy()
+    close.index = pd.to_datetime(close.index.tz_convert("Asia/Tokyo").date, utc=True)
+    close = close.groupby(level=0).last()
+    return close.to_frame(DEFAULT_FRED_SERIES["usdjpy"])
+
+
 def pct_change(series: pd.Series, periods: int = 1) -> pd.Series:
     return series.pct_change(periods=periods) * 100.0
 
@@ -233,7 +241,7 @@ class RunMeta:
     gold_inputs: Dict[str, Dict[str, object]] = field(default_factory=dict)
 
 
-def prepare_fred_inputs(fred_map, idx):
+def prepare_fred_inputs(fred_map, idx, usdjpy_source="FRED"):
     """Retain original observation dates and discard observations after the equity session."""
     prepared, quality = {}, {}
     for key, series_id in DEFAULT_FRED_SERIES.items():
@@ -245,7 +253,8 @@ def prepare_fred_inputs(fred_map, idx):
         lag = bday_lag_days(idx, values.index)
         tolerance = FRED_LAG_TOLERANCE[key]
         quality[key] = {
-            "series_id": series_id,
+            "series_id": "JPY=X" if key == "usdjpy" and usdjpy_source == "Yahoo" else series_id,
+            "source": usdjpy_source if key == "usdjpy" else "FRED",
             "source_date": values.index[-1].date().isoformat() if not values.empty else None,
             "stale_days": lag,
             "lag_tolerance_bdays": tolerance,
@@ -269,6 +278,7 @@ def compute_signals(
     lookback: int = 252,
     gold_cot: Optional[pd.DataFrame] = None,
     gold_holdings: Optional[pd.Series] = None,
+    usdjpy_source: str = "FRED",
 ) -> tuple[List[SignalResult], RunMeta]:
     idx = spy.index.intersection(gld.index).intersection(hyg.index)
     spy = spy.loc[idx]
@@ -277,7 +287,7 @@ def compute_signals(
 
     equities_data_date = idx.max() if len(idx) else None
     session_date = equities_data_date.date().isoformat() if equities_data_date is not None else None
-    fred_map, fred_quality = prepare_fred_inputs(fred_map, idx)
+    fred_map, fred_quality = prepare_fred_inputs(fred_map, idx, usdjpy_source)
     vix_data_date = vix.index.max() if vix is not None and not vix.empty else None
     vix_stale_days = bday_lag_days(idx, vix.index if vix is not None else None)
 
@@ -581,7 +591,7 @@ def compute_signals(
                 name="yen_strengthening_fast",
                 triggered=False,
                 details={
-                    "note": "USD/JPY series unavailable (FRED usdjpy not loaded).",
+                    "note": "USD/JPY series unavailable.",
                     "score_0_1": 0.0,
                 },
             ))
@@ -1123,6 +1133,15 @@ def main() -> None:
             except requests.RequestException:
                 pass
 
+    usdjpy_source = "FRED"
+    try:
+        fred_map["usdjpy"] = yahoo_usdjpy_as_daily_series(
+            fetch_market_daily("JPY=X", require_volume=False)
+        )
+        usdjpy_source = "Yahoo"
+    except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+        print(f"Warning: Yahoo USD/JPY unavailable ({exc}); using FRED fallback if available.")
+
     previous_summary = load_previous_summary(args.output)
     gold_cot = gold_holdings = None
     try:
@@ -1145,6 +1164,7 @@ def main() -> None:
         lookback=args.lookback,
         gold_cot=gold_cot,
         gold_holdings=gold_holdings,
+        usdjpy_source=usdjpy_source,
     )
     summary = summarize_dislocation(signals, meta, k_required=args.k, previous_summary=previous_summary)
 
