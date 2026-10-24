@@ -1,8 +1,8 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-10-23",
-  "data_dates": "SLV through 2026-10-23 \u00b7 FRED through 2026-10-22",
+  "as_of": "2026-10-24",
+  "data_dates": "SLV through 2026-10-23 \u00b7 FRED through 2026-10-23",
   "regime": "RED",
   "stability": {
     "score_0_100": 0,
@@ -123,7 +123,7 @@
       "state": "Quiet",
       "last": "-0.01",
       "percentile": "42nd",
-      "sparkline": "\u2584\u2581\u2584\u2584\u2584\u2587\u2581"
+      "sparkline": "\u2581\u2584\u2584\u2584\u2587\u2581\u2583"
     },
     {
       "name": "HY spread level",
