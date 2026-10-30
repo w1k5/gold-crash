@@ -1,11 +1,11 @@
 {
-  "asof_utc": "2026-10-30T17:12:22.062878+00:00",
+  "asof_utc": "2026-10-30T21:22:19.291963+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
   "dislocation": false,
   "watch": false,
-  "status": "data_stale",
+  "status": "normal",
   "signals_triggered_count": 0,
   "signals_triggered_count_yesterday": 0,
   "signals_triggered": [],
@@ -14,7 +14,6 @@
       "forced_flow_proxy_combo",
       "carry_trade_unwind_combo",
       "gold_futures_deleveraging",
-      "rates_volatility_shock",
       "us_jp_spread_compression"
     ],
     "notes": "Lagged VIX and ineligible FRED signals are excluded. Combos and weekly gold positioning are contextual checks, excluded from K-of-N to avoid double counting."
@@ -24,38 +23,38 @@
       "name": "big_down_and_whipsaw",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.7495010390161436,
-        "spy_intraday_range_pct": 0.7884669639052034,
-        "spy_range_z": -0.3463102138352578,
-        "score_0_1": 0.3153867855620814,
+        "spy_1d_return_pct": -1.772904090171079,
+        "spy_intraday_range_pct": 1.4688028702968152,
+        "spy_range_z": 1.016241496927117,
+        "score_0_1": 0.5875211481187261,
         "counted_toward_threshold": true,
-        "severity_0_100": 31.53867855620814
+        "severity_0_100": 58.752114811872616
       }
     },
     {
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -1.6101027326402537,
-        "spy_range_z": -0.3463102138352578,
+        "spy_dollar_volume_z": 0.7907717670608861,
+        "spy_range_z": 1.016241496927117,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
-        "score_0_1": 0.0,
+        "score_0_1": 0.39538588353044307,
         "counted_toward_threshold": true,
-        "severity_0_100": 0.0
+        "severity_0_100": 39.538588353044304
       }
     },
     {
       "name": "volatility_spike",
       "triggered": false,
       "details": {
-        "vix_level": 20.3799991607666,
-        "vix_1d_change_pct": 18.48836195797756,
-        "vix_level_z": 0.718187794426302,
-        "vix_change_z": 2.380356437648106,
+        "vix_level": 19.420000076293945,
+        "vix_1d_change_pct": 12.90697217954715,
+        "vix_level_z": 0.4270803468714628,
+        "vix_change_z": 1.660872950135195,
         "vix_eligible": true,
-        "score_0_1": 0.478791862950868,
+        "score_0_1": 0.28472023124764184,
         "counted_toward_threshold": true,
-        "severity_0_100": 47.879186295086804
+        "severity_0_100": 28.472023124764185
       }
     },
     {
@@ -63,10 +62,10 @@
       "triggered": false,
       "details": {
         "hyg_1d_return_pct": -0.19335076351965075,
-        "spy_1d_return_pct": -1.7495010390161436,
-        "hyg_minus_spy_pct": 1.5561502754964929,
+        "spy_1d_return_pct": -1.772904090171079,
+        "hyg_minus_spy_pct": 1.5795533266514283,
         "score_0_1": 0.0,
-        "margin": -3.056150275496493,
+        "margin": -3.0795533266514283,
         "margin_unit": "%",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -177,38 +176,38 @@
       "name": "rates_volatility_shock",
       "triggered": false,
       "details": {
-        "dgs10_rv5_bp": 2.529822128134671,
-        "dgs10_rv5_z": -1.0016516115203007,
-        "dgs10_rv5_5d_change_bp": -5.653086890056847,
-        "dgs10_5d_change_bp": 4.999999999999982,
-        "score_0_1": 0.21081851067788926,
+        "dgs10_rv5_bp": 4.1279534881100215,
+        "dgs10_rv5_z": -0.16014286691647908,
+        "dgs10_rv5_5d_change_bp": -4.054955530081497,
+        "dgs10_5d_change_bp": -1.9999999999999574,
+        "score_0_1": 0.34399612400916846,
         "source_inputs": {
           "dgs10": {
             "series_id": "DGS10",
             "source": "FRED",
-            "source_date": "2026-10-28",
-            "stale_days": 2,
+            "source_date": "2026-10-29",
+            "stale_days": 1,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
             "available": true,
-            "eligible": false
+            "eligible": true
           }
         },
-        "eligible": false,
-        "counted_toward_threshold": false,
-        "severity_0_100": 21.081851067788925
+        "eligible": true,
+        "counted_toward_threshold": true,
+        "severity_0_100": 34.399612400916844
       }
     },
     {
       "name": "yen_strengthening_fast",
       "triggered": false,
       "details": {
-        "usdjpy": 157.44900512695312,
-        "usdjpy_5d_change_pct": 0.6102481954206151,
-        "usdjpy_20d_change_pct": -0.30266947403569944,
-        "usdjpy_5d_change_z": 0.43257826083204987,
+        "usdjpy": 157.5189971923828,
+        "usdjpy_5d_change_pct": 0.6549732736699898,
+        "usdjpy_20d_change_pct": -0.25835022237887806,
+        "usdjpy_5d_change_z": 0.4665649952424308,
         "score_0_1": 0.0,
-        "margin": -2.610248195420615,
+        "margin": -2.65497327366999,
         "margin_unit": "% (5D)",
         "source_inputs": {
           "usdjpy": {
@@ -247,22 +246,22 @@
       "name": "us_jp_spread_compression",
       "triggered": false,
       "details": {
-        "us_jp_10y_spread_pct": 2.0,
-        "us_jp_10y_spread_20d_change_bp": -23.000000000000043,
-        "us_jp_10y_spread_20d_change_z": -0.8946258787767208,
-        "score_0_1": 0.6571428571428584,
-        "margin": -11.999999999999957,
+        "us_jp_10y_spread_pct": 1.9300000000000006,
+        "us_jp_10y_spread_20d_change_bp": -29.999999999999982,
+        "us_jp_10y_spread_20d_change_z": -1.2334955105655137,
+        "score_0_1": 0.8571428571428567,
+        "margin": -5.000000000000018,
         "margin_unit": "bp (20D)",
         "source_inputs": {
           "dgs10": {
             "series_id": "DGS10",
             "source": "FRED",
-            "source_date": "2026-10-28",
-            "stale_days": 2,
+            "source_date": "2026-10-29",
+            "stale_days": 1,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
             "available": true,
-            "eligible": false
+            "eligible": true
           },
           "jgb10": {
             "series_id": "IRLTLT01JPM156N",
@@ -277,7 +276,7 @@
         },
         "eligible": false,
         "counted_toward_threshold": false,
-        "severity_0_100": 65.71428571428584
+        "severity_0_100": 85.71428571428567
       }
     },
     {
@@ -297,21 +296,21 @@
       "name": "everything_sells_together",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.7495010390161436,
-        "gld_1d_return_pct": -3.2340998014291578,
-        "score_0_1": 0.8747505195080718,
+        "spy_1d_return_pct": -1.772904090171079,
+        "gld_1d_return_pct": -3.4701707384646063,
+        "score_0_1": 0.8864520450855395,
         "counted_toward_threshold": true,
-        "severity_0_100": 87.47505195080718
+        "severity_0_100": 88.64520450855396
       }
     },
     {
       "name": "forced_flow_proxy_combo",
       "triggered": false,
       "details": {
-        "spy_1d_return_pct": -1.7495010390161436,
-        "hyg_minus_spy_pct": 1.5561502754964929,
-        "vix_level": 20.3799991607666,
-        "vix_1d_change_pct": 18.48836195797756,
+        "spy_1d_return_pct": -1.772904090171079,
+        "hyg_minus_spy_pct": 1.5795533266514283,
+        "vix_level": 19.420000076293945,
+        "vix_1d_change_pct": 12.90697217954715,
         "score_0_1": 0.0,
         "counted_toward_threshold": false,
         "severity_0_100": 0.0
@@ -321,10 +320,10 @@
       "name": "breadth_deterioration_rsp_spy",
       "triggered": false,
       "details": {
-        "rsp_spy_ratio": 0.28865193054055716,
-        "rsp_spy_20d_return_pct": 5.925752431779241,
-        "rsp_spy_60d_return_pct": 1.4943385365162154,
-        "rsp_spy_20d_return_z": 2.8976892390892015,
+        "rsp_spy_ratio": 0.28887684065762775,
+        "rsp_spy_20d_return_pct": 6.0082870378551645,
+        "rsp_spy_60d_return_pct": 1.5734202995222768,
+        "rsp_spy_20d_return_z": 2.93506285281381,
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -334,17 +333,17 @@
       "name": "gold_futures_deleveraging",
       "triggered": false,
       "details": {
-        "eligible": false,
+        "eligible": true,
         "available": true,
         "score_0_1": 0.0,
         "source_inputs": {
           "cftc_gold": {
-            "source_date": "2026-10-20",
-            "stale_days": 8,
+            "source_date": "2026-10-27",
+            "stale_days": 3,
             "lag_tolerance_bdays": 7,
             "cadence": "weekly",
             "available": true,
-            "eligible": false
+            "eligible": true
           },
           "gld_holdings": {
             "source_date": "2026-10-29",
@@ -358,18 +357,18 @@
         "source_url": "https://publicreporting.cftc.gov/resource/72hh-3qpy.json",
         "note": "Weekly positioning proxy; does not establish forced liquidation or investor motivation.",
         "holdings_scope": "GLD only; not aggregate gold ETF or physical demand.",
-        "report_date": "2026-10-20",
-        "previous_report_date": "2026-10-13",
+        "report_date": "2026-10-27",
+        "previous_report_date": "2026-10-20",
         "report_interval_days": 7,
-        "open_interest_contracts": 402279.0,
-        "open_interest_change_contracts": 5934.0,
-        "open_interest_change_pct": 1.4971804866971956,
-        "managed_money_net_contracts": 104206.0,
-        "managed_money_net_change_contracts": -2883.0,
-        "managed_money_net_change_pct_of_prior_oi": -0.7273965863073838,
-        "managed_money_spreading_change_contracts": 5077.0,
-        "gld_report_interval_return_pct": -1.0532709905990978,
-        "gld_holdings_report_interval_change_pct": 0.5672547903623704,
+        "open_interest_contracts": 396810.0,
+        "open_interest_change_contracts": -5469.0,
+        "open_interest_change_pct": -1.3595042246798865,
+        "managed_money_net_contracts": 105562.0,
+        "managed_money_net_change_contracts": 1356.0,
+        "managed_money_net_change_pct_of_prior_oi": 0.3370794896079587,
+        "managed_money_spreading_change_contracts": 1868.0,
+        "gld_report_interval_return_pct": -1.4219502724682753,
+        "gld_holdings_report_interval_change_pct": -1.7478164085343972,
         "etf_buying_vs_futures_selling": false,
         "thresholds": "Open interest change < 0 AND managed-money net change < 0 AND matched GLD return < 0",
         "counted_toward_threshold": false,
@@ -378,10 +377,10 @@
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 10.076266142506658,
-    "fragility_score_1_3m": 5.537918629508676,
+    "crash_risk_score_1_5d": 20.67166592189739,
+    "fragility_score_1_3m": 10.0371635525681,
     "liquidity_regime_label": "Normal",
-    "confidence_score": 20.0,
+    "confidence_score": 30.0,
     "confidence_penalties": {
       "vix": 0,
       "hy_oas": 5,
@@ -389,33 +388,33 @@
       "iorb": 0,
       "tgcr_rate": 5,
       "tgcr_volume": 5,
-      "dgs10": 10,
+      "dgs10": 5,
       "usdjpy": 0,
       "jgb10": 40,
-      "cftc_gold": 5,
+      "cftc_gold": 0,
       "gld_holdings": 5
     },
     "confidence_notes": "Input-freshness score, not a probability. Daily observation lags reduce confidence; weekly/monthly series use cadence tolerances.",
     "pillar_scores": {
-      "liquidity_funding": 0.0,
+      "liquidity_funding": 20.000000000000018,
       "credit_stress": 3.7499999999999756,
-      "volatility_convexity": 23.939593147543402,
-      "correlation_liquidation": 15.76933927810407,
+      "volatility_convexity": 31.435817762840514,
+      "correlation_liquidation": 29.376057405936308,
       "structure_fragility": 0.0,
       "gold_deleveraging": 0.0
     },
     "top_drivers": [
       {
         "name": "everything_sells_together",
-        "severity_0_100": 87.47505195080718
-      },
-      {
-        "name": "volatility_spike",
-        "severity_0_100": 47.879186295086804
+        "severity_0_100": 88.64520450855396
       },
       {
         "name": "big_down_and_whipsaw",
-        "severity_0_100": 31.53867855620814
+        "severity_0_100": 58.752114811872616
+      },
+      {
+        "name": "liquidity_degraded_proxy",
+        "severity_0_100": 39.538588353044304
       }
     ]
   },
@@ -424,9 +423,8 @@
     "equities_close_utc": "2026-10-30T13:30:00+00:00",
     "vix_close_utc": "2026-10-30T07:00:00+00:00",
     "vix_stale_days": 0,
-    "data_stale": true,
+    "data_stale": false,
     "stale_reasons": [
-      "dgs10_stale",
       "jgb10_stale"
     ],
     "fred_inputs": {
@@ -483,12 +481,12 @@
       "dgs10": {
         "series_id": "DGS10",
         "source": "FRED",
-        "source_date": "2026-10-28",
-        "stale_days": 2,
+        "source_date": "2026-10-29",
+        "stale_days": 1,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
         "available": true,
-        "eligible": false
+        "eligible": true
       },
       "usdjpy": {
         "series_id": "JPY=X",
@@ -513,12 +511,12 @@
     },
     "gold_inputs": {
       "cftc_gold": {
-        "source_date": "2026-10-20",
-        "stale_days": 8,
+        "source_date": "2026-10-27",
+        "stale_days": 3,
         "lag_tolerance_bdays": 7,
         "cadence": "weekly",
         "available": true,
-        "eligible": false
+        "eligible": true
       },
       "gld_holdings": {
         "source_date": "2026-10-29",
