@@ -159,6 +159,22 @@ class FeedQualityTests(unittest.TestCase):
         self.assertTrue(run.fred_inputs["jgb10"]["eligible"])
         self.assertNotIn("jgb10_stale", run.stale_reasons)
 
+    def test_expired_monthly_jgb_excludes_only_dependent_check(self):
+        self.fred["jgb10"] = self.fred["jgb10"].iloc[:-42]
+        found, run = self.run_signals()
+        result = summarize_dislocation(found, run)
+        self.assertIn("jgb10_stale", run.stale_reasons)
+        self.assertFalse(run.data_stale)
+        self.assertEqual(result["status"], "normal")
+        self.assertIn("us_jp_spread_compression", result["signal_counting"]["excluded_from_threshold"])
+
+    def test_feed_recovery_does_not_create_market_transition(self):
+        prior = summarize_dislocation(signals(0), meta())
+        prior["status"] = "data_stale"
+        recovered = summarize_dislocation(signals(0), meta(), previous_summary=prior)
+        self.assertEqual(recovered["status"], "normal")
+        self.assertEqual(recovered["transitions"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

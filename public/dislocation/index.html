@@ -187,7 +187,8 @@
     </section>
 
     <section class="card">
-      <h2>Recent transitions</h2>
+      <h2>Recent market transitions</h2>
+      <p class="tiny">Feed delays are reported with data dates, not as market transitions.</p>
       <ul id="transitions" class="timeline">
         <li class="skeleton">Loading…</li>
       </ul>
@@ -415,12 +416,21 @@
 
     const count = data.signals_triggered_count ?? 0;
     const k = data.rule?.k_required ?? 3;
+    const staleReasons = data.data_dates?.stale_reasons || [];
+    const feedNote = staleReasons.map(reason => {
+      if (reason === 'jgb10_stale') {
+        const q = data.data_dates?.fred_inputs?.jgb10 || {};
+        return `Japan 10-year yield last observed ${q.source_date || 'unknown'} (${q.stale_days ?? '?'} business days old; limit ${q.lag_tolerance_bdays ?? '?'})`;
+      }
+      return reason.replaceAll('_', ' ');
+    }).join(', ');
+    const limitedNote = feedNote ? ` Some checks are excluded: ${feedNote}.` : '';
 
     if (data.status === "data_stale"){
       badge.className = "badge b-muted";
       badge.textContent = "DATA STALE";
       headline.textContent = "Freshness guardrail triggered";
-      explain.textContent = "At least one required series is stale beyond tolerance. Treat this run as informational until data refreshes.";
+      explain.textContent = `Required feeds are missing or stale${feedNote ? `: ${feedNote}` : ''}. Treat this run as informational until they refresh.`;
       return;
     }
     if (data.status === "dislocation" || data.dislocation === true){
@@ -430,19 +440,22 @@
       explain.textContent = data.persistence_applied
         ? `A previously confirmed dislocation is holding with ${count}/${k} signals active.`
         : `${count}/${k} eligible stress signals are active. This is a stress classification, not confirmation of a liquidity crisis.`;
+      explain.textContent += limitedNote;
       return;
     }
     if (data.watch === true || data.status === "stress_building" || count >= 1){
       badge.className = "badge b-warn";
       badge.textContent = "STRESS BUILDING";
       headline.textContent = "Stress building";
-      explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.`;
+      explain.textContent = `At least one stress signal is elevated (${count}/${k}). Not a dislocation yet—this is an early-warning “pay attention” state.${limitedNote}`;
       return;
     }
-    badge.className = "badge b-good";
-    badge.textContent = "NORMAL";
-    headline.textContent = "Conditions look normal";
-    explain.textContent = `0/${k} dislocation signals. Liquidity/vol/credit relationships look typical today.`;
+    badge.className = feedNote ? "badge b-warn" : "badge b-good";
+    badge.textContent = feedNote ? "NORMAL · LIMITED DATA" : "NORMAL";
+    headline.textContent = feedNote ? "No active stress signals in available checks" : "Conditions look normal";
+    explain.textContent = feedNote
+      ? `0/${k} eligible stress signals. ${limitedNote.trim()}`
+      : `0/${k} dislocation signals. Liquidity/vol/credit relationships look typical today.`;
   };
 
   const renderSignals = (data) => {
@@ -557,10 +570,11 @@
     }
   };
 
+  const marketTransitions = transitions => transitions.filter(t => t.from !== 'data_stale' && t.to !== 'data_stale');
   const renderTransitions = (data) => {
     const ul = document.getElementById('transitions');
     ul.innerHTML = '';
-    const transitions = Array.isArray(data.transitions) ? data.transitions : [];
+    const transitions = marketTransitions(Array.isArray(data.transitions) ? data.transitions : []);
     if (transitions.length === 0){
       const li = document.createElement('li');
       li.textContent = 'No recent transitions logged.';

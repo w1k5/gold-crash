@@ -222,8 +222,10 @@ gold monitor's GREEN/BLUE/ORANGE/RED regime.
   for signal counting; the monthly JGB yield tolerates 35. Weekends are excluded
   from lag calculations; exchange/bank holidays are not separately modeled.
   Observations after the equity session are discarded. Missing or out-of-tolerance
-  inputs set **DATA STALE** and their dependent checks are excluded from
-  both the threshold and dashboard scores. The UI gives DATA STALE precedence.
+  inputs exclude their dependent checks from the threshold and dashboard scores.
+  Missing core feeds set **DATA STALE**. The monthly Japan yield only supports one
+  supplemental spread check, so its lag is shown as **LIMITED DATA** instead of
+  obscuring the market status. Feed failures are not logged as market transitions.
   USD/JPY uses Yahoo's daily `JPY=X` candles, labeled by Tokyo trading date,
   because FRED's `DEXJPUS` daily observations are published in weekly batches.
   If Yahoo is unavailable, the detector falls back to FRED and applies the same

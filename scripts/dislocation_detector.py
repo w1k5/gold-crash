@@ -40,6 +40,9 @@ DEFAULT_FRED_SERIES = {
     "jgb10": "IRLTLT01JPM156N",
 }
 FRED_LAG_TOLERANCE = {key: (35 if key == "jgb10" else 1) for key in DEFAULT_FRED_SERIES}
+# The monthly Japan yield only powers one supplemental spread check. Its release
+# lag must not invalidate the independent daily market and funding checks.
+NONBLOCKING_FRED_INPUTS = {"jgb10"}
 FRED_SIGNAL_INPUTS = {
     "credit_spread_widening_fred": ["hy_oas"],
     "funding_stress_sofr_iorb": ["sofr", "iorb"],
@@ -836,7 +839,7 @@ def compute_signals(
         equities_data_date_utc=equities_data_date.isoformat() if equities_data_date is not None else None,
         vix_data_date_utc=vix_data_date.isoformat() if vix_data_date is not None else None,
         vix_stale_days=vix_stale_days,
-        data_stale=bool(stale_reasons),
+        data_stale=any(reason.rsplit("_", 1)[0] not in NONBLOCKING_FRED_INPUTS for reason in stale_reasons),
         stale_reasons=stale_reasons,
         fred_inputs=fred_quality,
         gold_inputs=gold_quality,
@@ -1008,7 +1011,8 @@ def summarize_dislocation(
     transitions = []
     if previous_summary and isinstance(previous_summary.get("transitions"), list):
         transitions = list(previous_summary["transitions"])
-    if previous_status and previous_status != status:
+    # Feed failures are data-quality events, not changes in market conditions.
+    if previous_status and "data_stale" not in (previous_status, status) and previous_status != status:
         transitions.append({
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "from": previous_status,
