@@ -27,5 +27,13 @@ for (const script of scripts) {
   assert.equal(render({status: 'dislocation', dislocation: true, signals_triggered_count: 2, persistence_applied: true}), 'DISLOCATION');
   assert.match(elements.get('statusExplain').textContent, /previously confirmed/);
   assert.equal(render({status: 'normal', signals_triggered_count: 0}), 'NORMAL');
+  assert.equal(render({status: 'normal', signals_triggered_count: 0,
+    data_dates: {stale_reasons: ['jgb10_stale']}}), 'NORMAL · LIMITED DATA');
+  assert.match(elements.get('statusExplain').textContent, /Japan 10-year yield/);
+  context.transitions = [
+    {from: 'normal', to: 'data_stale'},
+    {from: 'stress_building', to: 'dislocation'},
+  ];
+  assert.equal(vm.runInContext('marketTransitions(transitions).length', context), 1);
 }
 console.log('Dashboard regression checks passed for both published copies');
