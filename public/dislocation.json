@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-10-30T21:22:19.291963+00:00",
+  "asof_utc": "2026-10-31T20:23:34.470626+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
@@ -35,12 +35,12 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": 0.7907717670608861,
+        "spy_dollar_volume_z": 0.8126364488961948,
         "spy_range_z": 1.016241496927117,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
-        "score_0_1": 0.39538588353044307,
+        "score_0_1": 0.4063182244480974,
         "counted_toward_threshold": true,
-        "severity_0_100": 39.538588353044304
+        "severity_0_100": 40.63182244480974
       }
     },
     {
@@ -202,12 +202,12 @@
       "name": "yen_strengthening_fast",
       "triggered": false,
       "details": {
-        "usdjpy": 157.5189971923828,
-        "usdjpy_5d_change_pct": 0.6549732736699898,
-        "usdjpy_20d_change_pct": -0.25835022237887806,
-        "usdjpy_5d_change_z": 0.4665649952424308,
+        "usdjpy": 157.8040008544922,
+        "usdjpy_5d_change_pct": 0.837091218196262,
+        "usdjpy_20d_change_pct": -0.07788478038057711,
+        "usdjpy_5d_change_z": 0.6049332562184631,
         "score_0_1": 0.0,
-        "margin": -2.65497327366999,
+        "margin": -2.837091218196262,
         "margin_unit": "% (5D)",
         "source_inputs": {
           "usdjpy": {
@@ -414,7 +414,7 @@
       },
       {
         "name": "liquidity_degraded_proxy",
-        "severity_0_100": 39.538588353044304
+        "severity_0_100": 40.63182244480974
       }
     ]
   },
