@@ -1,34 +1,33 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-11-10",
-  "data_dates": "SLV through 2026-11-10 \u00b7 FRED through 2026-11-10",
+  "as_of": "2026-11-11",
+  "data_dates": "SLV through 2026-11-11 \u00b7 FRED through 2026-11-10",
   "regime": "RED",
   "stability": {
-    "score_0_100": 50,
+    "score_0_100": 65,
     "is_stabilizing": false,
-    "label": "unstable",
-    "streak": 0,
+    "label": "early_stabilizing",
+    "streak": 1,
     "reasons": [
-      "drawdown_stabilizing",
-      "range_contracting"
+      "shock_falling",
+      "drawdown_stabilizing"
     ],
     "missing": [
-      "shock_falling",
+      "range_contracting",
       "credit_stress_cooling"
     ]
   },
   "action_bias": "Defensive",
   "confidence": "High",
-  "regime_description": "Breakdown / stress regime driven by deep drawdown, high shock, credit stress.",
+  "regime_description": "Breakdown / stress regime driven by deep drawdown, credit stress.",
   "top_drivers": [
-    "Trend/extension score is 33/100 (distance vs 200DMA: -25.99%)",
-    "Vol/shock score is 100/100 (20D realized vol percentile: 90th)",
+    "Trend/extension score is 36/100 (distance vs 200DMA: -25.39%)",
+    "Vol/shock score is 68/100 (20D realized vol percentile: 85th)",
     "Risk appetite score is 85/100 (HY spread level: 3.34)"
   ],
   "triggers": [
     "deep_drawdown",
-    "high_shock",
     "credit_stress"
   ],
   "what_changes_next": {
@@ -42,27 +41,27 @@
     ]
   },
   "now_cards": {
-    "event_risk_1_5d": 100,
-    "fragility_1_3m": 67,
+    "event_risk_1_5d": 68,
+    "fragility_1_3m": 60,
     "liquidity_regime": "Risk-off"
   },
   "pillars": [
     {
       "name": "Trend / Extension",
-      "score": 33,
+      "score": 36,
       "metrics": [
-        "Distance vs 200DMA: -25.99%",
-        "20D momentum: -13.11%",
-        "63D drawdown: -25.95%"
+        "Distance vs 200DMA: -25.39%",
+        "20D momentum: -7.11%",
+        "63D drawdown: -25.68%"
       ]
     },
     {
       "name": "Vol / Shock",
-      "score": 100,
+      "score": 68,
       "metrics": [
-        "Realized vol (20D): 46.95%",
-        "1D drop percentile: 90th",
-        "Whipsaw flag: triggered"
+        "Realized vol (20D): 42.61%",
+        "1D drop percentile: 50th",
+        "Whipsaw flag: quiet"
       ]
     },
     {
@@ -88,30 +87,30 @@
     {
       "name": "Distance above 200DMA",
       "state": "Quiet",
-      "last": "-25.99%",
-      "percentile": "0th",
-      "sparkline": "\u2581\u2581\u2584\u2584\u2584\u2587\u2584"
+      "last": "-25.39%",
+      "percentile": "1st",
+      "sparkline": "\u2581\u2584\u2584\u2584\u2587\u2584\u2585"
     },
     {
       "name": "20D momentum",
       "state": "Quiet",
-      "last": "-13.11%",
-      "percentile": "6th",
-      "sparkline": "\u2582\u2581\u2586\u2586\u2584\u2587\u2585"
+      "last": "-7.11%",
+      "percentile": "16th",
+      "sparkline": "\u2581\u2584\u2584\u2583\u2584\u2584\u2587"
     },
     {
       "name": "20D realized volatility",
       "state": "Triggered",
-      "last": "+46.95%",
-      "percentile": "90th",
-      "sparkline": "\u2581\u2581\u2585\u2585\u2584\u2585\u2587"
+      "last": "+42.61%",
+      "percentile": "85th",
+      "sparkline": "\u2581\u2585\u2585\u2584\u2585\u2587\u2582"
     },
     {
       "name": "1D down move severity",
-      "state": "Triggered",
-      "last": "3.45%",
-      "percentile": "90th",
-      "sparkline": "\u2581\u2583\u2581\u2581\u2581\u2581\u2587"
+      "state": "Quiet",
+      "last": "0.00%",
+      "percentile": "50th",
+      "sparkline": "\u2583\u2581\u2581\u2581\u2581\u2587\u2581"
     },
     {
       "name": "DFII10 1M change",
