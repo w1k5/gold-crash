@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-11-13T22:22:35.320180+00:00",
+  "asof_utc": "2026-11-14T21:05:17.856999+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
@@ -7,7 +7,7 @@
   "watch": true,
   "status": "stress_building",
   "signals_triggered_count": 1,
-  "signals_triggered_count_yesterday": 0,
+  "signals_triggered_count_yesterday": 1,
   "signals_triggered": [
     "jgb_price_drop_fast"
   ],
@@ -26,8 +26,8 @@
       "triggered": false,
       "details": {
         "spy_1d_return_pct": -0.3632185145994393,
-        "spy_intraday_range_pct": 1.621217777471403,
-        "spy_range_z": 1.1429798400487732,
+        "spy_intraday_range_pct": 1.6225446814694136,
+        "spy_range_z": 1.145360457963612,
         "score_0_1": 0.14528740583977573,
         "counted_toward_threshold": true,
         "severity_0_100": 14.528740583977573
@@ -37,8 +37,8 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": -0.9832597298186915,
-        "spy_range_z": 1.1429798400487732,
+        "spy_dollar_volume_z": -0.9320429249562836,
+        "spy_range_z": 1.145360457963612,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
         "score_0_1": 0.0,
         "counted_toward_threshold": true,
@@ -204,12 +204,12 @@
       "name": "yen_strengthening_fast",
       "triggered": false,
       "details": {
-        "usdjpy": 159.68600463867188,
-        "usdjpy_5d_change_pct": 1.3892262281276935,
-        "usdjpy_20d_change_pct": 0.9756987126666505,
-        "usdjpy_5d_change_z": 1.0218830532110426,
+        "usdjpy": 159.875,
+        "usdjpy_5d_change_pct": 1.5092248058936386,
+        "usdjpy_20d_change_pct": 1.0952078625557915,
+        "usdjpy_5d_change_z": 1.112905271277229,
         "score_0_1": 0.0,
-        "margin": -3.3892262281276935,
+        "margin": -3.5092248058936386,
         "margin_unit": "% (5D)",
         "source_inputs": {
           "usdjpy": {
