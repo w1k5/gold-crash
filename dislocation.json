@@ -1,11 +1,11 @@
 {
-  "asof_utc": "2026-11-21T22:00:35.300728+00:00",
+  "asof_utc": "2026-11-22T22:17:13.245678+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": "2026-11-20",
   "persistence_applied": false,
   "dislocation": true,
   "watch": false,
-  "status": "data_stale",
+  "status": "dislocation",
   "signals_triggered_count": 4,
   "signals_triggered_count_yesterday": 4,
   "signals_triggered": [
@@ -19,8 +19,7 @@
       "forced_flow_proxy_combo",
       "carry_trade_unwind_combo",
       "gold_futures_deleveraging",
-      "us_jp_spread_compression",
-      "rates_volatility_shock"
+      "us_jp_spread_compression"
     ],
     "notes": "Lagged VIX and ineligible FRED signals are excluded. Combos and weekly gold positioning are contextual checks, excluded from K-of-N to avoid double counting."
   },
@@ -179,6 +178,32 @@
       }
     },
     {
+      "name": "rates_volatility_shock",
+      "triggered": false,
+      "details": {
+        "dgs10_rv5_bp": 1.166190378969047,
+        "dgs10_rv5_z": -1.759687757307565,
+        "dgs10_rv5_5d_change_bp": -3.4120188779347704,
+        "dgs10_5d_change_bp": -11.000000000000032,
+        "score_0_1": 0.1457737973711309,
+        "source_inputs": {
+          "dgs10": {
+            "series_id": "DGS10",
+            "source": "FRED",
+            "source_date": "2026-11-19",
+            "stale_days": 1,
+            "lag_tolerance_bdays": 1,
+            "cadence": "daily",
+            "available": true,
+            "eligible": true
+          }
+        },
+        "eligible": true,
+        "counted_toward_threshold": true,
+        "severity_0_100": 14.57737973711309
+      }
+    },
+    {
       "name": "yen_strengthening_fast",
       "triggered": false,
       "details": {
@@ -226,18 +251,22 @@
       "name": "us_jp_spread_compression",
       "triggered": false,
       "details": {
-        "note": "US10/JGB10 spread unavailable (missing DGS10 or JGB10).",
+        "us_jp_10y_spread_pct": 2.285,
+        "us_jp_10y_spread_20d_change_bp": 4.0000000000000036,
+        "us_jp_10y_spread_20d_change_z": 0.38912298363697706,
         "score_0_1": 0.0,
+        "margin": -39.0,
+        "margin_unit": "bp (20D)",
         "source_inputs": {
           "dgs10": {
             "series_id": "DGS10",
             "source": "FRED",
-            "source_date": null,
-            "stale_days": null,
+            "source_date": "2026-11-19",
+            "stale_days": 1,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
-            "available": false,
-            "eligible": false
+            "available": true,
+            "eligible": true
           },
           "jgb10": {
             "series_id": "IRLTLT01JPM156N",
@@ -306,29 +335,6 @@
       }
     },
     {
-      "name": "rates_volatility_shock",
-      "triggered": false,
-      "details": {
-        "score_0_1": 0.0,
-        "note": "Required FRED input unavailable.",
-        "source_inputs": {
-          "dgs10": {
-            "series_id": "DGS10",
-            "source": "FRED",
-            "source_date": null,
-            "stale_days": null,
-            "lag_tolerance_bdays": 1,
-            "cadence": "daily",
-            "available": false,
-            "eligible": false
-          }
-        },
-        "eligible": false,
-        "counted_toward_threshold": false,
-        "severity_0_100": 0.0
-      }
-    },
-    {
       "name": "gold_futures_deleveraging",
       "triggered": false,
       "details": {
@@ -376,10 +382,10 @@
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 33.500000000000064,
-    "fragility_score_1_3m": 17.900000000000034,
+    "crash_risk_score_1_5d": 35.322172467139204,
+    "fragility_score_1_3m": 19.357737973711345,
     "liquidity_regime_label": "Normal",
-    "confidence_score": 50.0,
+    "confidence_score": 65.0,
     "confidence_penalties": {
       "vix": 0,
       "hy_oas": 5,
@@ -387,7 +393,7 @@
       "iorb": 0,
       "tgcr_rate": 5,
       "tgcr_volume": 5,
-      "dgs10": 20,
+      "dgs10": 5,
       "usdjpy": 0,
       "jgb10": 5,
       "cftc_gold": 0,
@@ -397,7 +403,7 @@
     "pillar_scores": {
       "liquidity_funding": 10.000000000000231,
       "credit_stress": 31.999999999999986,
-      "volatility_convexity": 50.0,
+      "volatility_convexity": 57.288689868556546,
       "correlation_liquidation": 50.0,
       "structure_fragility": 0.0,
       "gold_deleveraging": 0.0
@@ -422,9 +428,8 @@
     "equities_close_utc": "2026-11-20T14:30:00+00:00",
     "vix_close_utc": "2026-11-20T08:00:00+00:00",
     "vix_stale_days": 0,
-    "data_stale": true,
+    "data_stale": false,
     "stale_reasons": [
-      "dgs10_missing",
       "jgb10_stale"
     ],
     "fred_inputs": {
@@ -481,12 +486,12 @@
       "dgs10": {
         "series_id": "DGS10",
         "source": "FRED",
-        "source_date": null,
-        "stale_days": null,
+        "source_date": "2026-11-19",
+        "stale_days": 1,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
-        "available": false,
-        "eligible": false
+        "available": true,
+        "eligible": true
       },
       "usdjpy": {
         "series_id": "JPY=X",
