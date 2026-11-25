@@ -1,8 +1,8 @@
 {
   "title": "Silver Risk Monitor (SLV)",
   "subtitle": "Outcome first: regime, drivers, and what changes next.",
-  "as_of": "2026-11-24",
-  "data_dates": "SLV through 2026-11-23 \u00b7 FRED through 2026-11-23",
+  "as_of": "2026-11-25",
+  "data_dates": "SLV through 2026-11-23 \u00b7 FRED through 2026-11-24",
   "regime": "RED",
   "stability": {
     "score_0_100": 55,
@@ -24,7 +24,7 @@
   "top_drivers": [
     "Trend/extension score is 34/100 (distance vs 200DMA: -36.13%)",
     "Vol/shock score is 71/100 (20D realized vol percentile: 92nd)",
-    "Risk appetite score is 92/100 (HY spread level: 3.76)"
+    "Risk appetite score is 86/100 (HY spread level: 3.63)"
   ],
   "triggers": [
     "deep_drawdown",
@@ -42,7 +42,7 @@
   },
   "now_cards": {
     "event_risk_1_5d": 71,
-    "fragility_1_3m": 56,
+    "fragility_1_3m": 51,
     "liquidity_regime": "Risk-off"
   },
   "pillars": [
@@ -66,19 +66,19 @@
     },
     {
       "name": "Macro (headwinds)",
-      "score": 26,
+      "score": 14,
       "metrics": [
-        "DFII10: 2.77",
-        "DFII10 1M change: +0.01",
-        "T10YIE 1M change: -0.19"
+        "DFII10: 2.79",
+        "DFII10 1M change: +0.15",
+        "T10YIE 1M change: -0.22"
       ]
     },
     {
       "name": "Risk appetite",
-      "score": 92,
+      "score": 86,
       "metrics": [
-        "HY spread level: 3.76",
-        "HY spread 1M change: +0.49",
+        "HY spread level: 3.63",
+        "HY spread 1M change: +0.23",
         "Regime: Risk-off"
       ]
     }
@@ -114,24 +114,24 @@
     },
     {
       "name": "DFII10 1M change",
-      "state": "Quiet",
-      "last": "+0.01",
-      "percentile": "55th",
-      "sparkline": "\u2584\u2586\u2587\u2585\u2585\u2585\u2581"
+      "state": "Watch",
+      "last": "+0.15",
+      "percentile": "77th",
+      "sparkline": "\u2586\u2587\u2585\u2585\u2585\u2581\u2581"
     },
     {
       "name": "T10YIE 1M change",
       "state": "Quiet",
-      "last": "-0.19",
-      "percentile": "8th",
-      "sparkline": "\u2587\u2584\u2585\u2584\u2582\u2582\u2581"
+      "last": "-0.22",
+      "percentile": "6th",
+      "sparkline": "\u2586\u2587\u2585\u2583\u2582\u2581\u2581"
     },
     {
       "name": "HY spread level",
       "state": "Triggered",
-      "last": "+3.76",
-      "percentile": "92nd",
-      "sparkline": "\u2581\u2581\u2582\u2583\u2583\u2584\u2587"
+      "last": "+3.63",
+      "percentile": "86th",
+      "sparkline": "\u2581\u2582\u2583\u2583\u2584\u2587\u2585"
     }
   ],
   "rules": [
