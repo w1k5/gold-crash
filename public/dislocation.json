@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-11-26T00:49:42.814676+00:00",
+  "asof_utc": "2026-11-27T00:55:44.080353+00:00",
   "rule_version": 2,
   "last_confirmed_dislocation_session": null,
   "persistence_applied": false,
@@ -37,12 +37,12 @@
       "name": "liquidity_degraded_proxy",
       "triggered": false,
       "details": {
-        "spy_dollar_volume_z": 0.4615059525101324,
+        "spy_dollar_volume_z": 0.49322938557851453,
         "spy_range_z": 3.6366914898627765,
         "volume_interpretation": "High dollar volume contributes to stress only when paired with elevated range.",
-        "score_0_1": 0.2307529762550662,
+        "score_0_1": 0.24661469278925727,
         "counted_toward_threshold": true,
-        "severity_0_100": 23.075297625506618
+        "severity_0_100": 24.661469278925725
       }
     },
     {
@@ -51,7 +51,7 @@
       "details": {
         "vix_level": 28.290000915527344,
         "vix_1d_change_pct": 7.321700532957776,
-        "vix_level_z": 2.7008239933313325,
+        "vix_level_z": 2.7008239933312854,
         "vix_change_z": -2.673748286735708,
         "vix_eligible": true,
         "score_0_1": 0.3660850266478888,
@@ -232,13 +232,13 @@
       "name": "jgb_price_drop_fast",
       "triggered": false,
       "details": {
-        "jgb_etf_close": 2013.0,
-        "jgb_etf_5d_return_pct": 1.3085052843482714,
-        "jgb_etf_20d_return_pct": 0.7003501750875385,
-        "jgb_etf_5d_return_z": 1.8942540256984743,
+        "jgb_etf_close": 2017.0,
+        "jgb_etf_5d_return_pct": 1.153460381143434,
+        "jgb_etf_20d_return_pct": 1.102756892230583,
+        "jgb_etf_5d_return_z": 1.6809268373377069,
         "trigger_reason": "5d",
         "score_0_1": 0.0,
-        "margin": -2.3085052843482714,
+        "margin": -2.153460381143434,
         "margin_unit": "% (5D)",
         "counted_toward_threshold": true,
         "severity_0_100": 0.0
@@ -348,8 +348,8 @@
             "eligible": true
           },
           "gld_holdings": {
-            "source_date": "2026-11-24",
-            "stale_days": 1,
+            "source_date": "2026-11-25",
+            "stale_days": 0,
             "lag_tolerance_bdays": 1,
             "cadence": "daily",
             "available": true,
@@ -379,10 +379,10 @@
     }
   ],
   "dashboard": {
-    "crash_risk_score_1_5d": 31.08351715122225,
-    "fragility_score_1_3m": 22.790036934682206,
+    "crash_risk_score_1_5d": 31.559368647247982,
+    "fragility_score_1_3m": 23.02796268269507,
     "liquidity_regime_label": "Normal",
-    "confidence_score": 50.0,
+    "confidence_score": 55.0,
     "confidence_penalties": {
       "vix": 0,
       "hy_oas": 5,
@@ -394,11 +394,11 @@
       "usdjpy": 0,
       "jgb10": 20,
       "cftc_gold": 0,
-      "gld_holdings": 5
+      "gld_holdings": 0
     },
     "confidence_notes": "Input-freshness score, not a probability. Daily observation lags reduce confidence; weekly/monthly series use cadence tolerances.",
     "pillar_scores": {
-      "liquidity_funding": 23.075297625506618,
+      "liquidity_funding": 24.661469278925725,
       "credit_stress": 50.0,
       "volatility_convexity": 46.64371145428106,
       "correlation_liquidation": 0.0,
@@ -423,7 +423,7 @@
   "data_dates": {
     "equity_session_date": "2026-11-25",
     "equities_close_utc": "2026-11-25T14:30:00+00:00",
-    "vix_close_utc": "2026-11-25T08:00:00+00:00",
+    "vix_close_utc": "2026-11-26T08:00:00+00:00",
     "vix_stale_days": 0,
     "data_stale": false,
     "stale_reasons": [
@@ -521,8 +521,8 @@
         "eligible": true
       },
       "gld_holdings": {
-        "source_date": "2026-11-24",
-        "stale_days": 1,
+        "source_date": "2026-11-25",
+        "stale_days": 0,
         "lag_tolerance_bdays": 1,
         "cadence": "daily",
         "available": true,
